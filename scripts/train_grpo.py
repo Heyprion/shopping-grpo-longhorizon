@@ -78,10 +78,22 @@ def build_command(args: argparse.Namespace) -> tuple[list[str], dict[str, str]]:
             raise SystemExit(f"output must be a directory: {output}")
         if any(output.iterdir()):
             raise SystemExit(f"output directory must be new or empty: {output}")
-    if args.logger == "swanlab" and not os.environ.get("SWANLAB_API_KEY"):
-        raise SystemExit("--logger swanlab requires SWANLAB_API_KEY")
+    api_key = os.environ.get("SWANLAB_API_KEY")
+    if args.logger == "swanlab" and not api_key:
+        from swanlab.sdk.internal.settings import Settings
+        api_key = Settings().api_key
+        if hasattr(api_key, "get_secret_value"):
+            api_key = api_key.get_secret_value()
+        if not api_key:
+            raise SystemExit("--logger swanlab requires SwanLab login or SWANLAB_API_KEY")
 
     environment = dict(os.environ)
+    # Ray's early runtime hook imports CUDA before per-actor visibility remapping.
+    # Let veRL Worker select the assigned physical device from Ray's GPU IDs.
+    environment.setdefault("RAY_EXPERIMENTAL_NOSET_CUDA_VISIBLE_DEVICES", "1")
+    environment.setdefault("SHOPPING_GRPO_SEED", "42")
+    environment.setdefault("PYTHONHASHSEED", "42")
+    environment.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "0")
     environment.update(
         {
             "PYTHONPATH": str(ROOT / "src"),
@@ -95,6 +107,9 @@ def build_command(args: argparse.Namespace) -> tuple[list[str], dict[str, str]]:
             "SHOPPING_GRPO_DIAGNOSTICS_PATH": str(
                 output / "training_diagnostics.jsonl"
             ),
+            "SHOPPING_GRPO_VALIDATION_DIAGNOSTICS_PATH": str(
+                output / "validation_diagnostics.jsonl"
+            ),
             "SHOPSIM_BASE_URL": str(args.env_url),
             "SHOPPING_AGENT_LOOP_CONFIG": str(DEFAULT_AGENT_CONFIG),
             "SHOPPING_TOOL_CONFIG": str(DEFAULT_TOOL_CONFIG),
@@ -106,6 +121,7 @@ def build_command(args: argparse.Namespace) -> tuple[list[str], dict[str, str]]:
             {
                 "SWANLAB_MODE": "online",
                 "SWANLAB_LOG_DIR": str(output / "swanlab"),
+                "SWANLAB_API_KEY": str(api_key),
             }
         )
     logger_override = (
@@ -149,11 +165,11 @@ def main() -> None:
     if args.dry_run:
         return
     Path(environment["GRPO_OUTPUT_DIR"]).mkdir(parents=True, exist_ok=True)
+    # Reuse the exact overrides already assembled by build_command.
     preflight = [
         sys.executable,
         str(ROOT / "scripts/check_grpo_runtime.py"),
-        *overrides,
-        *extra,
+        *command[5:],
     ]
     preflight_status = subprocess.call(preflight, cwd=ROOT, env=environment)
     if preflight_status:

@@ -10,7 +10,6 @@ import sys
 from importlib.metadata import PackageNotFoundError, distribution, version
 from pathlib import Path
 
-
 EXPECTED_VERSIONS = {
     "verl": "0.8.0",
     "vllm": "0.25.1",
@@ -369,8 +368,15 @@ def validate_training_memory_budget(config):
     actor_micro_batch_size = int(actor.ppo_micro_batch_size_per_gpu)
     actor_mini_batch_size = int(actor.ppo_mini_batch_size)
     try:
+        data_parallel_size = (
+            int(config.trainer.n_gpus_per_node) * int(config.trainer.nnodes)
+            // int(actor.fsdp_config.ulysses_sequence_parallel_size)
+        )
+        trajectory_mini_batch = actor_mini_batch_size * int(rollout.n)
+        if trajectory_mini_batch % data_parallel_size:
+            raise ValueError("PPO trajectory mini batch must be divisible by data parallel size")
         gradient_accumulation_steps = ppo_gradient_accumulation_steps(
-            actor_mini_batch_size,
+            trajectory_mini_batch // data_parallel_size,
             actor_micro_batch_size,
         )
     except ValueError as exc:
@@ -398,6 +404,8 @@ def validate_training_memory_budget(config):
                 "max_response_length": response_length,
                 "max_sequence_length": total_length,
                 "actor_mini_batch_size": actor_mini_batch_size,
+                "actor_trajectory_mini_batch_size": trajectory_mini_batch,
+                "data_parallel_size": data_parallel_size,
                 "actor_micro_batch_size_per_gpu": actor_micro_batch_size,
                 "actor_gradient_accumulation_steps": gradient_accumulation_steps,
                 "actor_dynamic_batch": False,
@@ -411,6 +419,27 @@ def validate_training_memory_budget(config):
     )
 
 
+def validate_fsdp2_config(config):
+    if int(config.trainer.nnodes) != 1 or int(config.trainer.n_gpus_per_node) != 2:
+        raise SystemExit("FSDP2 recipe requires one node and two GPUs")
+    for role in ("actor", "ref"):
+        role_config = config.actor_rollout_ref[role]
+        if role_config.strategy != "fsdp2" or role_config.fsdp_config.strategy != "fsdp2":
+            raise SystemExit(f"{role} and its engine must both use strategy=fsdp2")
+        if int(role_config.fsdp_config.fsdp_size) != 2:
+            raise SystemExit(f"{role}.fsdp_config.fsdp_size must equal 2")
+    if int(config.data.train_batch_size) % 2 or int(config.data.val_batch_size) % 2:
+        raise SystemExit("Train and validation batches must be divisible by two GPUs")
+    trajectories_per_mini_batch = (
+        int(config.actor_rollout_ref.actor.ppo_mini_batch_size)
+        * int(config.actor_rollout_ref.rollout.n)
+    )
+    micro = int(config.actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu)
+    if trajectories_per_mini_batch % (2 * micro):
+        raise SystemExit("PPO trajectory mini batch must be divisible by two GPU micro batches")
+    print("FSDP2 config preflight passed: two GPUs, actor/ref engine strategy=fsdp2")
+
+
 def main():
     config = compose_runtime_config(sys.argv[1:])
     validate_environment_contract()
@@ -422,6 +451,7 @@ def main():
     if missing:
         raise SystemExit("missing GRPO parquet file(s): " + ", ".join(missing))
     validate_training_memory_budget(config)
+    validate_fsdp2_config(config)
     validate_trace(config)
 
     if sys.version_info[:2] != (3, 12):
@@ -442,13 +472,14 @@ def main():
     try:
         import torch
         import verl
-        from verl.experimental.agent_loop.tool_parser import ToolParser
         from verl.experimental.agent_loop.tool_agent_loop import AgentState, ToolAgentLoop
+        from verl.experimental.agent_loop.tool_parser import ToolParser
+        from verl.tools.base_tool import BaseTool
+        from verl.utils.tracking import Tracking
+
         from shopping_grpo.training.grpo.adapter.agent_loop import ShoppingToolAgentLoop
         from shopping_grpo.training.grpo.adapter.tools import ShopSimulatorTool
         from shopping_grpo.training.grpo.compat import install_torch_padding_fallback
-        from verl.tools.base_tool import BaseTool
-        from verl.utils.tracking import Tracking
     except ImportError as exc:
         raise SystemExit(
             "incompatible veRL 0.8 install: required AgentLoop/Tool APIs are unavailable; "
@@ -458,6 +489,8 @@ def main():
     verl_source = Path(verl.__file__).resolve()
     if not torch.cuda.is_available():
         raise SystemExit("CUDA is unavailable in the GRPO environment")
+    if torch.cuda.device_count() < 2:
+        raise SystemExit("FSDP2 GRPO requires two visible CUDA GPUs")
     if (
         not issubclass(ShoppingToolAgentLoop, ToolAgentLoop)
         or not issubclass(ShopSimulatorTool, BaseTool)

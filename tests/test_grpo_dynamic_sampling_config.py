@@ -10,11 +10,22 @@ from scripts.check_grpo_runtime import (
     PATCH_MARKER,
     compose_runtime_config,
     validate_dynamic_sampling,
+    validate_fsdp2_config,
     validate_training_memory_budget,
 )
 
 
 class DynamicSamplingConfigTest(unittest.TestCase):
+    def test_fsdp2_config_checks_both_strategy_fields_and_gpu_count(self):
+        config = compose_runtime_config([])
+        validate_fsdp2_config(config)
+        config.actor_rollout_ref.actor.fsdp_config.strategy = "fsdp"
+        with self.assertRaisesRegex(SystemExit, "engine must both"):
+            validate_fsdp2_config(config)
+        config = compose_runtime_config(["trainer.n_gpus_per_node=1"])
+        with self.assertRaisesRegex(SystemExit, "two GPUs"):
+            validate_fsdp2_config(config)
+
     def test_training_memory_budget_enforces_real_micro_batch_one(self):
         config = compose_runtime_config([])
         validate_training_memory_budget(config)
