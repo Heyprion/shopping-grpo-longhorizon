@@ -131,7 +131,7 @@ def main():
         swanlab_logger = swanlab
         config = {key: str(value) if isinstance(value, Path) else value
                   for key, value in vars(args).items() if key != "api_key"}
-        config.update(expected_tasks=len(tasks), reward_contract="shopsimulator-reward-v3",
+        config.update(expected_tasks=len(tasks), reward_contract="shopsimulator-reward-strict-v1",
                       benchmark_sha256=hashlib.sha256(args.benchmark.read_bytes()).hexdigest())
         swanlab.init(project=args.swanlab_project, experiment_name=args.swanlab_run_name,
                      config=config, logdir=str(args.output.parent / "swanlab"))
@@ -178,7 +178,7 @@ def main():
     summary["protocol"] = {
         "benchmark": str(args.benchmark),
         "model": args.model,
-        "reward_contract": "shopsimulator-reward-v3",
+        "reward_contract": "shopsimulator-reward-strict-v1",
         "max_steps": args.max_steps,
         "max_tokens": args.max_tokens,
         "temperature": args.temperature,

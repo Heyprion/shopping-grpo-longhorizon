@@ -419,6 +419,13 @@ def _collate(batch, pad_token_id, torch):
 def main():
     _start_time = _time.time()
     args = parse_args()
+    data_root = Path(__file__).resolve().parents[1]
+    if args.train.resolve() == data_root / "data/sft/train.jsonl":
+        from shopping_grpo.collection.data_contract import validate_current_sft
+        try:
+            validate_current_sft(data_root, args.train, args.validation)
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
     args.profile = (args.profile or args.no_save or args.longest_first
                     or args.stop_after_epoch is not None or args.stop_after_steps is not None)
     _validate_fsdp2_launch(args)

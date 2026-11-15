@@ -26,13 +26,13 @@ class FakeEnv:
         self.released = False
 
     def reset(self, task_id):
-        return {"env_idx": 0, "instruction": f"Instruction: task {task_id}"}
+        return {"env_idx": 0, "instruction": f"Instruction: task {task_id}\n\n搜索功能是否可用: True\n可点击的按钮: []"}
 
     def step(self, action):
         self.actions.append(action)
         if action == "search[乳胶枕]":
             return {
-                "instruction": "results [SEP] 100000000001 [SEP] 乳胶枕",
+                "instruction": '1|100000000001|39.0|乳胶枕\n\n可点击的按钮: ["100000000001"]',
                 "reward": 0.0,
                 "done": False,
             }
@@ -48,7 +48,11 @@ class FakeEnv:
             "done": True,
             "over": True,
             "purchase": {"asin": "A1"},
-            "reward_detail": {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1},
+            "reward_detail": {"reward_version": "shopsimulator-reward-strict-v1",
+                              "reward_type": "gold_purchase", "reward_valid": True,
+                              "termination_reason": "gold_purchase", "terminal_utility": 1.,
+                              "purchase_success": True, "sampling_invalid": False,
+                              "reward_components": {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1}},
         }
 
     def release(self):
@@ -64,7 +68,7 @@ class FailingEnv(FakeEnv):
 class NonTerminalEnv(FakeEnv):
     def step(self, action):
         self.actions.append(action)
-        return {"instruction": "keep going", "reward": 0.0, "done": False}
+        return {"instruction": "keep going\n\n搜索功能是否可用: True\n可点击的按钮: []", "reward": 0.0, "done": False}
 
 
 class ReleaseFailingEnv(FakeEnv):
@@ -84,7 +88,7 @@ class GuardRecoveryEnv(FakeEnv):
         self.actions.append(action)
         if action == "search[乳胶枕]":
             return {
-                "instruction": "results [SEP] 100000000001 [SEP] 乳胶枕",
+                "instruction": '1|100000000001|39.0|乳胶枕\n\n可点击的按钮: ["100000000001"]',
                 "reward": 0.0,
                 "done": False,
             }
@@ -113,7 +117,11 @@ class GuardRecoveryEnv(FakeEnv):
                 "done": True,
                 "over": True,
                 "purchase": {"asin": "A1"},
-                "reward_detail": {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1},
+                "reward_detail": {"reward_version": "shopsimulator-reward-strict-v1",
+                              "reward_type": "gold_purchase", "reward_valid": True,
+                              "termination_reason": "gold_purchase", "terminal_utility": 1.,
+                              "purchase_success": True, "sampling_invalid": False,
+                              "reward_components": {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1}},
             }
         raise AssertionError(f"unexpected action: {action}")
 
@@ -144,7 +152,7 @@ def assistant_tool(name, arguments, call_id="call_1"):
 
 class RolloutTest(unittest.TestCase):
     def test_default_prompt_matches_reward_policy(self):
-        """默认提示词应表达 Reward v3 的购买优先级和停止门槛。"""
+        """默认提示词应表达 购物需求的购买优先级和停止门槛。"""
         self.assertIn("单轮购物任务", SYSTEM_PROMPT)
         self.assertIn("不得向用户追问", SYSTEM_PROMPT)
         self.assertIn("buy_now", SYSTEM_PROMPT)
@@ -275,7 +283,7 @@ class RolloutTest(unittest.TestCase):
             def step(self, action):
                 self.actions.append(action)
                 if action == "search[乳胶枕]":
-                    return {"instruction": "results [SEP] 100000000001", "reward": 0.0, "done": False}
+                    return {"instruction": '1|100000000001|39.0|乳胶枕\n\n可点击的按钮: ["100000000001"]', "reward": 0.0, "done": False}
                 if action == "click[100000000001]":
                     return {
                         "instruction": 'detail\n\n可点击的按钮: ["满天星", "Description", "Buy Now"]',
@@ -301,7 +309,11 @@ class RolloutTest(unittest.TestCase):
                         "done": True,
                         "over": True,
                         "purchase": {"asin": "A1"},
-                        "reward_detail": {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1},
+                        "reward_detail": {"reward_version": "shopsimulator-reward-strict-v1",
+                              "reward_type": "gold_purchase", "reward_valid": True,
+                              "termination_reason": "gold_purchase", "terminal_utility": 1.,
+                              "purchase_success": True, "sampling_invalid": False,
+                              "reward_components": {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1}},
                     }
                 raise AssertionError(action)
 
@@ -334,7 +346,7 @@ class RolloutTest(unittest.TestCase):
             def step(self, action):
                 self.actions.append(action)
                 if action == "search[乳胶枕]":
-                    return {"instruction": "results [SEP] 100000000001", "reward": 0.0, "done": False}
+                    return {"instruction": '1|100000000001|39.0|乳胶枕\n\n可点击的按钮: ["100000000001"]', "reward": 0.0, "done": False}
                 if action == "click[100000000001]":
                     return {
                         "instruction": 'detail\n\n可点击的按钮: ["满天星", "Buy Now"]',
@@ -354,7 +366,11 @@ class RolloutTest(unittest.TestCase):
                         "done": True,
                         "over": True,
                         "purchase": {"asin": "A1"},
-                        "reward_detail": {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1},
+                        "reward_detail": {"reward_version": "shopsimulator-reward-strict-v1",
+                              "reward_type": "gold_purchase", "reward_valid": True,
+                              "termination_reason": "gold_purchase", "terminal_utility": 1.,
+                              "purchase_success": True, "sampling_invalid": False,
+                              "reward_components": {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1}},
                     }
                 raise AssertionError(action)
 

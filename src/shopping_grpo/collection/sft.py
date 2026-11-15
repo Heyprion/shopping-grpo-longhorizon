@@ -2,7 +2,7 @@
 
 The collector records everything needed for auditing in ``raw.jsonl``. This
 module is the deterministic second half of the pipeline: it accepts only strict
-Reward v3 gold purchases, removes private reasoning and terminal Reward text,
+Strict Reward gold purchases, removes private reasoning and terminal Reward text,
 excludes held-out tasks, and creates task-disjoint train/validation files.
 """
 
@@ -19,9 +19,9 @@ from shopping_grpo.environment.actions import (
     RUNTIME_GUARD_FIELD,
     action_reject_reason,
 )
+from shopping_grpo.environment.reward import REWARD_VERSION, full_strict_reward
 from shopping_grpo.environment.tools import SHOP_TOOL_SCHEMAS, tool_call_to_action
 from shopping_grpo.training.sft.dataset import split_rows_by_task
-
 
 COLLECTION_SCHEMA_VERSION = "shopping-sft-collection-v1"
 ALLOWED_MESSAGE_KEYS = {"role", "content", "tool_calls", "tool_call_id", "name"}
@@ -48,28 +48,26 @@ def acceptance_reasons(trajectory: dict) -> tuple[bool, list[str]]:
     if terminal.get("done") is not True or terminal.get("over") is not True:
         reasons.append("environment_not_done")
     if not any(
-        step.get("tool_name") == "buy_now"
-        or step.get("env_action") == "click[Buy Now]"
+        step.get("tool_name") == "buy_now" or step.get("env_action") == "click[Buy Now]"
         for step in steps
     ):
         reasons.append("missing_buy")
 
-    if reward.get("reward_version") != "shopsimulator-reward-v3":
-        reasons.append("reward_v3_required")
+    if reward.get("reward_version") != REWARD_VERSION:
+        reasons.append("strict_reward_required")
     if reward.get("reward_type") != "gold_purchase":
-        reasons.append("reward_v3_not_gold_purchase")
+        reasons.append("strict_reward_not_gold_purchase")
     if reward.get("reward_valid") is not True:
-        reasons.append("reward_v3_invalid")
+        reasons.append("strict_reward_invalid")
     if reward.get("purchase_success") is not True:
         reasons.append("purchase_not_successful")
     if reward.get("termination_reason") != "gold_purchase":
         reasons.append("termination_not_gold_purchase")
+    if not full_strict_reward(reward):
+        reasons.append("strict_components_not_full")
 
     for index, message in enumerate(trajectory.get("messages") or []):
-        if (
-            message.get("role") == "assistant"
-            and len(message.get("tool_calls") or []) > 1
-        ):
+        if message.get("role") == "assistant" and len(message.get("tool_calls") or []) > 1:
             reasons.append(f"message_{index}.multiple_tool_calls")
 
     for index, step in enumerate(steps):
@@ -198,7 +196,7 @@ def build_collection_artifacts(
     metadata = {
         **summary,
         "environment": "shopsimulator-environment-v2.1",
-        "reward": "shopsimulator-reward-v3",
+        "reward": REWARD_VERSION,
         "validation_ratio": float(validation_ratio),
         "split_seed": int(seed),
         "collection_config": deepcopy(collection_config or {}),
@@ -285,10 +283,7 @@ def _previous_observation(trajectory: dict, tool_call_id: str | None) -> str:
     for index, message in enumerate(messages):
         if message.get("role") != "assistant":
             continue
-        if not any(
-            call.get("id") == tool_call_id
-            for call in message.get("tool_calls") or []
-        ):
+        if not any(call.get("id") == tool_call_id for call in message.get("tool_calls") or []):
             continue
         for previous in reversed(messages[:index]):
             if previous.get(RUNTIME_GUARD_FIELD) is True:
@@ -324,10 +319,7 @@ def _is_blocked_training_message(message, blocked_call_ids):
     if message.get("role") == "tool":
         return message.get("tool_call_id") in blocked_call_ids
     if message.get("role") == "assistant":
-        return any(
-            call.get("id") in blocked_call_ids
-            for call in message.get("tool_calls") or []
-        )
+        return any(call.get("id") in blocked_call_ids for call in message.get("tool_calls") or [])
     return False
 
 
@@ -341,16 +333,10 @@ def _sanitize_message(message, terminal_tool_call_id):
 
 
 def _sanitize_tool_call(tool_call):
-    clean = {
-        key: deepcopy(tool_call[key])
-        for key in ALLOWED_TOOL_CALL_KEYS
-        if key in tool_call
-    }
+    clean = {key: deepcopy(tool_call[key]) for key in ALLOWED_TOOL_CALL_KEYS if key in tool_call}
     if "function" in clean:
         clean["function"] = {
-            key: clean["function"][key]
-            for key in ALLOWED_FUNCTION_KEYS
-            if key in clean["function"]
+            key: clean["function"][key] for key in ALLOWED_FUNCTION_KEYS if key in clean["function"]
         }
     return clean
 

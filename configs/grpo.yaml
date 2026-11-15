@@ -133,6 +133,8 @@ reward_model:
 ray_kwargs:
   ray_init:
     runtime_env:
+      env_vars:
+        SHOPPING_TASK_BUDGETS: ${oc.env:SHOPPING_TASK_BUDGETS,''}
       worker_process_setup_hook: shopping_grpo.training.grpo.compat.install_torch_padding_fallback
 
 trainer:

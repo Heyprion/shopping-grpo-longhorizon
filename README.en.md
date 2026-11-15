@@ -49,16 +49,16 @@ does not depend on a separately running third-party repository.
 |---|---|---|---|
 | Baseline | Evaluate the untouched base model | `bash scripts/baseline.sh` | [Evaluation](docs/evaluation.md) |
 | SFT | Learn tool use from accepted teacher trajectories | `bash scripts/sft.sh` | [SFT](docs/sft.md) |
-| GRPO | Optimize terminal Reward v3 with online rollouts | `bash scripts/grpo.sh` | [GRPO](docs/grpo.md) |
+| GRPO | Optimize terminal Strict Reward with online rollouts | `bash scripts/grpo.sh` | [GRPO](docs/grpo.md) |
 | Evaluation | Run the curated Final-200 Clean protocol | `bash scripts/evaluate.sh NAME` | [Evaluation](docs/evaluation.md) |
 
 The checked-in SFT data was produced by a separate collection stage documented
 in [Data collection](docs/data-collection.md). The custom constraint-aware
-reward is specified in [Reward v3](docs/reward-v3.md).
+reward is specified in [Strict Reward](docs/reward-strict.md).
 
 ```mermaid
 flowchart LR
-    A[Teacher rollouts] --> B[Reward v3 filtering]
+    A[Teacher rollouts] --> B[Strict Reward acceptance]
     B --> C[Action-only SFT data]
     C --> D[LoRA SFT]
     D --> E[Online GRPO with veRL]
@@ -91,8 +91,10 @@ python scripts/collect_sft_data.py \
 ### How GRPO is trained
 
 GRPO starts from the merged SFT model. veRL generates four online trajectories
-per prompt in ShopSimulator, while deterministic Reward v3 scores the terminal
-purchase, constraint satisfaction and termination behavior. No additional
+per prompt in ShopSimulator. The paper's Strict Reward multiplies category,
+attribute, option and price scores. Non-purchase outcomes receive zero; fully
+matching alternatives and gold items both receive one. See
+[Strict Reward](docs/reward-strict.md) for the contract and migration. No additional
 LLM-as-a-Judge reward model is used for training.
 
 The repository pins `verl==0.8.0` instead of copying its source. It keeps only
@@ -301,26 +303,20 @@ bash scripts/evaluate.sh grpo
 Generated checkpoints, rollouts and logs are written under `outputs/`, which is
 ignored by Git.
 
-## Reward V3 overview
+## Strict Reward
 
-Reward v3 is a deterministic terminal reward; it does not rely on another
-language model for subjective judgment:
+The current objective is the four-factor product in
+[ShopSimulator Eq. (4)](https://arxiv.org/html/2601.18225v1):
 
-- category and budget are hard gates;
-- brand, model, core functions and key options use weights of
-  `0.35 / 0.25 / 0.25 / 0.15`;
-- an exact target purchase with full satisfaction receives `1.0`;
-- a fully satisfying alternative item receives `0.55`;
-- partial satisfaction receives a continuous score capped at `0.25`;
-- wrong purchases, premature abstention, repeat loops and maximum-step
-  termination receive distinct negative rewards;
-- insufficient evidence sets `reward_valid=false`, rather than being treated as
-  a valid neutral zero.
+```text
+R_strict = r_type × r_att × r_option × r_price
+```
 
-![Reward V3 decision rules](docs/images/reward-v3-decision-rules.png)
-
-The complete formula, termination rules and evidence requirements are in the
-[Reward v3 design guide](docs/reward-v3.md).
+Attribute and option coverage may be fractional. Full gold and alternative
+purchases both receive one; non-purchase terminals receive zero. There are no
+brand/model weights, identity discounts, negative utilities or length penalties.
+Budget extraction and semantic annotation checks remain separate requirements.
+See the [Strict Reward change record](docs/reward-strict.md).
 
 ## Repository map
 
@@ -330,7 +326,7 @@ data/
   sft/                           800 train + 200 validation trajectories
   grpo/                          ready-to-train JSONL and veRL Parquet
   evaluation/                    curated Final-200 Clean held-out set
-docs/                            one guide for each tutorial stage and Reward v3
+docs/                            one guide for each tutorial stage and Strict Reward
 environments/ShopSimulator/      embedded environment and product archive
 experiments/
   baseline/                      baseline config and result summary
@@ -389,7 +385,7 @@ bash scripts/grpo.sh --logger swanlab
 - [Held-out evaluation](docs/evaluation.md)
 - [Final-200 Clean evaluation dataset](docs/evaluation-dataset.md)
 - [Final-200 Benchmark Dashboard (historical)](docs/evaluation-dashboard.html)
-- [Reward v3 design](docs/reward-v3.md)
+- [Strict Reward design and migration](docs/reward-strict.md)
 - [Auditable experiment results](experiments/comparison.md)
 
 ## Future improvement plan

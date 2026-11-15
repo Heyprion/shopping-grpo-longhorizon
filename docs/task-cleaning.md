@@ -1,0 +1,162 @@
+# Task cleaning
+
+The authoritative data decisions, observed results, stratification rules,
+candidate-pool plan and provisional SFT/RL sizes and mixtures are documented in
+[the current data plan](data-plan.md). This page covers the cleaning implementation.
+
+The cleaning input is the complete frozen ShopSimulator product/task archive,
+`environments/ShopSimulator/shop_env/data/fine_items_eval_train_all.json.gz`.
+The current archive has one instruction per product. Task IDs retain their
+original environment meaning; screening never deletes or reorders catalog rows.
+
+The implementation supports a bounded pilot and a full-corpus run (`--all`).
+It produces only `passed=true` or `passed=false`, with deterministic reason codes.
+There is no human-review queue. Insufficient evidence means rejection.
+
+## Two stages
+
+1. **Raw structure and references.** Validate required fields and types,
+   nonempty annotations, finite nonnegative prices, price intervals, available
+   option entries and unambiguous gold references. Optional subtitle/persona and
+   simplified instruction fields are not required. Do not use runtime defaults
+   to repair missing raw prices.
+2. **Requirements, selected variant and runtime consistency.** Check whether a
+   complete selected variant has a resolvable price. Independently extract the
+   user's requirements with a small model, then compare them with product
+   evidence in a second short model call. Code performs budget arithmetic and
+   checks the current Strict Reward contract. Both calls count toward pilot cost.
+
+The extractor sees only the original instruction, split into numbered evidence
+clauses by punctuation. Punctuation splitting does not extract specifications;
+the model handles all language interpretation. The verifier sees the extracted
+requirements and the selected variant's evidence, without other variants or
+teacher trajectories. Models select evidence IDs; code supplies the original
+text. Invalid references, missing checks and incomplete generations cannot pass.
+Misleading raw option-axis names are replaced with numbered selected values
+before semantic verification. The model also extracts symbolic sizes from each
+selected value independently; code rejects contradictory cross-axis sizes and
+normalizes equivalent labels such as XXL/2XL.
+
+All required constraints must be satisfied. Explicit preferences may be unmet.
+Price checks distinguish upper/lower bounds and strict inequalities. Approximate
+budgets use the existing environment's +10% upper-tolerance policy, recorded in
+the cleaning code. Unresolved colloquial prices, component prices and per-unit
+prices requiring additional calculations are rejected in this initial version.
+No option prices are added together to invent a combination price.
+
+A task must also have a statically attainable Strict Reward `gold_purchase` with
+`reward_valid=true`. Screening and runtime scoring consume the same canonical
+model-extracted budget; the legacy parser is diagnostic only. This check does not execute a shopping trajectory or
+prove that search can reach the target within the step limit.
+
+## Strict Reward and canonical budgets
+
+On 2026-11-15 the runtime changed to `shopsimulator-reward-strict-v1` using the
+paper's four-factor product. New pilot manifests record the active reward
+version and actual components. Prior Reward-v3 decisions and pass rates must be
+recomputed; independent model responses may be reused if their prompts and
+inputs are unchanged. See [the reward change record](reward-strict.md).
+
+Multiplication does not extract budgets or validate natural-language annotations.
+The initial parser-consistency gate rejected missing or incorrect legacy limits;
+the completed full run instead uses the canonical budget below. Legacy parser
+differences are diagnostic and do not by themselves reject a task. Fuzzy
+attribute/option matching can still miss semantic contradictions, so independent
+model checks and cross-axis validation remain necessary.
+
+The cleaner exports a canonical, evidence-backed `shopping-task-budget-v1`
+contract with explicit `not_mentioned`, `parsed` and `unresolved` states, CNY,
+price scope, operators and bounds. `unresolved` is an automatic rejection.
+`engine/task_budget.py` performs identical decimal comparisons in cleaning and
+Strict Reward, including lower bounds and strict inequalities. Set
+`SHOPPING_TASK_BUDGETS` to the generated `task_budgets.jsonl` before starting an
+environment on the cleaned pool. The environment joins by ASIN and exact
+instruction SHA-256; a missing annotation is unverifiable, never unlimited.
+Without this setting, existing uncleaned task lists still use their original
+budget parser; they are not the newly cleaned pool. Never infer a user's budget
+from the gold price or substitute a catalog minimum for a selected variant.
+
+Sample mode excludes the original evaluation IDs and identical instructions.
+For the full cleaning, the user explicitly superseded that exclusion: `--all`
+includes every original task and all 200 previous evaluation IDs. The existing
+splits are provisional. Cleaning creates an unpartitioned pool and does not
+rewrite the catalog, start training, or run the formal evaluation. New splits
+and their leakage guards must be constructed together in the later split work.
+
+## Run a pilot
+
+Serve an unmodified small instruction model with vLLM. Pin the actual weight
+revision; use text-only inference, disable thinking and keep the service local.
+The repository's Python environment already contains the required runtime.
+
+```bash
+PYTHONPATH=src .venv/bin/python scripts/clean_tasks.py \
+  --endpoint "$CLEANING_BASE_URL" \
+  --model "$CLEANING_SERVED_MODEL" \
+  --revision "$CLEANING_MODEL_REVISION" \
+  --output outputs/task-cleaning-pilot/run \
+  --sample-size 200 --workers 32 --seed 42 \
+  --swanlab-mode offline
+```
+
+`--diagnostic-task-ids` optionally adds non-evaluation diagnostic cases, kept
+separate from the random sample. `--must-reject-task-ids` adds known-negative
+cases and makes an incorrect acceptance fail the pilot quality gate.
+Synthetic positive and negative controls cover
+specification conflicts, quantity, negation, units, budget boundaries, missing
+fields, optional preferences and Chinese budget normalization. No difficulty or
+category stratification is performed.
+
+For the entire original corpus, including previous evaluation tasks:
+
+```bash
+PYTHONPATH=src .venv/bin/python scripts/clean_tasks.py \
+  --endpoint "$CLEANING_BASE_URL" \
+  --model "$CLEANING_SERVED_MODEL" \
+  --revision "$CLEANING_MODEL_REVISION" \
+  --output outputs/task-cleaning/full \
+  --all --workers 128 --must-reject-task-ids 5510 5703 \
+  --swanlab-mode offline
+```
+
+Controls run first and stop processing if any expected decision is wrong.
+
+Artifacts remain under the selected `outputs/` directory:
+
+- `config.json`: source, code, prompt and model provenance, seed and sample IDs.
+- `sample.jsonl`: source records for the random sample, diagnostics and controls.
+- `model_calls.jsonl`: resumable raw responses, evidence references, retries,
+  token usage and latency. Credentials are never recorded.
+- `results.jsonl`: binary decisions, extracted requirements, checks and reasons.
+- `decisions.checkpoint.jsonl`: flushed decisions during execution; successful
+  model responses are cached for resuming the same command after interruption.
+- `passed_tasks.jsonl`: IDs that passed this pilot, excluding synthetic controls.
+- `cleaned_tasks.jsonl`: the unpartitioned passing task pool, with requirements,
+  selected options, exact gold price and canonical budget.
+- `task_budgets.jsonl`: canonical budgets consumable by the environment; set
+  `SHOPPING_TASK_BUDGETS` to this file when later using the cleaned task pool.
+- `summary.json`: random-sample counts, control errors, measured wall time and
+  full-pool projections. Inspect `pilot_quality_gate_passed` before considering
+  the output usable; a successful format check alone does not establish quality.
+- `swanlab/`: local experiment metrics when offline logging is selected.
+
+There is at most one automatic retry per model call. Transport errors fail the
+quality gate; persistent generation errors reject the individual task. Changing
+the source or configuration requires a separate output directory. Resuming a
+cached run does not produce a fresh throughput projection.
+
+Timing projections use only the random sample, the same concurrency and the
+same rejection mix. They exclude model download/startup and JSON-grammar warmup.
+Diagnostics and controls are timed separately. Passing synthetic controls is a
+limited regression check, not a measurement of natural-task precision/recall.
+Pilot artifacts are not promoted into `data/` automatically.
+
+The validated full-corpus result is published in
+[`data/cleaned/`](../data/cleaned/README.md): 16,741 passing tasks and 6,680
+rejections from all 23,421 originals. Its metadata pins source, code, prompt,
+model revision and file checksums. The complete source and all existing split
+IDs were covered, including the previous evaluation set (160 pass / 40 reject).
+Every passing task was independently checked again with the canonical budget
+and produced a valid Strict Reward `gold_purchase`. The subsequent stratification,
+fixed phase lists and unused-task ledger are now materialized under `data/splits/`;
+see [the current data plan](data-plan.md).

@@ -53,7 +53,7 @@ Rubric 只需要为每个任务生成一次；它不依赖某个 Actor 的轨迹
 > 物品，价格在20元左右。
 
 TaskFacts 还包含目标商品的 category、title、brand、pricing、attributes、
-customization options，以及 Reward v3 已编译的结构化需求。它们用于生成候选约束，
+customization options，以及 任务已编译的结构化需求。它们用于生成候选约束，
 但目标商品私有字段不会进入 Actor，也不会直接进入 Pro Judge。
 
 Final-200 Clean 的约束如下：
@@ -184,7 +184,7 @@ GRPO 共用同一份。
 
 | 设置 | 值 |
 |---|---|
-| Environment / Reward | v2.1 / Reward v3 |
+| Environment / Reward | v2.1 / Strict Reward |
 | 每题 Rollout | 1 |
 | Temperature / top-p | `0.0 / 1.0` |
 | 最大环境步数 | 35 |
@@ -247,7 +247,7 @@ Pro 明确看不到：
 
 - raw Observation；
 - Gold 商品私有字段和 Actor 未看到的候选；
-- Reward v3 分数、reward type、hard gates、weighted score；
+- Strict Reward 分数、reward type、四项 reward components；
 - strict success、purchase success 或代码给出的成功结论；
 - infrastructure validity；
 - 其他模型在同一题上的结果。

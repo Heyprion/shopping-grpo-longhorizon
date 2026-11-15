@@ -9,6 +9,8 @@ from collections.abc import Iterable, Mapping
 from importlib.resources import files
 from pathlib import Path
 
+from shopping_grpo.collection.stratification import EVALUATION_ASSET, EVALUATION_CONTRACT
+from shopping_grpo.environment.reward import REWARD_VERSION
 from shopping_grpo.evaluation.artifacts import ArtifactError
 
 BLIND_GUARD_SCHEMA = "shopping-blind-asset-guard-v1"
@@ -16,10 +18,10 @@ BLIND_TASK_IDS_SCHEMA = "shopping-blind-task-ids-v1"
 _RESOURCE_PACKAGE = "shopping_grpo.resources"
 _GUARD_RESOURCE = "blind_guard.json"
 _EXPECTED_METADATA = {
-    "asset": "shop_benchmark_reward_v3_final_200_clean",
-    "contract": "environment-v2.1/reward-v3/curated-final200-clean-v1",
+    "asset": EVALUATION_ASSET,
+    "contract": EVALUATION_CONTRACT,
     "environment_version": "shopsimulator-environment-v2.1",
-    "reward_version": "shopsimulator-reward-v3",
+    "reward_version": REWARD_VERSION,
     "evaluated": False,
 }
 
@@ -142,6 +144,19 @@ def guard_blind_final(
     guard, final_task_ids = validate_canonical_blind_asset()
     if allowed:
         return
+    protected = _load_resource_object(guard["protected_task_ids_resource"])
+    if protected.get("schema_version") != "shopping-held-out-task-ids-v1":
+        raise ArtifactError("unsupported protected task-ID schema")
+    protected_ids = protected.get("task_ids")
+    if (
+        not isinstance(protected_ids, list)
+        or not all(type(i) is int for i in protected_ids)
+        or len(protected_ids) != len(set(protected_ids))
+        or len(protected_ids) != guard.get("protected_task_count")
+        or not final_task_ids <= set(protected_ids)
+    ):
+        raise ArtifactError("invalid protected task-ID population")
+    final_task_ids = set(protected_ids)
     blocked = {}
     canonical_sha = str(guard["task_sha256"])
     for raw_path in paths:

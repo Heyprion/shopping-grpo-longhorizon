@@ -141,7 +141,7 @@ def build_data(run_dir):
         "purchase": summary["purchase_successes"],
         "purchase_rate": summary["purchase_success_rate"],
         "mean_reward": summary["mean_final_reward"],
-        "weighted_score": summary["mean_weighted_score"],
+        "strict_score": summary["mean_strict_score"],
         "average_steps": summary["average_steps"],
         "median_steps": statistics.median(step_values),
         "min_steps": min(step_values),
@@ -245,7 +245,7 @@ HTML = r'''<!doctype html>
   </section>
 
   <section class="grid two">
-    <div class="card"><h2>最终结果构成</h2><div id="outcome-chart"></div><div class="small">严格成功以 Reward v3 的 gold_purchase 计；未完成表示模型停止时没有终局 Reward。</div></div>
+    <div class="card"><h2>最终结果构成</h2><div id="outcome-chart"></div><div class="small">严格成功以 Strict Reward 的 gold_purchase 计；未完成表示模型停止时没有终局 Reward。</div></div>
     <div class="card"><h2>步数区间与严格成功</h2><div id="step-chart"></div><div class="small">每个柱同时显示该区间任务量和严格成功率。</div></div>
   </section>
 
@@ -310,7 +310,7 @@ document.getElementById('insights').innerHTML = [
 document.getElementById('stats').innerHTML = [
   ['最终 Reward 范围', `${S.reward_min.toFixed(3)} ～ ${S.reward_max.toFixed(3)}`],
   ['Reward 中位数', S.reward_median.toFixed(3)],
-  ['平均加权得分', S.weighted_score.toFixed(3)],
+  ['平均 Strict Reward', S.strict_score.toFixed(3)],
   ['平均工具动作数', (Object.values(S.tool_counts).reduce((a,b)=>a+b,0)/S.total).toFixed(2)],
   ['搜索次数 / 题', ((S.tool_counts.search_products || 0)/S.total).toFixed(2)],
   ['打开商品次数 / 题', ((S.tool_counts.open_product || 0)/S.total).toFixed(2)],

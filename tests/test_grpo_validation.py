@@ -13,5 +13,6 @@ from shopping_grpo.training.grpo.validation import strict_success
 ])
 def test_strict_validation_never_confuses_reward_with_gold_success(change, expected):
     info = {"done": True, "reward_type": "gold_purchase", "reward_valid": True,
-            "reward_version": "shopsimulator-reward-v3", "reward": {"purchase_success": 1.0}}
+            "reward_version": "shopsimulator-reward-strict-v1", "reward": {
+                "purchase_success": 1.0, "r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1}}
     assert strict_success({**info, **change}) is expected

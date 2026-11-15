@@ -94,6 +94,7 @@ def build_command(args: argparse.Namespace) -> tuple[list[str], dict[str, str]]:
     environment.setdefault("SHOPPING_GRPO_SEED", "42")
     environment.setdefault("PYTHONHASHSEED", "42")
     environment.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "0")
+    environment.setdefault("SHOPPING_TASK_BUDGETS", str(ROOT / "data/cleaned/task_budgets.jsonl"))
     environment.update(
         {
             "PYTHONPATH": str(ROOT / "src"),

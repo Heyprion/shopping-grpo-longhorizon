@@ -2,9 +2,9 @@
 
 from collections import Counter
 
+from shopping_grpo.environment.reward import REWARD_VERSION, full_strict_reward
 
-REWARD_V3 = "shopsimulator-reward-v3"
-REWARD_V3_TYPES = (
+REWARD_TYPES = (
     "gold_purchase",
     "valid_alternative_purchase",
     "partial_alternative_purchase",
@@ -32,23 +32,28 @@ def summarize_trajectories(expected_task_ids, trajectories):
     strict_successes = [task_id for task_id, item in by_task.items() if _is_strict_success(item)]
     done_tasks = [task_id for task_id, item in by_task.items() if item.get("done")]
     reward_details = [_reward_detail(item) for item in by_task.values()]
-    reward_type_counts = Counter(
-        detail.get("reward_type", "unknown") for detail in reward_details
-    )
+    incompatible = {
+        detail.get("reward_version")
+        for detail in reward_details
+        if detail.get("reward_version") not in {None, REWARD_VERSION}
+    }
+    if incompatible:
+        raise ValueError(
+            "cannot mix historical reward versions into a strict-reward summary: "
+            + ", ".join(sorted(incompatible))
+        )
+    reward_type_counts = Counter(detail.get("reward_type", "unknown") for detail in reward_details)
     reward_version_counts = Counter(
         detail.get("reward_version", "unknown") for detail in reward_details
     )
-    purchase_successes = sum(
-        detail.get("purchase_success") is True for detail in reward_details
-    )
+    purchase_successes = sum(detail.get("purchase_success") is True for detail in reward_details)
     gold_purchases = sum(
-        detail.get("reward_version") == REWARD_V3
+        detail.get("reward_version") == REWARD_VERSION
         and detail.get("reward_type") == "gold_purchase"
         for detail in reward_details
     )
     reward_valid_tasks = sum(
-        detail.get("reward_version") == REWARD_V3
-        and detail.get("reward_valid") is True
+        detail.get("reward_version") == REWARD_VERSION and detail.get("reward_valid") is True
         for detail in reward_details
     )
     final_rewards = [float(item.get("final_reward", 0.0)) for item in by_task.values()]
@@ -56,8 +61,9 @@ def summarize_trajectories(expected_task_ids, trajectories):
         float(detail.get("terminal_utility", item.get("final_reward", 0.0)))
         for item, detail in zip(by_task.values(), reward_details)
     ]
-    weighted_scores = [
-        float(detail.get("weighted_score", 0.0)) for detail in reward_details
+    strict_scores = [
+        float(detail.get("strict_score", detail.get("terminal_utility", 0.0)))
+        for detail in reward_details
     ]
     steps = [len(item.get("steps") or []) for item in by_task.values()]
     guard_reasons = Counter(
@@ -81,12 +87,10 @@ def summarize_trajectories(expected_task_ids, trajectories):
         )
     }
     guard_rejections = [
-        blocked
-        for item in by_task.values()
-        for blocked in item.get("blocked_tool_calls") or []
+        blocked for item in by_task.values() for blocked in item.get("blocked_tool_calls") or []
     ]
     executed_after_truncation = sum(
-        bool(((steps[index - 1].get("projection") or {}).get("truncated")))
+        bool((steps[index - 1].get("projection") or {}).get("truncated"))
         for item in by_task.values()
         for steps in [item.get("steps") or []]
         for index in range(1, len(steps))
@@ -95,8 +99,7 @@ def summarize_trajectories(expected_task_ids, trajectories):
         bool(item.get("latest_observation_truncated")) for item in guard_rejections
     )
     context_overflows = sum(
-        (item.get("error") or {}).get("type") == "ContextBudgetError"
-        for item in by_task.values()
+        (item.get("error") or {}).get("type") == "ContextBudgetError" for item in by_task.values()
     )
     denominator = len(expected_ids)
     return {
@@ -108,14 +111,14 @@ def summarize_trajectories(expected_task_ids, trajectories):
         "strict_successes": len(strict_successes),
         "strict_success_task_ids": sorted(strict_successes),
         "strict_success_rate": len(strict_successes) / denominator if denominator else 0.0,
-        "reward_contract": REWARD_V3,
+        "reward_contract": REWARD_VERSION,
         "reward_version_counts": dict(sorted(reward_version_counts.items())),
         "reward_type_counts": dict(sorted(reward_type_counts.items())),
         "reward_type_rates": {
             reward_type: reward_type_counts.get(reward_type, 0) / denominator
             if denominator
             else 0.0
-            for reward_type in REWARD_V3_TYPES
+            for reward_type in REWARD_TYPES
         },
         "purchase_successes": purchase_successes,
         "purchase_success_rate": purchase_successes / denominator if denominator else 0.0,
@@ -124,36 +127,21 @@ def summarize_trajectories(expected_task_ids, trajectories):
         "reward_valid_tasks": reward_valid_tasks,
         "reward_valid_rate": reward_valid_tasks / denominator if denominator else 0.0,
         "total_final_reward": sum(final_rewards),
-        "mean_final_reward": (
-            sum(final_rewards) / len(by_task)
-            if by_task
-            else 0.0
-        ),
+        "mean_final_reward": (sum(final_rewards) / len(by_task) if by_task else 0.0),
         "mean_terminal_utility": (
-            sum(terminal_utilities) / len(terminal_utilities)
-            if terminal_utilities
-            else 0.0
+            sum(terminal_utilities) / len(terminal_utilities) if terminal_utilities else 0.0
         ),
-        "mean_weighted_score": (
-            sum(weighted_scores) / len(weighted_scores)
-            if weighted_scores
-            else 0.0
-        ),
+        "mean_strict_score": (sum(strict_scores) / len(strict_scores) if strict_scores else 0.0),
         "average_steps": sum(steps) / len(steps) if steps else 0.0,
         "status_counts": dict(sorted(statuses.items())),
         "guard_reason_counts": dict(sorted(guard_reasons.items())),
         "context_projection": {
             "projected_tool_observations": len(projections),
-            "truncated_tool_observations": sum(
-                bool(item.get("truncated")) for item in projections
-            ),
+            "truncated_tool_observations": sum(bool(item.get("truncated")) for item in projections),
             "raw_tokens": sum(int(item.get("raw_tokens", 0)) for item in projections),
-            "visible_tokens": sum(
-                int(item.get("visible_tokens", 0)) for item in projections
-            ),
+            "visible_tokens": sum(int(item.get("visible_tokens", 0)) for item in projections),
             "critical_footer_failures": sum(
-                not bool(item.get("critical_footer_preserved", False))
-                for item in projections
+                not bool(item.get("critical_footer_preserved", False)) for item in projections
             ),
             "visible_asin_count": sum(
                 int(item.get("visible_asin_count", 0)) for item in projections
@@ -213,7 +201,8 @@ def _is_strict_success(trajectory):
     terminal = trajectory.get("terminal_result") or {}
     detail = _reward_detail(trajectory)
     return (
-        detail.get("reward_version") == REWARD_V3
+        detail.get("reward_version") == REWARD_VERSION
+        and full_strict_reward(detail)
         and trajectory.get("status") == "done"
         and trajectory.get("done") is True
         and terminal.get("done") is True

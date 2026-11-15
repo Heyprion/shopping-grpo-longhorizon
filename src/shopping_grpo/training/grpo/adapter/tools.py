@@ -8,8 +8,9 @@ from typing import Any
 from uuid import uuid4
 
 from shopping_grpo.environment.actions import action_reject_reason
-from shopping_grpo.environment.tools import tool_call_to_action
 from shopping_grpo.environment.observation import render_structured_observation
+from shopping_grpo.environment.reward import REWARD_VERSION
+from shopping_grpo.environment.tools import tool_call_to_action
 from shopping_grpo.training.grpo.adapter.runtime import (
     current_environment,
     current_runtime_state,
@@ -86,7 +87,7 @@ class ShopSimulatorTool(BaseTool):
             return ToolResponse(text=f"Error: action guard rejected this call ({reason}); read the latest observation."), 0.0, {"reason": reason}
         try:
             # 先转换成环境动作，再在线程中调用同步客户端；终局 reward 只信任
-            # 环境返回的 Reward v3 结构，避免训练侧自行猜测分数。
+            # 环境返回的 Strict Reward 结构，避免训练侧自行猜测分数。
             action = tool_call_to_action(self.name, parameters)
             result = await asyncio.to_thread(env.step, action)
             if result.get("observation_state") is not None:
@@ -104,7 +105,7 @@ class ShopSimulatorTool(BaseTool):
                 done=bool(result.get("done", False)),
                 reward=float(result.get("reward", 0.0)),
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - environment failures invalidate the trajectory
             _terminate(
                 state,
                 f"tool_error:{exc.__class__.__name__}:{exc}",
@@ -130,7 +131,7 @@ class ShopSimulatorTool(BaseTool):
                 if (
                     isinstance(reward_detail, dict)
                     and reward_detail.get("reward_version")
-                    == "shopsimulator-reward-v3"
+                    == REWARD_VERSION
                 ):
                     try:
                         public_detail = validate_reward(reward_detail)
@@ -152,13 +153,14 @@ class ShopSimulatorTool(BaseTool):
                         state["reward_valid"] = public_detail["reward_valid"]
                         state["reward_unverifiable"] = not public_detail["reward_valid"]
                         state["reward_detail"] = public_detail
+                        state["reward_components"] = public_detail["reward_components"]
                         state["termination_reason"] = public_detail[
                             "termination_reason"
                         ]
                 else:
                     _mark_infrastructure_invalid(
                         state,
-                        "invalid_terminal_reward_detail:expected Reward v3",
+                        "invalid_terminal_reward_detail:expected Strict Reward",
                     )
             return ToolResponse(text="Environment terminated."), 0.0, step
         state["latest_observation"] = observation

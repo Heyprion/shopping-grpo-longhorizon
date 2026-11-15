@@ -15,17 +15,16 @@
     }
   },
   "reward": {
-    "version": "shopsimulator-reward-v3",
+    "version": "shopsimulator-reward-strict-v1",
+    "formula": "r_type*r_att*r_option*r_price",
     "gold_purchase": 1.0,
-    "valid_alternative_purchase": 0.55,
-    "partial_purchase_base": -0.3,
-    "partial_purchase_scale": 0.55,
-    "partial_purchase_cap": 0.25,
-    "graceful_stop": -0.15,
-    "early_abstain": -0.35,
-    "max_steps": -0.5,
-    "repeat_loop": -0.65,
-    "wrong_purchase": -0.85,
+    "valid_alternative_purchase": 1.0,
+    "partial_alternative_purchase": 0.0,
+    "wrong_purchase": 0.0,
+    "graceful_stop": 0.0,
+    "early_abstain": 0.0,
+    "max_steps": 0.0,
+    "repeat_loop": 0.0,
     "reward_unverifiable": 0.0
   },
   "termination": {

@@ -21,6 +21,22 @@ from shopping_grpo.training.grpo.adapter.session import ShopSimulatorSession
 from shopping_grpo.training.grpo.adapter.tools import ShopSimulatorTool
 
 
+def public_reward(kind="gold_purchase", components=None, valid=True):
+    components = components or {"r_type": 1., "r_att": 1., "r_option": 1., "r_price": 1.}
+    score = components["r_type"] * components["r_att"] * components["r_option"] * components["r_price"]
+    return {"reward_version": "shopsimulator-reward-strict-v1", "reward_type": kind,
+            "reward_valid": valid, "termination_reason": kind, "reward_components": components,
+            "terminal_utility": score, "purchase_success": kind in {"gold_purchase", "valid_alternative_purchase"},
+            "sampling_invalid": not valid, "evidence_coverage": 1.}
+
+
+def mark_terminal(state, components=None):
+    detail = public_reward(components=components)
+    state.update(done=True, terminal_result={"done": True, "over": True},
+                 final_reward=detail["terminal_utility"], reward_version=detail["reward_version"],
+                 reward_type=detail["reward_type"], reward_valid=True, reward_detail=detail)
+
+
 def make_tool(name):
     schema = {
         "type": "function",
@@ -65,11 +81,11 @@ class VerlAdapterRuntimeTest(unittest.TestCase):
                     "terminal_result": {"done": True, "over": True},
                     "termination_reason": "gold_purchase",
                     "final_reward": 1.0,
-                    "reward_version": "shopsimulator-reward-v3",
+                    "reward_version": "shopsimulator-reward-strict-v1",
                     "reward_type": "gold_purchase",
                     "reward_valid": True,
                     "reward_detail": {
-                        "weighted_score": 1.0,
+                        "reward_components": {"r_type": 1., "r_att": 1., "r_option": 1., "r_price": 1.},
                         "evidence_coverage": 1.0,
                         "dimension_scores": {"key_options": 1.0},
                         "hard_gates": {
@@ -104,7 +120,7 @@ class VerlAdapterRuntimeTest(unittest.TestCase):
             loop.timeout = 60
             loop.max_steps = 35
             loop.required_environment_version = "shopsimulator-environment-v2.1"
-            loop.reward_mode = "constraint_aware"
+            loop.reward_mode = "strict"
             loop.env_factory = FakeEnv
             with patch.object(ToolAgentLoop, "run", fake_parent_run):
                 return await ShoppingToolAgentLoop.run(
@@ -142,7 +158,7 @@ class VerlAdapterRuntimeTest(unittest.TestCase):
 
     def test_terminal_reward_only_uses_a_normal_environment_completion(self):
         done = make_runtime_state(task_id=1, max_steps=35)
-        done.update({"done": True, "terminal_result": {"done": True, "over": True}, "final_reward": 0.75})
+        mark_terminal(done, {"r_type": 1., "r_att": .75, "r_option": 1., "r_price": 1.})
         self.assertEqual(terminal_reward(done), 0.75)
 
         unfinished = make_runtime_state(task_id=1, max_steps=35)
@@ -171,7 +187,7 @@ class VerlAdapterRuntimeTest(unittest.TestCase):
     def test_runtime_state_has_no_hidden_goal_fields(self):
         state = make_runtime_state(task_id=2, max_steps=35)
         self.assertNotIn("goal", state)
-        self.assertNotIn("reward_detail", state)
+        self.assertIsNone(state["reward_detail"])
 
     def test_task_id_is_read_from_verl_extra_info(self):
         self.assertEqual(task_id_from_kwargs({"extra_info": {"task_id": 42}}), 42)
@@ -228,15 +244,11 @@ class VerlAdapterRuntimeTest(unittest.TestCase):
                     "instruction": "Goal: hidden answer",
                     "done": True,
                     "over": True,
-                    "reward": 0.6,
+                    "reward": 0.5,
                     "goal": {"secret": True},
-                    "reward_detail": {
-                        "r_type": 1,
-                        "r_att": 1,
-                        "r_option": 0.5,
-                        "r_price": 1,
-                        "hidden_answer": "do not retain",
-                    },
+                    "reward_detail": {**public_reward("partial_alternative_purchase",
+                        {"r_type": 1, "r_att": 1, "r_option": .5, "r_price": 1}),
+                        "hidden_answer": "do not retain"},
                 }
 
         async def run():
@@ -272,17 +284,8 @@ class VerlAdapterRuntimeTest(unittest.TestCase):
                     "reward": 0.0,
                     "termination_reason": "reward_unverifiable",
                     "reward_valid": False,
-                    "reward_detail": {
-                        "reward_version": "unsupported-reward",
-                        "reward_type": "reward_unverifiable",
-                        "reward_valid": False,
-                        "termination_reason": "reward_unverifiable",
-                        "target_asin_match": False,
-                        "hard_gates": {
-                            "category": {"passed": True, "verifiable": True}
-                        },
-                        "weighted_score": 0.0,
-                    },
+                    "reward_detail": public_reward("reward_unverifiable",
+                        {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 0}, valid=False),
                 }
 
         async def run():
@@ -311,19 +314,19 @@ class VerlAdapterRuntimeTest(unittest.TestCase):
                     "instruction": "terminal",
                     "done": True,
                     "over": True,
-                    "reward": 0.55,
+                    "reward": 1.0,
                     "termination_reason": "valid_alternative_purchase",
                     "reward_valid": True,
                     "reward_detail": {
-                        "reward_version": "shopsimulator-reward-v3",
+                        "reward_version": "shopsimulator-reward-strict-v1",
                         "reward_type": "valid_alternative_purchase",
                         "reward_valid": True,
                         "termination_reason": "valid_alternative_purchase",
                         "target_asin_match": False,
-                        "terminal_utility": 0.55,
+                        "terminal_utility": 1.0,
                         "purchase_success": True,
                         "sampling_invalid": False,
-                        "weighted_score": 1.0,
+                        "reward_components": {"r_type": 1., "r_att": 1., "r_option": 1., "r_price": 1.},
                         "evidence_coverage": 1.0,
                         "dimension_scores": {
                             "brand": 0.0,
@@ -363,7 +366,7 @@ class VerlAdapterRuntimeTest(unittest.TestCase):
                 "valid_alternative_purchase",
             )
             breakdown = reward_breakdown(state)
-            self.assertEqual(breakdown["terminal_utility"], 0.55)
+            self.assertEqual(breakdown["terminal_utility"], 1.0)
             self.assertEqual(breakdown["purchase_success"], 1.0)
             self.assertEqual(breakdown["r_att"], 1.0)
             self.assertEqual(breakdown["r_option"], 1.0)
@@ -437,7 +440,7 @@ class VerlAdapterRuntimeTest(unittest.TestCase):
             self.assertEqual(state["action_attempt_after_truncation_count"], 3)
             self.assertEqual(
                 state["guard_rejection_reason_counts"],
-                {"asin_not_visible": 3},
+                {"click_not_in_previous_observation": 3},
             )
             self.assertIn("maximum", response.text)
 
@@ -462,7 +465,7 @@ class VerlAdapterRuntimeTest(unittest.TestCase):
         async def run():
             session = ShopSimulatorSession(max_steps=35, env_factory=FakeEnv)
             state = await session.start(task_id=8)
-            state.update({"done": True, "terminal_result": {"done": True, "over": True}, "final_reward": 1.0})
+            mark_terminal(state)
             self.assertEqual(terminal_reward(state), 1.0)
             await session.close()
 

@@ -286,21 +286,21 @@ def validate_swanlab_tracking(config):
     forbidden = {"wandb", "tracking", "vemlp_wandb"} & set(logger_backends)
     if forbidden:
         raise SystemExit(
-            "Reward v3 GRPO forbids W&B logger backends: "
+            "Strict Reward GRPO forbids W&B logger backends: "
             + ", ".join(sorted(forbidden))
         )
     if os.environ.get("SWANLAB_MODE") != "online":
-        raise SystemExit("Reward v3 GRPO requires SWANLAB_MODE=online")
+        raise SystemExit("Strict Reward GRPO requires SWANLAB_MODE=online")
     if not os.environ.get("SWANLAB_API_KEY"):
         raise SystemExit(
-            "Reward v3 GRPO requires SWANLAB_API_KEY in the launching environment"
+            "Strict Reward GRPO requires SWANLAB_API_KEY in the launching environment"
         )
     log_dir = os.environ.get("SWANLAB_LOG_DIR")
     if not log_dir:
-        raise SystemExit("Reward v3 GRPO requires SWANLAB_LOG_DIR")
+        raise SystemExit("Strict Reward GRPO requires SWANLAB_LOG_DIR")
     resolved_log_dir = Path(log_dir).resolve()
     if str(config.trainer.get("project_name")) != "shopping-grpo":
-        raise SystemExit("Reward v3 GRPO SwanLab project must be shopping-grpo")
+        raise SystemExit("Strict Reward GRPO SwanLab project must be shopping-grpo")
     print(
         "SwanLab online preflight passed: "
         + json.dumps(
@@ -442,6 +442,8 @@ def validate_fsdp2_config(config):
 
 def main():
     config = compose_runtime_config(sys.argv[1:])
+    if os.environ.get("SHOPPING_LENGTH_SHAPING_ENABLE", "false").lower() in {"true", "1"}:
+        raise SystemExit("Strict Reward forbids length shaping")
     validate_environment_contract()
     required_paths = {
         "GRPO_TRAIN_FILE": os.environ.get("GRPO_TRAIN_FILE"),

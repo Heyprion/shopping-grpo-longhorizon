@@ -3,7 +3,7 @@
 ## Purpose
 
 SFT teaches the action format and a strong initial policy. GRPO then samples
-fresh trajectories in ShopSimulator and optimizes the terminal Reward v3 signal.
+fresh trajectories in ShopSimulator and optimizes the terminal Strict Reward signal.
 The goal is to improve constraint satisfaction and termination behavior without
 requiring a learned reward model.
 
@@ -18,7 +18,7 @@ src/shopping_grpo/training/grpo/
   compat.py             narrow runtime compatibility hook
   dynamic_sampling.py   bounded non-zero-reward sampling
   fused_output.py       per-sequence layout for the fused output head
-  validation.py         strict Reward-v3 validation diagnostics
+  validation.py         strict Strict Reward validation diagnostics
 ```
 
 `scripts/setup.sh` applies one SHA-256-checked patch needed to connect the
@@ -31,7 +31,7 @@ unknown veRL version.
 - Train set: `data/grpo/train.parquet` (1,000 tasks)
 - Validation set: `data/grpo/validation.parquet` (50 tasks)
 - Environment: ShopSimulator Environment v2.1
-- Reward: Reward v3
+- Reward: Strict Reward
 
 Hashes are recorded in [`data/grpo/metadata.json`](../data/grpo/metadata.json).
 

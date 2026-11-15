@@ -51,7 +51,7 @@ Agent 不能只生成一句“推荐购买某商品”，而是必须真正与�
 
 ```mermaid
 flowchart LR
-    A[教师模型采集轨迹] --> B[Reward v3 回放过滤]
+    A[教师模型采集轨迹] --> B[Strict Reward 验收]
     B --> C[Action-only SFT 数据]
     C --> D[LoRA SFT]
     D --> E[veRL 在线 GRPO]
@@ -66,7 +66,7 @@ flowchart LR
 |---|---|---|---|
 | Baseline | 测量原始 Qwen3.5-2B 的工具使用能力 | `bash scripts/baseline.sh` | [评估](docs/evaluation.md) |
 | SFT | 从高质量教师轨迹学习合法、完整的购物行为 | `bash scripts/sft.sh` | [SFT](docs/sft.md) |
-| GRPO | 在真实环境 Rollout 中优化 Reward v3 | `bash scripts/grpo.sh` | [GRPO](docs/grpo.md) |
+| GRPO | 在真实环境 Rollout 中优化 Strict Reward | `bash scripts/grpo.sh` | [GRPO](docs/grpo.md) |
 | Evaluation | 使用同一批 Final-200 Clean 留出任务公平比较模型 | `bash scripts/evaluate.sh NAME` | [评估](docs/evaluation.md) |
 
 ### SFT 数据是怎么收集的？
@@ -97,7 +97,9 @@ Mask。这样模型学习的是可执行的工具策略，而不是背诵环境�
 ### GRPO 是怎么训练的？
 
 GRPO 从合并后的 SFT 模型开始。veRL 在 ShopSimulator 中为每个 Prompt 在线生成
-四条轨迹，环境用确定性的 Reward v3 评估最终购买结果、约束满足程度和终止行为。
+四条轨迹，环境采用论文的 Strict Reward：品类、属性、规格、价格四项相乘。
+未购买、超步数和循环终止均得 0，不叠加奖惩；完整替代商品与 gold 商品满足相同四项时
+都得 1。具体定义和此次变更见 [Strict Reward](docs/reward-strict.md)。
 训练不使用额外的 LLM-as-a-Judge Reward Model。
 
 本仓库没有复制 veRL 源码，而是固定安装 `verl==0.8.0`，并保留项目自己的
@@ -332,21 +334,20 @@ bash scripts/report_all.sh
 
 Checkpoint、Rollout 和日志统一写入 Git 忽略的 `outputs/`。
 
-## Reward v3 简介
+## Strict Reward
 
-Reward v3 是一个确定性的终局 Reward，不依赖另一个大模型进行主观判断：
+当前采用 [ShopSimulator 论文公式 (4)](https://arxiv.org/html/2601.18225v1) 的乘法奖励：
 
-- 类别和预算是 Hard Gate；
-- 品牌、型号、核心功能、关键规格按照 `0.35 / 0.25 / 0.25 / 0.15` 加权；
-- 完全满足并命中目标商品得到 `1.0`；
-- 完全满足的替代商品得到 `0.55`；
-- 部分满足按照连续分数计算，最高 `0.25`；
-- 错误购买、过早放弃、重复循环和达到最大步数都会获得不同负奖励；
-- 证据不足时标记为 `reward_valid=false`，不会伪装成有效的零分样本。
+```text
+R_strict = r_type × r_att × r_option × r_price
+```
 
-![Reward V3 decision rules](docs/images/reward-v3-decision-rules.png)
+四项分别表示品类匹配、属性覆盖、已选规格覆盖和预算满足。属性与规格允许部分覆盖，
+因此它是 `[0,1]` 连续奖励；例如 `1×0.5×0.5×1=0.25`。满足同样约束的 gold 和替代商品
+都得 1；未购买、循环和超步数得 0，不再添加品牌/型号权重、替代商品折扣或负奖励。
 
-完整公式、终止条件和证据要求见 [Reward v3 设计文档](docs/reward-v3.md)。
+预算抽取、商品价格缺失及 Query-gold 矛盾仍需单独处理；更换乘法公式不会自动修复这些问题。
+实现、版本迁移及数据清洗影响见 [Strict Reward 变更记录](docs/reward-strict.md)。
 
 ## 仓库结构
 
@@ -409,7 +410,7 @@ bash scripts/grpo.sh --logger swanlab
 - [留出集评估](docs/evaluation.md)
 - [Final-200 Clean 测试集说明](docs/evaluation-dataset.md)
 - [Final-200 Benchmark Dashboard（历史）](docs/evaluation-dashboard.html)
-- [Reward v3 设计](docs/reward-v3.md)
+- [Strict Reward 设计与变更记录](docs/reward-strict.md)
 - [可审计实验结果](experiments/comparison.md)
 
 ## 后续改进计划

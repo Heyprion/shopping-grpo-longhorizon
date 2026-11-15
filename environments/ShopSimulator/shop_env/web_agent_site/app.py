@@ -23,7 +23,9 @@ from web_agent_site.engine.engine import (
     map_action_to_html,
     END_BUTTON
 )
-from web_agent_site.engine.goal import get_reward, get_goals
+from web_agent_site.engine.goal import get_goals
+from web_agent_site.engine.reward import evaluate_purchase
+from web_agent_site.engine.variant_price import resolve_variant_price
 from web_agent_site.utils import (
     generate_mturk_code,
     setup_logger,
@@ -224,19 +226,16 @@ def done(session_id, asin, options):
     options = literal_eval(options)
     goal = user_sessions[session_id]['goal']
     purchased_product = product_item_dict[asin]
-    price = product_prices[asin]
+    price_resolution = resolve_variant_price(purchased_product, options)
+    price = price_resolution.get("price")
 
     # 打印完整的options内容
     print('完整options内容:')
     print(json.dumps(options, indent=2, ensure_ascii=False))
 
-    reward, reward_info = get_reward(
-        purchased_product,
-        goal,
-        price=price,
-        options=options,
-        verbose=True
-    )
+    result = evaluate_purchase(purchased_product, goal, selected_options=options,
+                               price_resolution=price_resolution)
+    reward, reward_info = result.reward, result.to_dict()
     user_sessions[session_id]['done'] = True
     user_sessions[session_id]['reward'] = reward
     print(user_sessions)

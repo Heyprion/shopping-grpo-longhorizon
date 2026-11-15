@@ -1,5 +1,9 @@
 # Data collection
 
+New collections use [Strict Reward](reward-strict.md). The frozen collection
+statistics below retain their original Reward-v3 provenance; they have not been
+revalidated or recollected by the reward migration.
+
 ## Goal
 
 The SFT stage needs complete examples of a shopping agent using tools correctly:
@@ -61,7 +65,7 @@ skips completed task attempts and rebuilds all derived files:
 ```text
 outputs/sft-collection/
   raw.jsonl           complete Teacher responses and environment results
-  accepted.jsonl      strict Reward v3 gold trajectories
+  accepted.jsonl      valid gold trajectories under the active Strict Reward
   rejected.jsonl      task IDs and deterministic rejection reasons
   reject_stats.json   aggregate acceptance audit
   sft.jsonl           sanitized training rows before splitting
@@ -93,7 +97,7 @@ Each JSONL row is a chat trajectory with:
 - assistant tool calls;
 - ShopSimulator tool observations;
 - the final terminal action;
-- metadata tying the row to Environment v2.1 and Reward v3.
+- metadata tying the collection to Environment v2.1 and its actual reward version.
 
 During SFT, user and tool tokens are masked. Loss is computed only on assistant
 actions. See [SFT](sft.md) for the exact training recipe.

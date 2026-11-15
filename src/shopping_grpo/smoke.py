@@ -63,7 +63,7 @@ def _raw_sample() -> dict:
         "initial_result": {
             "instruction": "找白色保温杯。",
             "environment_version": "shopsimulator-environment-v2.1",
-            "reward_version": "shopsimulator-reward-v3",
+            "reward_version": "shopsimulator-reward-strict-v1",
         },
         "steps": [
             {
@@ -97,13 +97,14 @@ def _raw_sample() -> dict:
             "over": True,
             "reward": 1.0,
             "reward_detail": {
-                "reward_version": "shopsimulator-reward-v3",
+                "reward_version": "shopsimulator-reward-strict-v1",
                 "reward_type": "gold_purchase",
                 "reward_valid": True,
                 "purchase_success": True,
                 "termination_reason": "gold_purchase",
                 "terminal_utility": 1.0,
-                "weighted_score": 1.0,
+                "strict_score": 1.0,
+                "reward_components": {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1},
                 "hard_gates": {
                     "brand": {"required": "PRIVATE", "actual": "visible"}
                 },
@@ -143,7 +144,7 @@ def run_cpu_smoke() -> dict:
 
     metrics = compute_deterministic_metrics(normalized)
     if not metrics["reward_and_outcome"]["strict_gold_success"]:
-        raise AssertionError("Reward v3 strict-success sample failed")
+        raise AssertionError("Strict Reward strict-success sample failed")
     checks.append("reward_sample")
 
     tokenizer = _CharacterTemplate()

@@ -261,7 +261,7 @@ def summarize_evaluations(
     reward_valid = 0
     total_reward = 0.0
     total_terminal_utility = 0.0
-    total_weighted_score = 0.0
+    total_strict_score = 0.0
     rubric_status = Counter()
     rubric_status_by_hardness = defaultdict(Counter)
     disagreement_tasks = []
@@ -292,8 +292,8 @@ def summarize_evaluations(
         total_terminal_utility += float(
             reward.get("terminal_utility", 0.0) or 0.0
         )
-        total_weighted_score += float(
-            reward.get("weighted_score", 0.0) or 0.0
+        total_strict_score += float(
+            reward.get("strict_score", 0.0) or 0.0
         )
 
         rubric = record["requirement_rubric"]
@@ -380,8 +380,8 @@ def summarize_evaluations(
             "mean_terminal_utility_fixed_denominator": _mean(
                 total_terminal_utility, denominator
             ),
-            "mean_weighted_score_fixed_denominator": _mean(
-                total_weighted_score, denominator
+            "mean_strict_score_fixed_denominator": _mean(
+                total_strict_score, denominator
             ),
         },
         "requirement_rubric": {

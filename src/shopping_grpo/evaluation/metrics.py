@@ -1,24 +1,23 @@
 """只依赖代码计算的轨迹指标；这里禁止 LLM 推理。
 
-指标从标准化事件流、终局 Reward v3 和上下文诊断中读取，分别回答“做了什么”、
+指标从标准化事件流、终局 Strict Reward 和上下文诊断中读取，分别回答“做了什么”、
 “是否合法/是否成功”和“上下文是否健康”，不会把不同含义强行合成一个总分。
 """
 
 from __future__ import annotations
 
-from collections import Counter
-from collections.abc import Mapping
 import json
 import math
 import re
+from collections import Counter
+from collections.abc import Mapping
 
+from shopping_grpo.environment.product_id import PRODUCT_ID_CAPTURE
+from shopping_grpo.environment.reward import REWARD_VERSION, full_strict_reward
 from shopping_grpo.evaluation.contracts import CONTRACT_VERSION
 from shopping_grpo.evaluation.trajectory import NORMALIZED_TRAJECTORY_VERSION
-from shopping_grpo.environment.product_id import PRODUCT_ID_CAPTURE
-
 
 DETERMINISTIC_METRICS_VERSION = "shopping-deterministic-metrics-v1"
-REWARD_V3 = "shopsimulator-reward-v3"
 _ASIN = re.compile(rf"(?<!\d){PRODUCT_ID_CAPTURE}(?!\d)")
 _INFRASTRUCTURE_ERROR_TYPES = {
     "ContextBudgetError",
@@ -32,11 +31,7 @@ _INFRASTRUCTURE_ERROR_TYPES = {
 def _canonical_parameters(parameters: object) -> dict:
     if not isinstance(parameters, Mapping):
         return {}
-    return {
-        str(key): value
-        for key, value in parameters.items()
-        if str(key) != "note"
-    }
+    return {str(key): value for key, value in parameters.items() if str(key) != "note"}
 
 
 def _action_signature(event: Mapping) -> str:
@@ -89,7 +84,8 @@ def _strict_success(normalized: Mapping, reward_detail: Mapping) -> bool:
     terminal = normalized.get("terminal")
     terminal = terminal if isinstance(terminal, Mapping) else {}
     return (
-        reward_detail.get("reward_version") == REWARD_V3
+        reward_detail.get("reward_version") == REWARD_VERSION
+        and full_strict_reward(reward_detail)
         and normalized.get("status") == "done"
         and normalized.get("done") is True
         and terminal.get("done") is True
@@ -107,36 +103,20 @@ def compute_deterministic_metrics(normalized: object) -> dict:
     if not isinstance(normalized, Mapping):
         raise TypeError("normalized trajectory must be an object")
     if normalized.get("schema_version") != NORMALIZED_TRAJECTORY_VERSION:
-        raise ValueError(
-            "normalized trajectory has an unsupported schema_version"
-        )
+        raise ValueError("normalized trajectory has an unsupported schema_version")
     # 先把事件分成所有动作尝试、真正执行的步骤和守卫拒绝，后面的统计都基于
     # 这三个集合，避免把“模型尝试过”误计为“环境执行过”。
     events = normalized.get("events")
     events = events if isinstance(events, list) else []
-    attempts = [
-        event for event in events if isinstance(event, Mapping)
-    ]
-    executed = [
-        event for event in attempts if event.get("event_type") == "tool_step"
-    ]
-    guards = [
-        event
-        for event in attempts
-        if event.get("event_type") == "guard_rejection"
-    ]
-    tool_counts = Counter(
-        str(event.get("tool_name") or "unknown") for event in executed
-    )
+    attempts = [event for event in events if isinstance(event, Mapping)]
+    executed = [event for event in attempts if event.get("event_type") == "tool_step"]
+    guards = [event for event in attempts if event.get("event_type") == "guard_rejection"]
+    tool_counts = Counter(str(event.get("tool_name") or "unknown") for event in executed)
     action_signatures = [_action_signature(event) for event in attempts]
-    duplicate_actions, consecutive_actions = _duplicate_counts(
-        action_signatures
-    )
+    duplicate_actions, consecutive_actions = _duplicate_counts(action_signatures)
 
     # 搜索指标只统计真实执行的 search_products；候选数来自 Actor 实际看到的文本。
-    search_events = [
-        event for event in executed if event.get("tool_name") == "search_products"
-    ]
+    search_events = [event for event in executed if event.get("tool_name") == "search_products"]
     search_queries = [
         " ".join(
             str(
@@ -151,9 +131,7 @@ def compute_deterministic_metrics(normalized: object) -> dict:
 
     visible_asins = set()
     for event in search_events:
-        visible_asins.update(
-            _ASIN.findall(str(event.get("actor_visible_observation") or ""))
-        )
+        visible_asins.update(_ASIN.findall(str(event.get("actor_visible_observation") or "")))
     opened_asins = {
         str((event.get("parameters") or {}).get("asin"))
         for event in executed
@@ -169,25 +147,18 @@ def compute_deterministic_metrics(normalized: object) -> dict:
         and event.get("observation_projection")
     ]
     input_tokens = _input_token_values(normalized.get("context") or {})
-    guard_reasons = Counter(
-        str(event.get("guard_reason") or "unknown") for event in guards
-    )
-    malformed_calls = sum(
-        bool(event.get("tool_call_parse_error")) for event in attempts
-    )
+    guard_reasons = Counter(str(event.get("guard_reason") or "unknown") for event in guards)
+    malformed_calls = sum(bool(event.get("tool_call_parse_error")) for event in attempts)
     schema_rejections = sum(
-        str(event.get("guard_reason") or "").startswith("schema_")
-        for event in guards
+        str(event.get("guard_reason") or "").startswith("schema_") for event in guards
     )
     step_errors = sum(bool(event.get("step_error")) for event in executed)
 
-    # 终局和 Reward 单独读取，严格成功必须同时满足环境终局、Reward v3 和 gold_purchase。
+    # 终局和 Reward 单独读取，严格成功必须同时满足环境终局、Strict Reward 和 gold_purchase。
     terminal = normalized.get("terminal")
     terminal = terminal if isinstance(terminal, Mapping) else {}
     reward_detail = terminal.get("reward_detail")
-    reward_detail = (
-        reward_detail if isinstance(reward_detail, Mapping) else {}
-    )
+    reward_detail = reward_detail if isinstance(reward_detail, Mapping) else {}
     reward_type = str(reward_detail.get("reward_type") or "unknown")
     termination_reason = str(
         reward_detail.get("termination_reason")
@@ -221,7 +192,7 @@ def compute_deterministic_metrics(normalized: object) -> dict:
             contract_issues.append("done_status_without_reward_detail")
     if reward_detail and reward_detail.get("reward_version") not in {
         None,
-        REWARD_V3,
+        REWARD_VERSION,
     }:
         contract_issues.append("unexpected_reward_version")
     normalization = normalized.get("normalization")
@@ -247,9 +218,10 @@ def compute_deterministic_metrics(normalized: object) -> dict:
                 )
                 or 0.0
             ),
-            "weighted_score": float(
-                reward_detail.get("weighted_score", 0.0) or 0.0
+            "strict_score": float(
+                reward_detail.get("strict_score", reward_detail.get("terminal_utility", 0)) or 0
             ),
+            "reward_components": dict(reward_detail.get("reward_components") or {}),
             "purchase_success": reward_detail.get("purchase_success") is True,
             "strict_gold_success": _strict_success(normalized, reward_detail),
             "done": normalized.get("done") is True,
@@ -262,8 +234,7 @@ def compute_deterministic_metrics(normalized: object) -> dict:
                 or normalized.get("status") == "max_steps"
             ),
             "repeat_loop_termination": (
-                reward_type == "repeat_loop"
-                or termination_reason == "repeat_loop"
+                reward_type == "repeat_loop" or termination_reason == "repeat_loop"
             ),
         },
         "actions_and_efficiency": {
@@ -283,9 +254,7 @@ def compute_deterministic_metrics(normalized: object) -> dict:
             ),
             "select_option_count": tool_counts.get("select_option", 0),
             "buy_count": tool_counts.get("buy_now", 0),
-            "finish_without_purchase_count": tool_counts.get(
-                "finish_without_purchase", 0
-            ),
+            "finish_without_purchase_count": tool_counts.get("finish_without_purchase", 0),
             "visible_search_candidate_count": len(visible_asins),
             "opened_candidate_count": len(opened_asins),
         },
@@ -295,8 +264,7 @@ def compute_deterministic_metrics(normalized: object) -> dict:
             "duplicate_canonical_action_count": duplicate_actions,
             "consecutive_duplicate_action_count": consecutive_actions,
             "environment_repeat_loop": (
-                reward_type == "repeat_loop"
-                or termination_reason == "repeat_loop"
+                reward_type == "repeat_loop" or termination_reason == "repeat_loop"
             ),
         },
         "legality": {
@@ -305,11 +273,8 @@ def compute_deterministic_metrics(normalized: object) -> dict:
             "malformed_tool_call_count": malformed_calls,
             "schema_rejection_count": schema_rejections,
             "step_error_count": step_errors,
-            "invalid_action_limit": normalized.get("status")
-            == "invalid_action_limit",
-            "tool_call_truncation_count": len(
-                context.get("tool_call_truncations") or []
-            ),
+            "invalid_action_limit": normalized.get("status") == "invalid_action_limit",
+            "tool_call_truncation_count": len(context.get("tool_call_truncations") or []),
         },
         "context": {
             "projection_count": len(projections),
@@ -320,12 +285,10 @@ def compute_deterministic_metrics(normalized: object) -> dict:
                 bool(projection.get("truncated")) for projection in projections
             ),
             "raw_observation_tokens": sum(
-                int(projection.get("raw_tokens", 0) or 0)
-                for projection in projections
+                int(projection.get("raw_tokens", 0) or 0) for projection in projections
             ),
             "visible_observation_tokens": sum(
-                int(projection.get("visible_tokens", 0) or 0)
-                for projection in projections
+                int(projection.get("visible_tokens", 0) or 0) for projection in projections
             ),
             "critical_footer_failures": sum(
                 not bool(projection.get("critical_footer_preserved", False))
@@ -348,8 +311,7 @@ def compute_deterministic_metrics(normalized: object) -> dict:
             "infrastructure_invalid": infrastructure_invalid,
             "trajectory_error_type": trajectory_error_type or None,
             "release_error_type": release_error_type or None,
-            "context_hard_limit": trajectory_error_type
-            == "ContextBudgetError",
+            "context_hard_limit": trajectory_error_type == "ContextBudgetError",
             "trajectory_contract_valid": not contract_issues,
             "trajectory_contract_issues": contract_issues,
             "judge_eligible": not infrastructure_invalid,

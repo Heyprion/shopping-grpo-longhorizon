@@ -6,15 +6,34 @@ This repository supports one workflow only:
 Baseline → SFT → GRPO → Evaluation
 ```
 
-The runtime contract is ShopSimulator Environment v2.1, Reward v3, observation
-v2 and tool schema v2. Do not add compatibility launchers, historical datasets,
+The runtime contract is ShopSimulator Environment v2.1, Strict Reward
+(`shopsimulator-reward-strict-v1`), observation v2 and tool schema v2.
+Reward is exactly `r_type * r_att * r_option * r_price`; do not add identity
+discounts, bonuses, negative terminal utilities or length shaping.
+Do not add compatibility launchers, historical datasets,
 old benchmarks, machine-specific paths or experiment journals.
 
-Training data must never overlap `data/evaluation/tasks.jsonl`. Strict success
+Full-corpus cleaning included the previous evaluation tasks, as authorized.
+The new stratification, pools and initial selections are materialized in
+`data/splits/manifest.json`. Training must never overlap the complete held-out
+eval pool or its cross-tag instruction duplicates. Strict success
 requires a complete `gold_purchase` terminal result with `reward_valid=true`.
 
 Do not start training, merge models or run the 200-task evaluation unless the
 user explicitly requests execution.
+
+## 当前数据方案（启动训练前必读）
+
+统一依据是 [docs/data-plan.md](docs/data-plan.md)，清洗实现细节见 [docs/task-cleaning.md](docs/task-cleaning.md)。本节及数据方案优先于旧数据 README、旧课程方案和脚本的数据默认值。
+
+- **清洗已完成并固定**：23,421 条全量任务含旧测试集均已检查；16,741 条通过、6,680 条淘汰。唯一来源为 `data/cleaned/` 及其 metadata，不为调整训练规模或配比重跑清洗，不设人工复核队列。
+- **分层及划分已落盘**：16,741 条正式标签在 `data/splits/labels.jsonl`，manifest 在 `data/splits/manifest.json`，逐题登记在 `data/splits/registry.jsonl`。按原始 `domain_zh` 9 大类 × 三档结构复杂度，需求数来自已提取的 `requirements`；不重新清洗、打标签或抽取首批名单。`prepare_data_splits.py verify` 核验后直接复用。
+- **固定池边界**：原始 `tag=eval` 的 944 条全部保留测试用途，首批测试 200；与 eval 指令重复的 3 条 train 任务封存。其余 15,794 条分为 SFT 训练/验证候选池 4,500/500，RL 训练/验证候选池 10,494/300；seed=42、重复组不跨池。各阶段训练、阶段验证和测试相互隔离。
+- **暂定首次用量与配比**：SFT 训练 800（simple/medium/hard=30%/50%/20%，240/400/160），验证 200；RL 训练 1,000（20%/50%/30%，200/500/300），验证 50；测试 200。训练数量和训练配比可根据训练、验证结果在本阶段训练池内调整，清洗结果和分层定义不随之变动；验证/测试保持固定自然分层分布，测试不用于调参。
+- **首批题目已确定**：SFT 使用 `data/sft/train_tasks.jsonl` / `validation_tasks.jsonl`，RL 使用 `data/grpo/train.jsonl` / `validation.jsonl` 及已同步 Parquet，测试使用新 `data/evaluation/tasks.jsonl`。训练难度配额精确匹配，品类保持自然比例（逐类整数取整误差小于 1 条），各份名单均覆盖 9 大类。SFT 验证、RL 验证、测试的 simple/medium/hard 分别为 30/121/49、8/30/12、21/119/60。
+- **补题及续训**：SFT / RL 训练剩余 3,700 / 9,494 题，见 `data/splits/reserves/`。用 `PYTHONPATH=src .venv/bin/python scripts/prepare_data_splits.py extend --stage rl --count N` 从本阶段训练池分配新批次（可 `--dry-run`，可 `--ratios A B C`），登记后不再被其他批次抽到；SFT 用 `--stage sft`。不得重抽首批、借用验证/测试题或把入选误报为已训练。续训按用户授权另行执行。
+- **启动训练前**：固定任务已准备完，RL Parquet 已可用；SFT 仍需分别为已固定的 800/200 题采集新的 Strict Reward 示范。训练入口会拒绝不匹配的旧 SFT 示范。不能把旧 Reward-v3 轨迹只改 metadata 当作新数据，也不能在采集完成后重新随机划分训练/验证。
+- **预算一致性**：所有环境进程（含 Ray worker）使用 `SHOPPING_TASK_BUDGETS` 指向 `data/cleaned/task_budgets.jsonl`，从仓库根目录可用 `export SHOPPING_TASK_BUDGETS="$PWD/data/cleaned/task_budgets.jsonl"`。清洗与 Strict Reward 共用结构化预算，不能让旧正则或无预算回退代替该标注。
 
 ## 当前采用的训练方案
 

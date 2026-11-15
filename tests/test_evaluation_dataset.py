@@ -1,126 +1,61 @@
+"""The canonical test is a fresh stratified selection from original eval tags."""
+
 import hashlib
-import gzip
 import json
-import re
-import sys
+import tempfile
 import unittest
-from copy import deepcopy
 from pathlib import Path
 
+from shopping_grpo.environment.reward import REWARD_VERSION
+from shopping_grpo.evaluation.artifacts import ArtifactError
+from shopping_grpo.evaluation.blind_guard import guard_blind_final, validate_canonical_blind_asset
 
 ROOT = Path(__file__).resolve().parents[1]
-SHOP_ENV_ROOT = ROOT / "environments/ShopSimulator/shop_env"
-sys.path.append(str(SHOP_ENV_ROOT))
-
-from web_agent_site.engine.constraints import explicit_budget_from_instruction
-from web_agent_site.engine.reward import evaluate_purchase
-from web_agent_site.engine.reward_features import compile_reward_features
-from web_agent_site.engine.variant_price import (
-    candidate_options_for_evaluation,
-    resolve_variant_price,
-)
 
 
-PRICE_HINT = re.compile(
-    r"(?:预算|价格|售价|价钱|价位|总价|费用|成本|花费|多少钱|"
-    r"[零一二三四五六七八九十百千万两\d]+(?:\.\d+)?\s*(?:元|块|钱)|"
-    r"\d+(?:\.\d+)?\s*(?:左右|上下|出头))"
-)
-EXCLUDED_SOURCE_TASK_IDS = {
-    1212, 1520, 2352, 3025, 3038, 3247, 3368, 3797, 4071, 4169,
-    4206, 4364, 4604, 4786, 4925, 5377, 5475, 5510, 5633, 5703,
-    5831, 5904, 6143, 6520, 6536, 6641, 7058, 7729, 8583, 9214,
-    10099, 10197, 10270, 10463, 10633, 11157, 11168, 11361, 11699,
-    11752, 11773, 12065, 12162, 12738, 12759, 12860, 13231, 13572,
-    13968, 14040, 15082, 15567, 16367, 16816, 16830, 17352, 17393,
-    17417, 17809, 18036, 18292, 18381, 18617, 18717, 18749, 19180, 19400,
-    19479, 20117, 20133, 20345, 20967, 21044, 21311, 21402, 21519,
-    21684, 21785, 21988, 22029, 22340,
-}
+def rows(name):
+    return [json.loads(line) for line in (ROOT / name).read_text().splitlines() if line.strip()]
 
 
 class EvaluationDatasetTests(unittest.TestCase):
-    def test_price_hint_detects_numeric_price_without_keyword(self):
-        self.assertIsNotNone(PRICE_HINT.search("控制在15元以内"))
-
-    def test_final_200_clean_manifest_and_blind_guard_match(self):
-        tasks_path = ROOT / "data/evaluation/tasks.jsonl"
-        task_bytes = tasks_path.read_bytes()
-        task_ids = [json.loads(line)["task_id"] for line in task_bytes.decode().splitlines()]
+    def test_strict_test_metadata_and_packaged_guard_match(self):
+        path = ROOT / "data/evaluation/tasks.jsonl"
         metadata = json.loads((ROOT / "data/evaluation/metadata.json").read_text())
-        guarded = json.loads(
-            (ROOT / "src/shopping_grpo/resources/blind_final_task_ids.json").read_text()
-        )
-        guard = json.loads(
-            (ROOT / "src/shopping_grpo/resources/blind_guard.json").read_text()
-        )
-
-        self.assertEqual(len(task_ids), 200)
-        self.assertEqual(len(set(task_ids)), 200)
-        self.assertFalse(EXCLUDED_SOURCE_TASK_IDS.intersection(task_ids))
-        self.assertEqual(metadata["name"], "Final-200-Clean")
-        self.assertEqual(metadata["tasks"], 200)
-        self.assertEqual(
-            set(metadata["curation"]["excluded_source_task_ids"]),
-            EXCLUDED_SOURCE_TASK_IDS,
-        )
-        self.assertEqual(len(metadata["curation"]["replacement_task_ids"]), 81)
-        self.assertTrue(
-            set(metadata["curation"]["replacement_task_ids"]).issubset(task_ids)
-        )
-        self.assertEqual(metadata["sha256"], hashlib.sha256(task_bytes).hexdigest())
-        self.assertEqual(guarded["task_ids"], task_ids)
-        self.assertEqual(guard["task_count"], 200)
+        guard, ids = validate_canonical_blind_asset()
+        self.assertEqual(len(ids), 200)
+        self.assertEqual(metadata["reward_version"], REWARD_VERSION)
+        self.assertEqual(metadata["source_tag"], "eval")
+        self.assertFalse(metadata["evaluated"])
+        self.assertEqual(metadata["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
         self.assertEqual(guard["task_sha256"], metadata["sha256"])
         self.assertEqual(
             guard["metadata_sha256"],
             hashlib.sha256((ROOT / "data/evaluation/metadata.json").read_bytes()).hexdigest(),
         )
+        self.assertEqual(ids, {r["task_id"] for r in rows("data/evaluation/tasks.jsonl")})
 
-    def test_every_final_task_has_a_reachable_and_scored_gold_purchase(self):
-        with gzip.open(
-            ROOT / "environments/ShopSimulator/shop_env/data/fine_items_eval_train_all.json.gz",
-            "rt",
-            encoding="utf-8",
-        ) as stream:
-            products = json.load(stream)
-        task_ids = [
-            json.loads(line)["task_id"]
-            for line in (ROOT / "data/evaluation/tasks.jsonl").read_text().splitlines()
-        ]
-        for task_id in task_ids:
-            target = products[task_id]
-            instruction = target["instructions"][0]
-            product = deepcopy(target)
-            product.update(
-                {
-                    "Title": target["title"],
-                    "Description": target.get("full_description", ""),
-                    "BulletPoints": [],
-                    "Attributes": target.get("attribute", []),
-                    "pricing": target.get("pricing", []),
-                }
-            )
-            goal = {
-                "asin": target["asin"],
-                "category": target["category"],
-                "price_upper": explicit_budget_from_instruction(
-                    instruction["instruction"]
-                ),
-            }
-            goal.update(compile_reward_features(instruction, target))
-            selected, _ = candidate_options_for_evaluation(
-                product, goal["required_options_by_key"]
-            )
-            price = resolve_variant_price(product, selected)
-            result = evaluate_purchase(
-                product, goal, selected_options=selected, price_resolution=price
-            )
-            self.assertFalse(goal["unresolved_option_requirements"], task_id)
-            self.assertEqual(price["status"], "pass", task_id)
-            if PRICE_HINT.search(instruction["instruction"]):
-                self.assertIsNotNone(goal["price_upper"], task_id)
-            self.assertEqual(result.reward_type, "gold_purchase", task_id)
+    def test_every_selected_test_task_has_original_eval_tag_and_all_domains_are_present(self):
+        labels = {r["task_id"]: r for r in rows("data/splits/labels.jsonl")}
+        selected = [labels[r["task_id"]] for r in rows("data/evaluation/tasks.jsonl")]
+        self.assertEqual({r["source_tag"] for r in selected}, {"eval"})
+        self.assertEqual(len({r["domain"] for r in selected}), 9)
+        self.assertEqual({r["difficulty"] for r in selected}, {"simple", "medium", "hard"})
+        pool = {r["task_id"] for r in rows("data/splits/pools/evaluation.jsonl")}
+        self.assertEqual(len(pool), 944)
+        self.assertTrue({r["task_id"] for r in selected} <= pool)
+
+    def test_guard_protects_unselected_eval_reserve_and_cross_tag_duplicates(self):
+        reserve = rows("data/splits/reserves/evaluation.jsonl")[0]["task_id"]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "tasks.jsonl"
+            for task_id in [reserve, 13358, 8413, 5423]:
+                with self.subTest(task_id=task_id):
+                    path.write_text(json.dumps({"task_id": task_id}) + "\n")
+                    with self.assertRaises(ArtifactError):
+                        guard_blind_final([path], allowed=False)
+        guard_blind_final(
+            [ROOT / "data/grpo/train.jsonl", ROOT / "data/grpo/validation.jsonl"], allowed=False
+        )
 
 
 if __name__ == "__main__":

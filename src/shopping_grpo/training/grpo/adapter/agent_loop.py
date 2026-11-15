@@ -36,7 +36,7 @@ class ShoppingToolAgentLoop(ToolAgentLoop):
         timeout=60,
         max_steps=35,
         required_environment_version=None,
-        reward_mode="native",
+        reward_mode="strict",
         context_window_tokens=24576,
         context_generation_reserve_tokens=512,
         context_safety_margin_tokens=512,
@@ -90,18 +90,21 @@ class ShoppingToolAgentLoop(ToolAgentLoop):
         self.context_input_budget = self.context_input_budget_tokens
         if self.context_preserve_recent_groups < 1:
             raise ValueError("context_preserve_recent_groups must be positive")
-        if min(
-            self.observation_token_budget,
-            self.observation_detail_token_budget,
-            self.observation_generic_token_budget,
-        ) < 64:
+        if (
+            min(
+                self.observation_token_budget,
+                self.observation_detail_token_budget,
+                self.observation_generic_token_budget,
+            )
+            < 64
+        ):
             raise ValueError("all observation token budgets must be at least 64")
         if self.observation_search_top_k < 1:
             raise ValueError("observation_search_top_k must be positive")
-        if self.reward_mode not in {"native", "constraint_aware"}:
+        if self.reward_mode != "strict":
             raise ValueError(f"unknown shopping reward mode: {self.reward_mode!r}")
-        if self.reward_length_shaping_enable and self.reward_mode != "constraint_aware":
-            raise ValueError("reward length shaping requires constraint_aware reward mode")
+        if self.reward_length_shaping_enable:
+            raise ValueError("strict reward forbids length shaping")
         if not 0 < self.reward_length_soft_threshold < self.max_steps:
             raise ValueError("reward_length_soft_threshold must be between 1 and max_steps")
         if min(self.reward_length_penalty_per_step, self.reward_length_max_penalty) < 0:
@@ -161,7 +164,9 @@ class ShoppingToolAgentLoop(ToolAgentLoop):
             if agent_data.routed_experts is not None:
                 if runtime_state is not None:
                     runtime_state["terminate"] = True
-                    runtime_state["termination_reason"] = "context_compaction_unsupported_routed_experts"
+                    runtime_state["termination_reason"] = (
+                        "context_compaction_unsupported_routed_experts"
+                    )
                     runtime_state["error"] = runtime_state["termination_reason"]
                     runtime_state["infrastructure_invalid"] = True
                 return AgentState.TERMINATED
@@ -216,7 +221,7 @@ class ShoppingToolAgentLoop(ToolAgentLoop):
                 raise ObservationProjectionError(
                     "projected observation exceeds veRL character fallback limit"
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - projection errors invalidate the trajectory
             state["terminate"] = True
             state["termination_reason"] = "observation_projection_failed"
             state["error"] = f"observation_projection_failed:{exc.__class__.__name__}:{exc}"
@@ -276,7 +281,7 @@ class ShoppingToolAgentLoop(ToolAgentLoop):
             )
             output.reward_score = (
                 float(breakdown["total"])
-                if self.reward_mode == "constraint_aware"
+                if self.reward_mode == "strict"
                 else terminal_reward(state, mode=self.reward_mode)
             )
             output.extra_fields["shopping"] = {
@@ -307,21 +312,13 @@ class ShoppingToolAgentLoop(ToolAgentLoop):
                 "observation_raw_tokens": int(state["observation_raw_tokens"]),
                 "observation_visible_tokens": int(state["observation_visible_tokens"]),
                 "observation_max_raw_tokens": int(state["observation_max_raw_tokens"]),
-                "observation_max_visible_tokens": int(
-                    state["observation_max_visible_tokens"]
-                ),
-                "observation_visible_asin_count": int(
-                    state["observation_visible_asin_count"]
-                ),
-                "observation_visible_button_count": int(
-                    state["observation_visible_button_count"]
-                ),
+                "observation_max_visible_tokens": int(state["observation_max_visible_tokens"]),
+                "observation_visible_asin_count": int(state["observation_visible_asin_count"]),
+                "observation_visible_button_count": int(state["observation_visible_button_count"]),
                 "observation_any_truncated": bool(state["observation_any_truncated"]),
                 "observation_footer_failures": int(state["observation_footer_failures"]),
                 "guard_rejections": int(state["guard_rejection_count"]),
-                "guard_rejection_reasons": dict(
-                    state["guard_rejection_reason_counts"]
-                ),
+                "guard_rejection_reasons": dict(state["guard_rejection_reason_counts"]),
                 "guard_rejections_after_truncation": int(
                     state["guard_rejection_after_truncation_count"]
                 ),

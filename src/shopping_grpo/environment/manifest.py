@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from shopping_grpo.environment.reward import REWARD_VERSION
 
 MANIFEST_VERSION = "shopping-environment-manifest-v1"
 EMBEDDED_SOURCE_FILE = "EMBEDDED_SOURCE.json"
@@ -51,12 +52,10 @@ def shopsimulator_source_commit(repository):
 
 def validate_manifest(manifest):
     if not isinstance(manifest, dict):
-        raise ValueError("environment manifest must be an object")
+        raise ValueError("environment manifest must be an object")  # noqa: TRY004 - public schema validation
     missing = REQUIRED_KEYS - set(manifest)
     if missing:
-        raise ValueError(
-            "environment manifest is missing: " + ", ".join(sorted(missing))
-        )
+        raise ValueError("environment manifest is missing: " + ", ".join(sorted(missing)))
     if manifest["manifest_version"] != MANIFEST_VERSION:
         raise ValueError("unsupported environment manifest version")
     if manifest["observation_version"] != "shopping-observation-v2":
@@ -69,10 +68,8 @@ def validate_manifest(manifest):
     )
     if environment_version != "shopsimulator-environment-v2.1":
         raise ValueError("manifest has an unsupported environment_version")
-    if manifest["reward"].get("version") != "shopsimulator-reward-v3":
-        raise ValueError(
-            "shopsimulator-environment-v2.1 requires shopsimulator-reward-v3"
-        )
+    if manifest["reward"].get("version") != REWARD_VERSION:
+        raise ValueError(f"shopsimulator-environment-v2.1 requires {REWARD_VERSION}")
     if manifest["search"].get("version") != "shopsimulator-multifield-bm25-v2":
         raise ValueError("manifest does not select multi-field BM25 v2")
     if int(manifest["search"].get("page_size", 0)) != 20:

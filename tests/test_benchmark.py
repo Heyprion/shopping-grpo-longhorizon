@@ -7,19 +7,20 @@ from shopping_grpo.evaluation.summary import summarize_trajectories
 
 def _trajectory(task_id, strict=False, steps=3, status="done", blocked=None):
     reward_detail = {
-        "reward_version": "shopsimulator-reward-v3",
+        "reward_version": "shopsimulator-reward-strict-v1",
         "reward_type": "gold_purchase" if strict else "wrong_purchase",
         "reward_valid": True,
         "purchase_success": strict,
         "termination_reason": "gold_purchase" if strict else "wrong_purchase",
-        "terminal_utility": 1.0 if strict else -0.85,
-        "weighted_score": 1.0 if strict else 0.0,
+        "terminal_utility": 1.0 if strict else 0.0,
+        "strict_score": 1.0 if strict else 0.0,
+        "reward_components": dict.fromkeys(("r_type", "r_att", "r_option", "r_price"), float(strict)),
     }
     return {
         "task_id": task_id,
         "status": status,
         "done": status == "done",
-        "final_reward": 1.0 if strict else -0.85,
+        "final_reward": 1.0 if strict else 0.0,
         "steps": [{"tool_name": "search_products"}] * steps,
         "blocked_tool_calls": blocked or [],
         "terminal_result": {"done": status == "done", "over": status == "done", "reward_detail": reward_detail},
@@ -48,9 +49,9 @@ class BenchmarkTest(unittest.TestCase):
         self.assertAlmostEqual(summary["strict_success_rate"], 1 / 3)
         self.assertEqual(summary["gold_purchases"], 1)
         self.assertAlmostEqual(summary["gold_purchase_rate"], 1 / 3)
-        self.assertEqual(summary["reward_contract"], "shopsimulator-reward-v3")
+        self.assertEqual(summary["reward_contract"], "shopsimulator-reward-strict-v1")
         self.assertEqual(summary["reward_type_counts"]["wrong_purchase"], 1)
-        self.assertAlmostEqual(summary["mean_final_reward"], (1.0 - 0.85) / 2)
+        self.assertAlmostEqual(summary["mean_final_reward"], 0.5)
         self.assertEqual(summary["missing_tasks"], [12])
         self.assertAlmostEqual(summary["average_steps"], 5.0)
         self.assertEqual(summary["guard_reason_counts"]["schema_extra_arguments:asin"], 1)

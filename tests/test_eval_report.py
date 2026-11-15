@@ -20,7 +20,7 @@ class EvaluationReportTest(unittest.TestCase):
                 "purchase_successes": 1,
                 "purchase_success_rate": 1.0,
                 "mean_final_reward": 1.0,
-                "mean_weighted_score": 1.0,
+                "mean_strict_score": 1.0,
                 "average_steps": 1.0,
                 "protocol": {"model": "new-model-1"},
             }
@@ -60,7 +60,7 @@ class EvaluationReportTest(unittest.TestCase):
                 "purchase_successes": 0,
                 "purchase_success_rate": 0.0,
                 "mean_final_reward": 0.0,
-                "mean_weighted_score": 0.0,
+                "mean_strict_score": 0.0,
                 "average_steps": 1.0,
                 "protocol": {"model": "new-model-1"},
             }

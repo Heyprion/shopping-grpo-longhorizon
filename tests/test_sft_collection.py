@@ -107,7 +107,9 @@ def _accepted_trajectory(task_id=1):
             "done": True,
             "over": True,
             "reward_detail": {
-                "reward_version": "shopsimulator-reward-v3",
+                "reward_version": "shopsimulator-reward-strict-v1",
+                "reward_components": {"r_type": 1, "r_att": 1, "r_option": 1, "r_price": 1},
+                "terminal_utility": 1.0,
                 "reward_type": "gold_purchase",
                 "reward_valid": True,
                 "purchase_success": True,
@@ -134,7 +136,7 @@ class SftCollectionTests(unittest.TestCase):
         invalid["terminal_result"]["reward_detail"]["reward_valid"] = False
         accepted, reasons = acceptance_reasons(invalid)
         self.assertFalse(accepted)
-        self.assertIn("reward_v3_invalid", reasons)
+        self.assertIn("strict_reward_invalid", reasons)
 
     def test_sft_row_removes_reasoning_and_terminal_reward(self):
         row = build_sft_row(_accepted_trajectory())

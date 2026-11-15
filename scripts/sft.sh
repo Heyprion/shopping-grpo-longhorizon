@@ -84,6 +84,8 @@ if "$dry_run"; then
   exit 0
 fi
 
+PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}" "$sft_python" -c \
+  'from pathlib import Path; from shopping_grpo.collection.data_contract import validate_current_sft; validate_current_sft(Path.cwd())'
 "$sft_python" scripts/check_fsdp2_runtime.py
 "$sft_python" - <<'PY'
 from importlib.metadata import PackageNotFoundError, version

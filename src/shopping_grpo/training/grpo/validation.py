@@ -1,13 +1,20 @@
-"""Strict Reward-v3 validation metrics without changing the optimization reward."""
+"""Gold-success selection is distinct from the fractional strict objective."""
+
+from shopping_grpo.environment.reward import REWARD_VERSION, strict_reward
 
 
 def strict_success(info):
+    try:
+        full = strict_reward(info.get("reward", {})) == 1.0
+    except ValueError:
+        full = False
     return bool(
         info.get("done") is True
         and info.get("reward_type") == "gold_purchase"
-        and info.get("reward_version") == "shopsimulator-reward-v3"
+        and info.get("reward_version") == REWARD_VERSION
         and info.get("reward_valid") is True
         and info.get("reward", {}).get("purchase_success") == 1.0
+        and full
         and not info.get("infrastructure_invalid")
         and not info.get("reward_unverifiable")
     )
@@ -43,7 +50,9 @@ def install_validation_metrics():
             extra = {**extra, "acc": [float(strict_success(info)) for info in infos]}
             append_training_diagnostic(
                 os.environ.get("SHOPPING_GRPO_VALIDATION_DIAGNOSTICS_PATH"),
-                "validation_batch", step, rollouts=infos,
+                "validation_batch",
+                step,
+                rollouts=infos,
             )
         return score, extra
 

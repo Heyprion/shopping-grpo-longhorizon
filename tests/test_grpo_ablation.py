@@ -23,46 +23,17 @@ class GrpoAblationTest(unittest.TestCase):
         self.assertEqual(shaped, reward)
         self.assertIsNot(shaped, reward)
 
-    def test_penalty_starts_after_soft_threshold_and_is_capped(self):
-        reward = {"total": 0.8, "terminal_utility": 0.8, "penalty_overlong": 0.0, "sampling_invalid": False}
-        state = {"steps": [{}] * 30, "max_steps": 35, "termination_reason": "gold_purchase"}
+    def test_strict_reward_refuses_length_penalties(self):
+        with self.assertRaisesRegex(ValueError, "forbids length shaping"):
+            apply_reward_length_shaping({"total": .8}, {"steps": [{}] * 30}, enabled=True)
 
-        shaped = apply_reward_length_shaping(
-            reward,
-            state,
-            enabled=True,
-            soft_threshold=20,
-            penalty_per_step=0.02,
-            max_penalty=0.1,
-        )
-
-        self.assertAlmostEqual(shaped["penalty_overlong"], 0.1)
-        self.assertAlmostEqual(shaped["total"], 0.7)
-        self.assertAlmostEqual(shaped["terminal_utility"], 0.7)
-        self.assertFalse(shaped["sampling_invalid"])
-
-    def test_max_step_trajectory_is_invalid_for_dynamic_resampling(self):
-        reward = {"total": 0.0, "terminal_utility": 0.0, "penalty_overlong": 0.0, "sampling_invalid": False}
-        state = {"steps": [{}] * 35, "max_steps": 35, "termination_reason": "max_steps"}
-        shaped = apply_reward_length_shaping(
-            reward,
-            state,
-            enabled=True,
-            soft_threshold=20,
-            penalty_per_step=0.01,
-            max_penalty=0.2,
-        )
-        info = {
-            "overlong": shaped["overlong"],
-            "infrastructure_invalid": False,
-            "reward_unverifiable": False,
-            "reward": {**shaped, "purchase_success": False},
-        }
-
-        _, _, invalid, reasons = extract_shopping_group_signals([info])
-
-        self.assertEqual(invalid, [True])
-        self.assertEqual(reasons, [("overlong",)])
+    def test_max_steps_is_a_valid_zero_reward_without_shaping(self):
+        info = {"overlong": False, "infrastructure_invalid": False, "reward_unverifiable": False,
+                "reward": {"terminal_utility": 0., "purchase_success": False, "sampling_invalid": False}}
+        utilities, _, invalid, reasons = extract_shopping_group_signals([info])
+        self.assertEqual(utilities, [0.])
+        self.assertEqual(invalid, [False])
+        self.assertEqual(reasons, [()])
 
     def test_metrics_keep_overlong_repeat_loop_and_max_step_rates(self):
         base_reward = {

@@ -1,0 +1,72 @@
+{
+  "audit": {
+    "path": "outputs/task-cleaning/full/audit.json",
+    "sha256": "fea5677d51fd11023e6abb9f210c986d4c7690ba107372d51e9c7c12fd120a6f"
+  },
+  "code_hashes": {
+    "environments/ShopSimulator/shop_env/web_agent_site/engine/constraints.py": "b4155708dd7006ae4afe42c535ee4d2abe138585fa79ce4631faa03370dc0ae5",
+    "environments/ShopSimulator/shop_env/web_agent_site/engine/goal.py": "a14fac6fa2cd90e6a6a9ae62049fcceac29fe18cd38c29d667186c1e2ba2402c",
+    "environments/ShopSimulator/shop_env/web_agent_site/engine/reward.py": "48f3126de4590726f6e6bc5d5da931c5b6b0452e80195ce6a9a56c095db96a0d",
+    "environments/ShopSimulator/shop_env/web_agent_site/engine/reward_features.py": "3f416bf5d32ce2cd57dd10b0ab0939a5869c96ca67dab17ad3ba243584373c30",
+    "environments/ShopSimulator/shop_env/web_agent_site/engine/task_budget.py": "b45f7a6a501ce6127a3544f11cce6ee33a6cb9d5f63a4b08a964f6c2cff76ae9",
+    "environments/ShopSimulator/shop_env/web_agent_site/engine/variant_price.py": "077e5707f0a5f212923af562e212258a4a598891b7648aec236082338913a364",
+    "scripts/clean_tasks.py": "31168acc0db5e6256ef59c355de729744368aba67556806f1a45c7379a7c08ea",
+    "src/shopping_grpo/collection/task_cleaning.py": "eabb30c55e7fd858e24391f3908b656b60bc41eb7b2cf13c600c67129d91fe5e"
+  },
+  "files": {
+    "rejected_tasks.jsonl": {
+      "sha256": "d7b6b85b503fd146e01926035fca3f3051d0a9ec5596e799ae42fd2f9db7b684"
+    },
+    "task_budgets.jsonl": {
+      "sha256": "b0e9912dc887d57104fae160fc1968fc30b288580f9b091930991e1a3697ccc7"
+    },
+    "task_ids.jsonl": {
+      "sha256": "bf33c20ee9cfac6138af21148355de7e11401d07546b7735a1a5cb0c26357ca3"
+    },
+    "tasks.jsonl": {
+      "sha256": "423d9793ec68580c6bcde32862ea27fb82c232a56f43780de581231fee636e1f"
+    }
+  },
+  "included_previous_evaluation_tasks": 200,
+  "instruction_duplicate_groups": [
+    [
+      680,
+      13358
+    ],
+    [
+      7179,
+      14650
+    ],
+    [
+      202,
+      8413
+    ],
+    [
+      894,
+      5423
+    ]
+  ],
+  "label_version": "shopping-structural-complexity-v1",
+  "model": "Qwen/Qwen3.5-4B",
+  "model_revision": "851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+  "passed_tasks": 16741,
+  "policy": "shopping-task-cleaning-v2",
+  "prompt_hash": "65cbb6a30ea87950f91179b111f2db2a91e5ad898f6abddece05587a5e8fd6e0",
+  "quality_gate_passed": true,
+  "rejected_tasks": 6680,
+  "reward_version": "shopsimulator-reward-strict-v1",
+  "runtime_budget_env": "export SHOPPING_TASK_BUDGETS=\"$PWD/data/cleaned/task_budgets.jsonl\"",
+  "schema_version": "shopping-cleaned-pool-v1",
+  "scope": "all_original_tasks_including_previous_evaluation",
+  "source": {
+    "path": "environments/ShopSimulator/shop_env/data/fine_items_eval_train_all.json.gz",
+    "sha256": "f51c33217061479f9c95a1068621fcd38e4883ae3d2f6a1627037bea934f2125"
+  },
+  "source_tasks": 23421,
+  "split_manifest": "data/splits/manifest.json",
+  "split_status": "partitioned",
+  "summary": {
+    "path": "outputs/task-cleaning/full/summary.json",
+    "sha256": "b9959200c5cd4cd17a6927dd0df0a425e22800711cd666e0c6f0c83c961c0b03"
+  }
+}
