@@ -4,6 +4,12 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.cache/
+.hypothesis/
+.triton/
+.coverage
+.coverage.*
+htmlcov/
 
 .DS_Store
 .venv/
@@ -13,6 +19,8 @@ venv/
 build/
 dist/
 .env
+.env.*
+!.env.example
 *.log
 
 outputs/
@@ -21,3 +29,14 @@ models/
 swanlog/
 wandb/
 logs/
+
+# Generated model weights and training state belong in local artifacts.
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.gguf
+*.onnx
+
+# Keep the local operation journal without publishing experiment history.
+/operation_log.md

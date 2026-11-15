@@ -252,6 +252,17 @@ Stop the model server before training so it releases the GPU.
 
 ```bash
 bash scripts/sft.sh
+```
+
+This runs two-GPU FSDP2 with seed 42, learning rate `1e-4`, effective batch 8
+and three epochs, with SwanLab monitoring. The adapter is saved to
+`outputs/models/sft-lora`. Merge and evaluate separately after training:
+
+```bash
+.venv/bin/python scripts/merge_lora_adapter.py \
+  --base-model Qwen/Qwen3.5-2B \
+  --adapter outputs/models/sft-lora \
+  --output outputs/models/sft-merged --bf16
 bash scripts/serve_model.sh outputs/models/sft-merged
 bash scripts/evaluate.sh sft
 ```
@@ -351,7 +362,9 @@ Most users only need these environment variables:
 | `LLM_BASE_URL` | `http://127.0.0.1:8000/v1` |
 | `SERVED_MODEL_NAME` | `shopping-agent` |
 | `SFT_ADAPTER_DIR` | `outputs/models/sft-lora` |
-| `SFT_MERGED_DIR` | `outputs/models/sft-merged` |
+| `SFT_PYTHON` | `.venv/bin/python` |
+| `SFT_SWANLAB_PROJECT` | `shopping-grpo-sft` |
+| `SFT_SWANLAB_RUN_NAME` | `sft-single-stage-seed42` |
 
 Advanced GRPO overrides can be appended after `--`:
 

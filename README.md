@@ -220,6 +220,13 @@ SFT 带来了主要能力提升，让模型学会合法工具调用、长程搜�
 主训练环境使用 Python 3.12，ShopSimulator 使用隔离的 Python 3.10 环境。
 `scripts/setup.sh` 会通过 `uv` 创建并安装两套环境。
 
+单机双卡 FSDP2 的依赖已包含在主环境中。可先执行
+`.venv/bin/python scripts/check_fsdp2_runtime.py --distributed`，仅检查依赖、
+双卡通信和参数分片；用 `bash scripts/sft_curriculum.sh --fsdp2 --dry-run`
+预览课程 SFT 命令，去掉 `--dry-run` 才会训练并合并。普通 SFT 入口也支持
+`bash scripts/sft.sh --fsdp2`。GRPO 配置使用单机双卡 FSDP2，仍需先完成 SFT。
+详见 [SFT](docs/sft.md) 和 [GRPO](docs/grpo.md)。
+
 ## 快速开始
 
 以下命令都在仓库根目录执行。
@@ -263,6 +270,17 @@ bash scripts/baseline.sh
 
 ```bash
 bash scripts/sft.sh
+```
+
+该命令使用双卡 FSDP2、seed=42、学习率 `1e-4`、有效 batch=8，训练 3 epoch，
+并通过 SwanLab 记录结果。adapter 保存到 `outputs/models/sft-lora`。
+训练结束后，模型合并与评估分别执行：
+
+```bash
+.venv/bin/python scripts/merge_lora_adapter.py \
+  --base-model Qwen/Qwen3.5-2B \
+  --adapter outputs/models/sft-lora \
+  --output outputs/models/sft-merged --bf16
 bash scripts/serve_model.sh outputs/models/sft-merged
 bash scripts/evaluate.sh sft
 ```
@@ -364,7 +382,9 @@ tests/                           核心单元、入口和 Wheel 安装检查
 | `LLM_BASE_URL` | `http://127.0.0.1:8000/v1` |
 | `SERVED_MODEL_NAME` | `shopping-agent` |
 | `SFT_ADAPTER_DIR` | `outputs/models/sft-lora` |
-| `SFT_MERGED_DIR` | `outputs/models/sft-merged` |
+| `SFT_PYTHON` | `.venv/bin/python` |
+| `SFT_SWANLAB_PROJECT` | `shopping-grpo-sft` |
+| `SFT_SWANLAB_RUN_NAME` | `sft-single-stage-seed42` |
 
 GRPO 的高级 Hydra 参数可以追加在 `--` 后：
 
