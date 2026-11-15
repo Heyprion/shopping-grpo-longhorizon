@@ -463,6 +463,27 @@ class RolloutTest(unittest.TestCase):
         self.assertEqual([row["task_id"] for row in rows], [1, 2])
         self.assertEqual(len(written), 1)
 
+    def test_resume_retries_infrastructure_errors_but_keeps_policy_failures(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output = Path(tmpdir) / "raw.jsonl"
+            initial = [
+                {"task_id": 1, "status": "done"},
+                {"task_id": 2, "status": "error", "error": {"type": "URLError"}},
+                {"task_id": 3, "status": "max_steps"},
+            ]
+            output.write_text("".join(json.dumps(row) + "\n" for row in initial))
+            self.assertEqual(completed_task_attempts(output), {(1, 0), (3, 0)})
+            recovered = {"task_id": 2, "status": "done", "done": True}
+            with patch("shopping_grpo.evaluation.rollout.collect_for_task", return_value=recovered) as run:
+                written = collect_tasks(
+                    [{"task_id": 1}, {"task_id": 2}, {"task_id": 3}],
+                    client=object(), output_path=output, base_url="http://shop.test",
+                )
+            self.assertEqual(written, [recovered])
+            run.assert_called_once()
+            self.assertEqual(run.call_args.args[0]["task_id"], 2)
+            self.assertEqual(completed_task_attempts(output), {(1, 0), (2, 0), (3, 0)})
+
     def test_collect_tasks_resumes_missing_attempts_for_each_task(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             output = Path(tmpdir) / "raw.jsonl"

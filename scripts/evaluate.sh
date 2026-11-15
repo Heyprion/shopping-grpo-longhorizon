@@ -18,6 +18,9 @@ cd "$ROOT"
   --base-url "$SHOPSIM_BASE_URL" \
   --model "$SERVED_MODEL_NAME" \
   --llm-base-url "$LLM_BASE_URL" \
-  --api-key "$LLM_API_KEY"
+  --api-key "$LLM_API_KEY" \
+  --swanlab \
+  --swanlab-project "${EVAL_SWANLAB_PROJECT:-shopping-grpo-evaluation}" \
+  --swanlab-run-name "$LABEL"
 
 "$ROOT/.venv/bin/python" scripts/build_eval_report.py --run-dir "$OUTPUT_DIR"

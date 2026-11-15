@@ -267,7 +267,11 @@ def completed_task_attempts(path):
             except json.JSONDecodeError:
                 continue
             if "task_id" in row:
-                done.add((int(row["task_id"]), int(row.get("attempt_index", 0))))
+                attempt = (int(row["task_id"]), int(row.get("attempt_index", 0)))
+                if _is_infrastructure_failure(row):
+                    done.discard(attempt)
+                else:
+                    done.add(attempt)
     return done
 
 
@@ -458,6 +462,7 @@ def collect_tasks(
     max_steps=30,
     env_factory=ShopAgentEnv,
     attempts_per_task=1,
+    on_trajectory=None,
 ):
     attempts_per_task = int(attempts_per_task)
     if attempts_per_task < 1:
@@ -479,6 +484,8 @@ def collect_tasks(
             )
             append_jsonl(output_path, [trajectory])
             written.append(trajectory)
+            if on_trajectory is not None:
+                on_trajectory(trajectory)
             if _is_infrastructure_failure(trajectory):
                 raise CollectionInfrastructureError(
                     "collection infrastructure failure; stopped before the next task"

@@ -10,11 +10,33 @@ from pathlib import Path
 from unittest.mock import patch
 
 from scripts.train_grpo import build_command, parse_args
+from scripts.train_grpo import main as grpo_main
 from shopping_grpo.cli import main as cli_main
 from shopping_grpo.smoke import run_cpu_smoke
 
 
 class PublicEntrypointTest(unittest.TestCase):
+    def test_grpo_preflight_receives_exact_overrides_before_execution(self):
+        from argparse import Namespace
+
+        command = ["python", "-m", "verl.trainer.main_ppo", "--config-path=configs",
+                   "--config-name=grpo", "trainer.total_training_steps=20"]
+        with tempfile.TemporaryDirectory() as directory:
+            environment = {
+                "GRPO_MODEL_PATH": "model", "GRPO_TRAIN_FILE": "train.parquet",
+                "GRPO_VAL_FILE": "val.parquet", "SHOPSIM_BASE_URL": "http://localhost:5700",
+                "GRPO_OUTPUT_DIR": directory,
+            }
+            with patch("scripts.train_grpo.parse_args", return_value=Namespace(
+                config=Path("configs/grpo.yaml"), logger="console", dry_run=False,
+            )), patch("scripts.train_grpo.build_command", return_value=(command, environment)), \
+                patch("scripts.train_grpo.subprocess.call", return_value=0) as run, \
+                patch("builtins.print"), self.assertRaises(SystemExit) as exit_status:
+                grpo_main()
+            self.assertEqual(exit_status.exception.code, 0)
+            self.assertEqual(run.call_args_list[0].args[0][2:], command[5:])
+            self.assertEqual(run.call_args_list[1].args[0], command)
+
     def test_cpu_smoke_covers_public_contracts(self):
         result = run_cpu_smoke()
 
