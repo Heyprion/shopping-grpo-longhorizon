@@ -6,6 +6,25 @@ from scripts.run_sft_curriculum import build_stage_commands
 
 
 class SftCurriculumTest(unittest.TestCase):
+    def test_fsdp2_wraps_training_only_and_preserves_effective_batch(self):
+        commands = build_stage_commands(
+            {"stages": {"a": {"epochs": 1, "learning_rate": 1e-4}}},
+            manifest_path=Path("manifest.json"), source=Path("all.jsonl"),
+            base_model="base", output_root=Path("outputs"), python="python",
+            stop_after_stage="a", fsdp2=True,
+        )
+        train, merge = commands[0]["train"], commands[0]["merge"]
+        self.assertEqual(train[:3], ["python", "-m", "accelerate.commands.launch"])
+        self.assertIn("--fsdp2", train)
+        self.assertEqual(train[train.index("--gradient-accumulation-steps") + 1], "4")
+        self.assertNotIn("accelerate.commands.launch", merge)
+        with self.assertRaisesRegex(ValueError, "BF16 LoRA"):
+            build_stage_commands(
+                {}, manifest_path=Path("manifest.json"), source=Path("all.jsonl"),
+                base_model="base", output_root=Path("outputs"), python="python",
+                fsdp2=True, qlora=True,
+            )
+
     def test_builds_three_sequential_train_and_merge_stages(self):
         manifest = {
             "stages": {

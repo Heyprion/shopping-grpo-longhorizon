@@ -11,7 +11,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 STAGES = ("a", "b", "c")
 
@@ -31,7 +30,10 @@ def build_stage_commands(
     qlora=False,
     liger_kernel=False,
     resume_from_checkpoint=None,
+    fsdp2=False,
 ):
+    if fsdp2 and qlora:
+        raise ValueError("FSDP2 recipe uses BF16 LoRA; --qlora is not supported")
     start = STAGES.index(start_stage)
     stop = STAGES.index(stop_after_stage)
     if stop < start:
@@ -83,6 +85,13 @@ def build_stage_commands(
             train.append("--liger-kernel")
         if index == 0 and resume_from_checkpoint:
             train.extend(["--resume-from-checkpoint", str(resume_from_checkpoint)])
+        if fsdp2:
+            train.extend(["--fsdp2", "--gradient-accumulation-steps", "4"])
+            train = [
+                str(python), "-m", "accelerate.commands.launch",
+                "--config_file", str(ROOT / "configs/fsdp2.yaml"),
+                *train[1:],
+            ]
         merge = [
             str(python),
             str(ROOT / "scripts/merge_lora_adapter.py"),
@@ -118,6 +127,7 @@ def parse_args():
     parser.add_argument("--qlora", action="store_true")
     parser.add_argument("--liger-kernel", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--fsdp2", action="store_true", help="单机双卡 FSDP2 BF16 LoRA")
     return parser.parse_args()
 
 
@@ -144,9 +154,15 @@ def main():
             qlora=args.qlora,
             liger_kernel=args.liger_kernel,
             resume_from_checkpoint=args.resume_from_checkpoint,
+            fsdp2=args.fsdp2,
         )
     except (KeyError, ValueError) as exc:
         raise SystemExit(str(exc)) from exc
+
+    if args.fsdp2 and not args.dry_run:
+        subprocess.run(
+            [sys.executable, str(ROOT / "scripts/check_fsdp2_runtime.py")], check=True
+        )
 
     for command in commands:
         print(f"\n[stage {command['stage'].upper()}] train")

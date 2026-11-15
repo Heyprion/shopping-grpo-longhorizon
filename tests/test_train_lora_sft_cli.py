@@ -1,7 +1,7 @@
 """验证 LoRA SFT 入口的关键默认值。"""
 
-import os
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -10,13 +10,14 @@ from unittest.mock import patch
 
 from scripts.train_lora_sft import (
     DEFAULT_TARGET_MODULES,
+    _curriculum_task_ids,
     _load_preprocessing_components,
     _loss_only_eval_trainer_class,
     _model_load_kwargs,
     _prepare_model_for_training,
     _resolve_dtype,
     _swanlab_config,
-    _curriculum_task_ids,
+    _validate_fsdp2_launch,
     parse_args,
 )
 
@@ -88,6 +89,30 @@ class _FakeTrainer:
 
 
 class TrainLoraSftCliTest(unittest.TestCase):
+    def test_fsdp2_requires_real_two_rank_accelerate_launch_and_bf16_lora(self):
+        from argparse import Namespace
+
+        args = Namespace(fsdp2=True, qlora=False)
+        with patch.dict(os.environ, {}, clear=True), self.assertRaisesRegex(
+            SystemExit, "accelerate launch"
+        ):
+            _validate_fsdp2_launch(args)
+        environment = {
+            "ACCELERATE_USE_FSDP": "true", "FSDP_VERSION": "2", "WORLD_SIZE": "2",
+            "FSDP_ACTIVATION_CHECKPOINTING": "true", "FSDP_STATE_DICT_TYPE": "FULL_STATE_DICT",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            _validate_fsdp2_launch(args)
+            args.fsdp_activation_checkpointing = False
+            with self.assertRaisesRegex(SystemExit, "accelerate launch"):
+                _validate_fsdp2_launch(args)
+            with patch.dict(os.environ, {"FSDP_ACTIVATION_CHECKPOINTING": "false"}):
+                _validate_fsdp2_launch(args)
+            args.fsdp_activation_checkpointing = True
+            args.qlora = True
+            with self.assertRaisesRegex(SystemExit, "BF16 LoRA"):
+                _validate_fsdp2_launch(args)
+
     def test_curriculum_manifest_expands_cumulative_stage_ids(self):
         manifest = {
             "stages": {"b": {"buckets": ["foundation", "constraints"]}},
@@ -321,6 +346,17 @@ class TrainLoraSftCliTest(unittest.TestCase):
         prepare.assert_called_once_with(model, use_gradient_checkpointing=True)
         self.assertFalse(result.config.use_cache)
 
+    def test_fsdp2_disables_nested_qwen_text_cache_for_recomputation(self):
+        from argparse import Namespace
+
+        text_config = Namespace(use_cache=True)
+        model = _FakeModel()
+        model.config.get_text_config = lambda: text_config
+        args = Namespace(qlora=False, gradient_checkpointing=False, fsdp2=True)
+        _prepare_model_for_training(model, args, None)
+        self.assertFalse(model.config.use_cache)
+        self.assertFalse(text_config.use_cache)
+
     def test_liger_qwen_loss_only_eval_skips_full_vocabulary_logits(self):
         """纯 eval_loss 必须显式走 Liger fused loss，避免 20K×248K logits。"""
         trainer_class = _loss_only_eval_trainer_class(
@@ -370,6 +406,7 @@ class TrainLoraSftCliTest(unittest.TestCase):
         )
 
         self.assertNotIn("skip_logits", forwarded_inputs)
+
 
 
 if __name__ == "__main__":  # pragma: no cover

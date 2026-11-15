@@ -2,7 +2,10 @@
 """对验收后的 Shopping tool-calling 数据进行最小 LoRA SFT。"""
 
 import argparse
+import hashlib
+import importlib.metadata
 import json
+import os
 import time as _time
 from functools import partial
 from pathlib import Path
@@ -86,6 +89,12 @@ def parse_args():
     )
     parser.add_argument("--qlora", action="store_true", help="以 NF4 4-bit 加载基座，并按 PEFT 标准预处理")
     parser.add_argument("--gradient-checkpointing", action="store_true")
+    parser.add_argument("--fsdp2", action="store_true", help="由双卡 Accelerate FSDP2 入口设置")
+    parser.add_argument("--no-fsdp-activation-checkpointing", action="store_false",
+                        dest="fsdp_activation_checkpointing", default=True,
+                        help="关闭 FSDP 激活重计算；须与 Accelerate 配置一致，用显存换计算时间")
+    parser.add_argument("--fsdp-checkpoint-stride", type=int, default=0,
+                        help="每 N 个文本层仅最后一层不重计算；N>=2，配合关闭全层重计算")
     parser.add_argument("--logging-steps", type=int, default=5)
     parser.add_argument("--save-total-limit", type=int, default=3)
     parser.add_argument("--seed", type=int, default=42)
@@ -94,6 +103,14 @@ def parse_args():
     parser.add_argument("--subset-seed", type=int, default=42)
     parser.add_argument("--resume-from-checkpoint", default=None)
     parser.add_argument("--max-steps", type=int, default=-1, help="最大训练步数（-1=完整 epoch）；用于冒烟测试")
+    parser.add_argument("--preprocessing-cache", type=Path, default=None)
+    parser.add_argument("--stop-after-epoch", type=float, default=None,
+                        help="在指定 epoch 后暂停，保留原定 epochs 的学习率调度及可恢复检查点")
+    parser.add_argument("--stop-after-steps", type=int, default=None,
+                        help="短测在指定 optimizer step 后停止，保留原定 epochs/学习率调度")
+    parser.add_argument("--no-save", action="store_true", help="短测时关闭检查点和最终 adapter 保存")
+    parser.add_argument("--longest-first", action="store_true", help="资源压力测试：按长度降序读取训练样本")
+    parser.add_argument("--profile", action="store_true", help="记录双卡逐步显存/吞吐及监督 token 加权验证指标")
     parser.add_argument("--swanlab", action="store_true", help="启用 SwanLab 训练监控")
     parser.add_argument("--swanlab-project", default="shopping-grpo", help="SwanLab project 名")
     parser.add_argument("--swanlab-run-name", default=None, help="SwanLab run 名；默认自动生成")
@@ -178,8 +195,12 @@ def _prepare_model_for_training(model, args, prepare_model_for_kbit_training):
         model = prepare_model_for_kbit_training(
             model, use_gradient_checkpointing=args.gradient_checkpointing
         )
-    if args.gradient_checkpointing:
+    if args.gradient_checkpointing or args.fsdp2:
         model.config.use_cache = False
+        # Multimodal Qwen3.5 reads the nested text config, not the outer config.
+        # FSDP checkpoint recomputation must never mutate a recurrent/KV cache.
+        if hasattr(model.config, "get_text_config"):
+            model.config.get_text_config().use_cache = False
         if not args.qlora and hasattr(model, "enable_input_require_grads"):
             model.enable_input_require_grads()
     return model
@@ -203,6 +224,22 @@ def _validate_optional_training_dependencies(args):
                 "--liger-kernel 需要 liger-kernel；请执行："
                 "uv sync --extra sft --extra sft-accelerated"
             ) from exc
+
+
+def _validate_fsdp2_launch(args):
+    if not args.fsdp2:
+        return
+    if args.qlora:
+        raise SystemExit("FSDP2 recipe uses BF16 LoRA; --qlora is not supported")
+    if (
+        os.environ.get("ACCELERATE_USE_FSDP", "").lower() != "true"
+        or os.environ.get("FSDP_VERSION") != "2"
+        or int(os.environ.get("WORLD_SIZE", "1")) != 2
+        or os.environ.get("FSDP_ACTIVATION_CHECKPOINTING", "").lower()
+        != str(getattr(args, "fsdp_activation_checkpointing", True)).lower()
+        or os.environ.get("FSDP_STATE_DICT_TYPE") != "FULL_STATE_DICT"
+    ):
+        raise SystemExit("--fsdp2 requires accelerate launch --config_file configs/fsdp2.yaml")
 
 
 def _resolve_dtype(args, torch):
@@ -260,6 +297,15 @@ def _loss_only_eval_trainer_class(trainer_base, enable_skip_logits):
     """
 
     class LossOnlyEvalTrainer(trainer_base):
+        def _load_from_checkpoint(self, resume_from_checkpoint, model=None):
+            if (self.is_fsdp_enabled
+                    and self.accelerator.state.fsdp_plugin.fsdp_version == 2):
+                from shopping_grpo.training.sft.checkpointing import load_fsdp2_lora_checkpoint
+                target = model if model is not None else self.model
+                if load_fsdp2_lora_checkpoint(target, resume_from_checkpoint, self.accelerator):
+                    return
+            return super()._load_from_checkpoint(resume_from_checkpoint, model)
+
         def prediction_step(
             self,
             model,
@@ -321,6 +367,41 @@ def _torch_dataset(examples, torch):
     return TokenizedDataset()
 
 
+def _load_examples_cached(args, path, tokenizer, chat_template, task_ids):
+    """Content-addressed preprocessing cache; never reuse a different data/template contract."""
+    identity = {
+        "source_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "model": args.model, "revision": args.revision, "max_length": args.max_length,
+        "task_ids": sorted(task_ids) if task_ids is not None else None,
+        "template": getattr(chat_template, "chat_template", None),
+        "vocab_size": len(tokenizer),
+        "builder_sha256": hashlib.sha256(
+            Path(__file__).parents[1].joinpath(
+                "src/shopping_grpo/training/sft/dataset.py"
+            ).read_bytes()
+        ).hexdigest(),
+    }
+    cache_path = None
+    if args.preprocessing_cache:
+        key = hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest()
+        cache_path = args.preprocessing_cache / f"{key}.json"
+        if cache_path.exists():
+            cached = json.loads(cache_path.read_text())
+            if cached["identity"] == identity:
+                print(f"preprocessing cache hit: {cache_path}")
+                return cached["examples"], cached["stats"]
+    examples, stats = load_supervised_examples(
+        path, tokenizer=tokenizer, chat_template=chat_template,
+        max_length=args.max_length, task_ids=task_ids,
+    )
+    if cache_path:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = cache_path.with_suffix(f".{os.getpid()}.tmp")
+        temporary.write_text(json.dumps({"identity": identity, "examples": examples, "stats": stats}))
+        temporary.replace(cache_path)
+    return examples, stats
+
+
 def _collate(batch, pad_token_id, torch):
     """右侧 padding，labels 的 padding 永远不参与 loss。"""
     max_length = max(item["input_ids"].size(0) for item in batch)
@@ -338,8 +419,21 @@ def _collate(batch, pad_token_id, torch):
 def main():
     _start_time = _time.time()
     args = parse_args()
+    args.profile = (args.profile or args.no_save or args.longest_first
+                    or args.stop_after_epoch is not None or args.stop_after_steps is not None)
+    _validate_fsdp2_launch(args)
     if args.max_length < 1 or args.epochs <= 0:
         raise SystemExit("--max-length 与 --epochs 必须为正数")
+    if args.stop_after_epoch is not None and not 0 < args.stop_after_epoch <= args.epochs:
+        raise SystemExit("--stop-after-epoch 必须在 (0, epochs] 内")
+    if args.stop_after_steps is not None and args.stop_after_steps < 1:
+        raise SystemExit("--stop-after-steps 必须为正数")
+    if args.fsdp_checkpoint_stride and (
+        args.fsdp_checkpoint_stride < 2 or not args.fsdp2 or args.fsdp_activation_checkpointing
+    ):
+        raise SystemExit("--fsdp-checkpoint-stride 需要 N>=2、--fsdp2 和关闭全层激活重计算")
+    if args.longest_first and not args.profile:
+        raise SystemExit("--longest-first 仅用于 --profile 资源压力测试")
     if bool(args.curriculum_manifest) != bool(args.curriculum_stage):
         raise SystemExit("--curriculum-manifest 与 --curriculum-stage 必须一起提供")
     if args.curriculum_manifest and not args.validation:
@@ -424,12 +518,8 @@ def main():
     print(f"\n{'='*60}")
     print(f"  Phase 1/3: 加载 & Tokenize 训练数据 (max_length={args.max_length})")
     print(f"{'='*60}")
-    train_examples, train_stats = load_supervised_examples(
-        args.train,
-        tokenizer=tokenizer,
-        chat_template=chat_template,
-        max_length=args.max_length,
-        task_ids=train_task_ids,
+    train_examples, train_stats = _load_examples_cached(
+        args, args.train, tokenizer, chat_template, train_task_ids,
     )
     if train_task_ids is not None and train_stats["matched"] != len(train_task_ids):
         raise SystemExit("课程清单中的训练 task_id 未全部出现在 --train 数据中")
@@ -443,17 +533,15 @@ def main():
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
     train_stats["selected"] = len(train_examples)
+    if args.longest_first:
+        train_examples.sort(key=lambda x: len(x["input_ids"]), reverse=True)
     print("train_data=", train_stats)
     if not train_examples:
         raise SystemExit("训练集没有可用样本；请检查 data/sft/ 中的 JSONL 格式")
     validation_examples = []
     if args.validation:
-        validation_examples, validation_stats = load_supervised_examples(
-            args.validation,
-            tokenizer=tokenizer,
-            chat_template=chat_template,
-            max_length=args.max_length,
-            task_ids=validation_task_ids,
+        validation_examples, validation_stats = _load_examples_cached(
+            args, args.validation, tokenizer, chat_template, validation_task_ids,
         )
         if validation_task_ids is not None and validation_stats["matched"] != len(
             validation_task_ids
@@ -464,6 +552,9 @@ def main():
             raise SystemExit("验证集没有可用样本；请调整划分或 --max-length")
 
     dtype_name, dtype = _resolve_dtype(args, torch)
+    # LoRA is initialized before Trainer construction; seed it explicitly for fair searches.
+    from transformers import set_seed
+    set_seed(args.seed)
     model_class = AutoModelForMultimodalLM if is_multimodal else AutoModelForCausalLM
 
     # ---- Phase 2: 加载模型 + LoRA ----
@@ -502,16 +593,29 @@ def main():
         ),
     )
     model.print_trainable_parameters()
+    selective_checkpointing = None
+    if args.fsdp_checkpoint_stride:
+        from shopping_grpo.training.sft.checkpointing import checkpoint_decoder_layers
+        selective_checkpointing = checkpoint_decoder_layers(model, args.fsdp_checkpoint_stride)
+        print("selective_checkpointing=", selective_checkpointing)
 
     args.output.mkdir(parents=True, exist_ok=True)
     report_to, run_name = _swanlab_config(args)
-    if report_to == "swanlab":
+    if report_to == "swanlab" and int(os.environ.get("RANK", "0")) == 0:
         import swanlab
         swanlab.init(
             project=args.swanlab_project,
             name=run_name,
             mode=args.swanlab_mode,
             logdir=str(args.output / "swanlab"),
+            config={**vars(args), "train_data": train_stats,
+                    "validation_data": validation_stats if args.validation else None,
+                    "fsdp_reshard_after_forward": os.environ.get("FSDP_RESHARD_AFTER_FORWARD"),
+                    "selective_checkpointing": selective_checkpointing,
+                    "allocator_config": os.environ.get("PYTORCH_ALLOC_CONF",
+                                                        os.environ.get("PYTORCH_CUDA_ALLOC_CONF")),
+                    "loss_normalization": "global_assistant_tokens" if args.liger_kernel and is_multimodal
+                    else "micro_batch_mean"},
         )
         print(f"[SwanLab] project={args.swanlab_project} run={run_name}")
     training_args = TrainingArguments(
@@ -524,41 +628,84 @@ def main():
         warmup_ratio=args.warmup_ratio,
         bf16=dtype_name == "bf16",
         fp16=dtype_name == "fp16",
-        gradient_checkpointing=args.gradient_checkpointing,
+        # FSDP2 wraps activations itself; enabling both paths is invalid.
+        gradient_checkpointing=args.gradient_checkpointing and not args.fsdp2,
         use_liger_kernel=args.liger_kernel,
         logging_steps=args.logging_steps,
-        save_strategy="epoch",
+        save_strategy="no" if args.no_save else "epoch",
         save_total_limit=args.save_total_limit,
         eval_strategy="epoch" if validation_examples else "no",
         report_to=report_to,
         run_name=run_name,
         max_steps=args.max_steps if args.max_steps > 0 else -1,
         remove_unused_columns=False,
+        prediction_loss_only=True,
+        logging_nan_inf_filter=False,
+        disable_tqdm=args.profile,
         seed=args.seed,
     )
     trainer_class = _loss_only_eval_trainer_class(
         Trainer,
         enable_skip_logits=args.liger_kernel and is_multimodal,
     )
+    from shopping_grpo.training.sft.profiling import instrument_trainer, make_profile_callback
+    callbacks = [ProgressCallback()]
+    if args.profile:
+        trainer_class = instrument_trainer(trainer_class, torch, longest_first=args.longest_first)
+        callbacks.append(make_profile_callback(TrainerCallback, torch, args))
+    elif args.stop_after_epoch is not None:
+        raise SystemExit("--stop-after-epoch 需要 --profile")
     trainer = trainer_class(
         model=model,
         args=training_args,
         train_dataset=_torch_dataset(train_examples, torch),
         eval_dataset=_torch_dataset(validation_examples, torch) if validation_examples else None,
         data_collator=partial(_collate, pad_token_id=tokenizer.pad_token_id, torch=torch),
-        callbacks=[ProgressCallback()],
+        callbacks=callbacks,
     )
+    if args.liger_kernel and is_multimodal:
+        # The original multimodal forward ignores num_items_in_batch and advertises
+        # accepts_loss_kwargs=False. Liger replaces it with a forward that supports
+        # the global supervised-token denominator; enable Trainer's correct GA scaling.
+        trainer.model_accepts_loss_kwargs = True
+        trainer._loss_shifts_labels = True
+    for callback in trainer.callback_handler.callbacks:
+        if hasattr(callback, "profile_trainer"):
+            callback.profile_trainer = trainer
+    if args.fsdp2 and (
+        not trainer.is_fsdp_enabled
+        or trainer.accelerator.state.fsdp_plugin.fsdp_version != 2
+    ):
+        raise SystemExit("FSDP2 was requested but Trainer did not enable FSDP2")
+    previous_summary = args.output / "train_summary.json"
+    if args.profile and args.resume_from_checkpoint and previous_summary.exists():
+        trainer.sft_profile = json.loads(previous_summary.read_text())["profile"]
     result = trainer.train(resume_from_checkpoint=args.resume_from_checkpoint)
-    trainer.save_model(str(args.output))
-    chat_template.save_pretrained(str(args.output))
+    # All ranks must participate in gathering the adapter state dict.
+    if not args.no_save:
+        trainer.save_model(str(args.output))
+    trainer.accelerator.wait_for_everyone()
+    if not trainer.is_world_process_zero():
+        return
+    if not args.no_save:
+        chat_template.save_pretrained(str(args.output))
 
     # --- 训练完成摘要 ---
     total_time = _time.time() - _start_time
     gpu_peak = torch.cuda.max_memory_allocated() / 1024**3 if torch.cuda.is_available() else 0
+    profile = getattr(trainer, "sft_profile", None)
+    if profile and profile["steps"]:
+        gpu_peak = max(row["allocated_gib"] for step in profile["steps"] for row in step["ranks"])
+        for evaluation in profile["evaluations"]:
+            gpu_peak = max(gpu_peak, *(row[0] for row in evaluation["memory_gib"]))
+    validation_metrics = next(
+        (row for row in reversed(trainer.state.log_history) if "eval_loss" in row), {}
+    )
 
     train_summary = {
         "train_examples": len(train_examples),
         "validation_examples": len(validation_examples),
+        "validation_metrics": validation_metrics,
         "train_loss": result.training_loss,
         "metrics": result.metrics,
         "log_history": trainer.state.log_history,
@@ -575,14 +722,44 @@ def main():
             "liger_kernel": args.liger_kernel,
             "attention_implementation": args.attention_implementation,
             "qlora": args.qlora,
+            "fsdp_version": 2 if args.fsdp2 else None,
+            "activation_checkpointing": bool(selective_checkpointing) or (
+                trainer.accelerator.state.fsdp_plugin.activation_checkpointing if args.fsdp2
+                else args.gradient_checkpointing
+            ),
+            "full_activation_checkpointing": (
+                trainer.accelerator.state.fsdp_plugin.activation_checkpointing if args.fsdp2 else None
+            ),
+            "reshard_after_forward": (
+                trainer.accelerator.state.fsdp_plugin.reshard_after_forward if args.fsdp2 else None
+            ),
+            "selective_checkpointing": selective_checkpointing,
+            "allocator_config": os.environ.get("PYTORCH_ALLOC_CONF",
+                                                os.environ.get("PYTORCH_CUDA_ALLOC_CONF")),
+            "world_size": trainer.accelerator.num_processes,
         },
         "arguments": vars(args),
+        "software": {package: importlib.metadata.version(package) for package in (
+            "torch", "transformers", "accelerate", "peft", "swanlab"
+        )},
+        "train_data": train_stats,
+        "validation_data": validation_stats if args.validation else None,
+        "data_sha256": {str(path): hashlib.sha256(path.read_bytes()).hexdigest()
+                        for path in (args.train, args.validation) if path is not None},
+        "loss_normalization": "global_assistant_tokens" if args.liger_kernel and is_multimodal
+        else "micro_batch_mean",
+        "profile": getattr(trainer, "sft_profile", None),
     }
+    for package in ("liger-kernel", "flash-linear-attention", "fla-core"):
+        try:
+            train_summary["software"][package] = importlib.metadata.version(package)
+        except importlib.metadata.PackageNotFoundError:
+            pass
 
     print(f"\n{'='*60}")
     print("  训练完成")
     print(f"  train_loss={result.training_loss:.4f}")
-    print(f"  eval_loss={result.metrics.get('eval_loss', 'N/A')}")
+    print(f"  eval_loss={validation_metrics.get('eval_loss', 'N/A')}")
     print(f"  peak_gpu={gpu_peak:.1f} GiB")
     print(f"  adapter → {args.output}")
     print(f"{'='*60}\n")
@@ -591,8 +768,14 @@ def main():
         json.dumps(train_summary, ensure_ascii=False, indent=2, default=str),
         encoding="utf-8",
     )
+    if args.swanlab:
+        import swanlab
+        swanlab.log({"result/train_loss": result.training_loss,
+                     "result/elapsed_minutes": total_time / 60,
+                     "result/completed_epoch": trainer.state.epoch})
+        swanlab.finish()
 
-    print(f"LoRA adapter 已保存到 {args.output}")
+    print(f"短测结果已保存到 {args.output}" if args.no_save else f"LoRA adapter 已保存到 {args.output}")
 
 
 if __name__ == "__main__":

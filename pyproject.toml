@@ -18,7 +18,7 @@ sft = [
   "torch>=2.5",
   "transformers @ git+https://github.com/huggingface/transformers.git@7ea2320c76117e6742364808a666ef6f2fb40a67",
   "peft>=0.15,<1",
-  "accelerate>=1,<2",
+  "accelerate>=1.14,<2",
   "torchvision",
   "pillow",
   "swanlab>=0.8,<1",

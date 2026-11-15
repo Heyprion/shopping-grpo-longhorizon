@@ -1,0 +1,23 @@
+# Two-GPU SFT: retain parameters after forward to avoid a backward all-gather.
+# The training launcher checkpoints alternate text layers with RNG preservation;
+# Accelerate's separate full-model checkpointing path must stay disabled.
+compute_environment: LOCAL_MACHINE
+distributed_type: FSDP
+num_machines: 1
+num_processes: 2
+machine_rank: 0
+gpu_ids: all
+mixed_precision: bf16
+use_cpu: false
+rdzv_backend: static
+same_network: true
+main_training_function: main
+fsdp_config:
+  fsdp_version: 2
+  fsdp_auto_wrap_policy: TRANSFORMER_BASED_WRAP
+  fsdp_transformer_layer_cls_to_wrap: Qwen3_5DecoderLayer,Qwen3_5VisionBlock
+  fsdp_reshard_after_forward: false
+  fsdp_offload_params: false
+  fsdp_cpu_ram_efficient_loading: false
+  fsdp_activation_checkpointing: false
+  fsdp_state_dict_type: FULL_STATE_DICT

@@ -26,9 +26,14 @@ uv sync --python "${MAIN_PYTHON}" --extra sft --extra grpo
 if [[ ! -x "${ENV_DIR}/bin/python" ]]; then
   uv venv --python "${SHOPSIM_PYTHON}" "${ENV_DIR}"
 fi
-uv pip install \
-  --python "${ENV_DIR}/bin/python" \
-  -r "${SHOP_ENV_ROOT}/requirements.txt"
+# Run outside the project tree so the main environment's uv dependency
+# overrides do not replace ShopSimulator's pinned requirements.
+(
+  cd /
+  uv pip install \
+    --python "${ENV_DIR}/bin/python" \
+    -r "${SHOP_ENV_ROOT}/requirements.txt"
+)
 
 if [[ ! -f "${PRODUCTS}" ]]; then
   temporary_products="${PRODUCTS}.preparing"
