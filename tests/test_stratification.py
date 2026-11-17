@@ -126,16 +126,27 @@ class StratificationTests(unittest.TestCase):
                 destination = temporary / name
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(root / name, destination)
+            (temporary / "data/cleaned").mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(
+                root / "data/cleaned/tasks.jsonl", temporary / "data/cleaned/tasks.jsonl"
+            )
             before = sha256_file(temporary / "data/splits/manifest.json")
-            preview = extend(temporary, "sft", 100, dry_run=True)
+            if (
+                manifest.get("sft_demonstrations", {}).get("split_status")
+                == "deferred_until_after_quality_screening"
+            ):
+                with self.assertRaisesRegex(ValueError, "统一"):
+                    extend(temporary, "sft", 100, dry_run=True)
+                self.assertEqual(before, sha256_file(temporary / "data/splits/manifest.json"))
+            preview = extend(temporary, "rl", 100, dry_run=True)
             self.assertEqual(before, sha256_file(temporary / "data/splits/manifest.json"))
-            batch = extend(temporary, "sft", 100)
+            batch = extend(temporary, "rl", 100)
             first = {
                 json.loads(x)["task_id"]
                 for x in (temporary / batch["path"]).read_text().splitlines()
             }
             self.assertEqual(first, set(preview["task_ids"]))
-            second = extend(temporary, "sft", 100)
+            second = extend(temporary, "rl", 100)
             second_ids = {
                 json.loads(x)["task_id"]
                 for x in (temporary / second["path"]).read_text().splitlines()

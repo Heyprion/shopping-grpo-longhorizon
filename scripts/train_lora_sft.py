@@ -367,6 +367,14 @@ def _torch_dataset(examples, torch):
     return TokenizedDataset()
 
 
+def _best_model_settings(has_validation, profile, no_save):
+    if not has_validation or no_save:
+        return {"load_best_model_at_end": False}
+    return {"load_best_model_at_end": True,
+            "metric_for_best_model": "eval_assistant_nll" if profile else "eval_loss",
+            "greater_is_better": False}
+
+
 def _load_examples_cached(args, path, tokenizer, chat_template, task_ids):
     """Content-addressed preprocessing cache; never reuse a different data/template contract."""
     identity = {
@@ -557,6 +565,10 @@ def main():
         print("validation_data=", validation_stats)
         if not validation_examples:
             raise SystemExit("验证集没有可用样本；请调整划分或 --max-length")
+    if args.train.resolve() == data_root / "data/sft/train.jsonl" and (
+        train_stats["dropped"] or (args.validation and validation_stats["dropped"])
+    ):
+        raise SystemExit("正式 SFT 数据在预处理时出现丢弃，请核对模型模板或上下文设置")
 
     dtype_name, dtype = _resolve_dtype(args, torch)
     # LoRA is initialized before Trainer construction; seed it explicitly for fair searches.
@@ -633,6 +645,7 @@ def main():
         gradient_accumulation_steps=args.gradient_accumulation_steps,
         learning_rate=args.learning_rate,
         warmup_ratio=args.warmup_ratio,
+        lr_scheduler_type="linear",
         bf16=dtype_name == "bf16",
         fp16=dtype_name == "fp16",
         # FSDP2 wraps activations itself; enabling both paths is invalid.
@@ -650,6 +663,7 @@ def main():
         logging_nan_inf_filter=False,
         disable_tqdm=args.profile,
         seed=args.seed,
+        **_best_model_settings(bool(validation_examples), args.profile, args.no_save),
     )
     trainer_class = _loss_only_eval_trainer_class(
         Trainer,
@@ -710,6 +724,12 @@ def main():
     )
 
     train_summary = {
+        "model_selection": {
+            "metric": training_args.metric_for_best_model,
+            "best_metric": trainer.state.best_metric,
+            "best_checkpoint": trainer.state.best_model_checkpoint,
+            "final_adapter_is_best": bool(training_args.load_best_model_at_end),
+        },
         "train_examples": len(train_examples),
         "validation_examples": len(validation_examples),
         "validation_metrics": validation_metrics,
@@ -767,6 +787,9 @@ def main():
     print("  训练完成")
     print(f"  train_loss={result.training_loss:.4f}")
     print(f"  eval_loss={validation_metrics.get('eval_loss', 'N/A')}")
+    if trainer.state.best_model_checkpoint:
+        print(f"  best {training_args.metric_for_best_model}={trainer.state.best_metric}")
+        print(f"  selected checkpoint → {trainer.state.best_model_checkpoint}")
     print(f"  peak_gpu={gpu_peak:.1f} GiB")
     print(f"  adapter → {args.output}")
     print(f"{'='*60}\n")

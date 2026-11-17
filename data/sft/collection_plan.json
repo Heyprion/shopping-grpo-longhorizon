@@ -1,0 +1,98 @@
+{
+  "acceptance": {
+    "additional_trajectory_quality_filters": [],
+    "operator": "equals",
+    "require_gold_asin": false,
+    "require_gold_purchase_label": false,
+    "source": "actual_environment_terminal_strict_reward",
+    "value": 1
+  },
+  "accepted_difficulty_quotas": {
+    "hard": 200,
+    "medium": 500,
+    "simple": 300
+  },
+  "accepted_domain_quotas": {
+    "休闲娱乐文教": 146,
+    "家居家装": 170,
+    "家用电器数码": 112,
+    "服饰鞋包饰品": 149,
+    "母婴儿童": 47,
+    "生产材料农用品": 117,
+    "美妆个护健康": 135,
+    "运动户外交通": 74,
+    "食品饮品": 50
+  },
+  "accepted_joint_quotas": {
+    "休闲娱乐文教|hard": 28,
+    "休闲娱乐文教|medium": 72,
+    "休闲娱乐文教|simple": 46,
+    "家居家装|hard": 47,
+    "家居家装|medium": 87,
+    "家居家装|simple": 36,
+    "家用电器数码|hard": 11,
+    "家用电器数码|medium": 63,
+    "家用电器数码|simple": 38,
+    "服饰鞋包饰品|hard": 55,
+    "服饰鞋包饰品|medium": 63,
+    "服饰鞋包饰品|simple": 31,
+    "母婴儿童|hard": 21,
+    "母婴儿童|medium": 21,
+    "母婴儿童|simple": 5,
+    "生产材料农用品|hard": 16,
+    "生产材料农用品|medium": 52,
+    "生产材料农用品|simple": 49,
+    "美妆个护健康|hard": 10,
+    "美妆个护健康|medium": 76,
+    "美妆个护健康|simple": 49,
+    "运动户外交通|hard": 11,
+    "运动户外交通|medium": 39,
+    "运动户外交通|simple": 24,
+    "食品饮品|hard": 1,
+    "食品饮品|medium": 27,
+    "食品饮品|simple": 22
+  },
+  "attempts_per_task": 3,
+  "attempts_per_task_semantics": "maximum",
+  "candidate_pool": {
+    "path": "data/sft/candidate_tasks.jsonl",
+    "sha256": "67e7c203f50c46be60294eb43f65a8fe05214867b0c92b38d66ac74a088b49c0",
+    "tasks": 5000
+  },
+  "candidate_pool_total": 5000,
+  "final_task_membership": "determined_by_accepted_trajectories_and_unified_quotas",
+  "legacy_initial_sft_lists_role": "superseded_partition_provenance_not_current_collection_or_training_splits",
+  "multiple_success_selection": "first_success_by_attempt_index",
+  "one_trajectory_per_task": true,
+  "policy_document": "data/sft/README.md",
+  "pool_exhaustion": "report_stratum_shortfall_without_sampling_rl_test_or_quarantined_tasks",
+  "post_collection": {
+    "quality_screening": "later_user_defined_step",
+    "train_target": null,
+    "train_validation_split": "deferred_until_after_quality_screening",
+    "validation_target": null
+  },
+  "previous_plan_sha256": "d59432c084c584fa1738993b0c695009e3ec0198aeafc35ae24b8d6e5c2f2fc2",
+  "replacement": "same_unified_sft_pool_and_same_domain_difficulty_stratum",
+  "runtime_integration": "unified_collector_wired_first_success_max_3",
+  "sampling_policy": "first_success_max_3",
+  "schema_version": "shopping-sft-rejection-collection-plan-v3",
+  "seed": 42,
+  "source_partition_chunk_roles": "provenance_only_not_current_train_validation_roles",
+  "source_partition_chunks": [
+    {
+      "path": "data/splits/pools/sft_train.jsonl",
+      "sha256": "13d2e0b03c6940fa20d3fe4108f2e937aa1d7adf7db7641503b0bc9218d01c38",
+      "tasks": 4500
+    },
+    {
+      "path": "data/splits/pools/sft_validation.jsonl",
+      "sha256": "6fa710b1232c6262f56c66f5b870fb6a29c35b1aa1f7e07fe9da8bb40bfa91f9",
+      "tasks": 500
+    }
+  ],
+  "status": "documented_not_executed",
+  "stop_condition": "1000 accepted unique-task trajectories with all unified stratum quotas fulfilled",
+  "stop_task_after_first_success": true,
+  "target_accepted_unique_trajectories": 1000
+}

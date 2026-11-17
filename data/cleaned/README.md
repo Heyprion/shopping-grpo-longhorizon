@@ -56,7 +56,8 @@ The environment joins annotations by ASIN and exact instruction hash. Missing
 annotations are unverifiable. The same decimal budget code is used in cleaning
 and scoring; old regular-expression results are diagnostic only for this pool.
 
-Train/validation/test task selections are fixed in `data/splits/manifest.json`.
-SFT demonstration collection is a separate later step. Four pairs of passing
+RL and test selections are fixed in `data/splits/manifest.json`. SFT now uses
+one 5,000-task candidate pool to collect 1,000 unsplit accepted trajectories;
+quality screening and train/validation partitioning are later steps. Four pairs of passing
 tasks have identical instructions; three cross-tag train tasks are quarantined
 and the remaining train pair is assigned atomically to one candidate pool.

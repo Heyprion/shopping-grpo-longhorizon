@@ -15,7 +15,7 @@ DEFAULT_CONFIG = ROOT / "configs/grpo.yaml"
 DEFAULT_AGENT_CONFIG = ROOT / "configs/agent_loop.yaml"
 DEFAULT_TOOL_CONFIG = ROOT / "configs/tools.json"
 DEFAULT_MANIFEST = ROOT / "data/environment.json"
-DEFAULT_MODEL = ROOT / "outputs/models/sft-merged"
+DEFAULT_MODEL = ROOT / "outputs/models/sft-stage1-v1-best-merged"
 DEFAULT_TRAIN_DATA = ROOT / "data/grpo/train.parquet"
 DEFAULT_VAL_DATA = ROOT / "data/grpo/validation.parquet"
 
@@ -132,7 +132,11 @@ def build_command(args: argparse.Namespace) -> tuple[list[str], dict[str, str]]:
     )
     overrides = [
         logger_override,
-        f"trainer.experiment_name={args.experiment_name}",
+        f"trainer.experiment_name={json.dumps(args.experiment_name, ensure_ascii=False)}",
+        # veRL converts Ray's runtime_env without resolving OmegaConf interpolations.
+        # Send the concrete path so every worker receives the canonical budgets.
+        "ray_kwargs.ray_init.runtime_env.env_vars.SHOPPING_TASK_BUDGETS="
+        + json.dumps(environment["SHOPPING_TASK_BUDGETS"]),
     ]
     extra = list(args.hydra_overrides)
     if extra[:1] == ["--"]:

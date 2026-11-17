@@ -5,11 +5,17 @@
 3. 每次修改前，自动使用 `git branch` 创建工作分支，切换到该分支后再修改。
 4. 数据工程的来源、决策、结果和划分方案统一维护在 [docs/data-plan.md](docs/data-plan.md)，不新增实验流水账。运行时及训练约定以 [AGENTS.md](AGENTS.md) 为准。
 
+## 实验记录与命名
+
+1. **统一使用 SwanLab**：所有实验，包括采集、训练、验证、评测和性能小测，都必须通过 SwanLab 记录实验目的、配置、过程指标及结果。
+2. **优先复用 project**：启动前先查找已有项目；主要目的和阶段相同，就尽可能复用原 project，不因日期、模型或超参数变化另建项目。当前优先复用：SFT 采集 `shopping-grpo-sft-collection`、SFT 训练 `shopping-grpo-sft`、RL 训练 `shopping-grpo`、评测 `shopping-grpo-evaluation`。只有没有合适的既有项目时才新建，并使用简洁、稳定的项目名称。
+3. **统一 experiment/run 名称**：使用 `YYYY-MM-DD-阶段-目的`，日期取实际启动日期，阶段统一使用 `COLLECT`、`BASELINE`、`SFT`、`RL` 或 `EVAL`，目的用简短直白的文字说明这次实验要做什么。例如：`2026-11-15-SFT-正式训练`、`2026-11-15-RL-100步试跑`、`2026-11-15-EVAL-SFT与RL对比`。同一天同阶段同目的的独立重复实验可追加 `-02`、`-03`。
+4. **名称便于辨认**：不要只写 `test`、`run`、`search`，也不要把大量超参数或内部实现缩写堆在名称里。模型、超参数、设备和详细差异写入 config、tags 或实验说明，确保仅看名称就能知道日期、阶段和主要目的。
+
 ## 当前数据方案索引
 
-- 启动 SFT / RL / 评估前必须先读 [数据方案](docs/data-plan.md) 和 [AGENTS.md](AGENTS.md)，优先于旧数据文件和旧课程文档的默认设置。
-- 全量清洗、逐条分层、候选池、首批训练/验证/测试题目都已经完成并落盘：23,421 条中保留 16,741 条；清洗在 `data/cleaned/`，分层与划分总清单在 `data/splits/manifest.json`，登记表在 `data/splits/registry.jsonl`。启动训练前核验后直接使用，不能再次抽取首批题目。
-- 初始 SFT 为 800 训练 / 200 验证，训练难度比例 3:5:2；RL 为 1,000 训练 / 50 验证，比例 2:5:3；测试从原始 `tag=eval` 的清洗通过池抽 200 条。
-- 训练样本数量和难度比例是暂定参数，可根据训练与验证结果在固定的本阶段训练池内调整；清洗结果、分层定义及验证/测试隔离不能随训练调参改变。
-- SFT 首批任务在 `data/sft/train_tasks.jsonl` / `validation_tasks.jsonl`；RL JSONL / Parquet 已同步；SFT 新示范尚未采集，不能使用旧对话冒充。各份题目均覆盖 9 个品类，品类按自然分布，验证和测试也按自然难度分布。
-- 后续补题从 `data/splits/reserves/` 取，SFT / RL 训练尚余 3,700 / 9,494 题。通过 `scripts/prepare_data_splits.py extend` 分配独立批次并更新登记表，不重用已入选题，不动验证/测试。
+- 启动前读 [数据方案](docs/data-plan.md)、[SFT 统一采集方案](data/sft/README.md) 和 [AGENTS.md](AGENTS.md)。清洗、标签以及 SFT / RL / 测试用途边界已固定，不重做。
+- SFT 统一候选池为 `data/sft/candidate_tasks.jsonl`，5,000 题。先采 **1,000 条合格轨迹**，整体难度 simple/medium/hard=300/500/200，品类自然分布；每题最多 3 次拒绝采样，首次成功即停，单次仅按真实终局 Strict Reward=1 验收，同题一条，收满且配额满足即停。
+- **第一版 SFT 已冻结**：仅应用第一阶段筛选，正式保留 988 条，seed=42，训练/验证为 889/99（验证:训练约 1:9）；第二阶段暂不处理，不补采。正式归属为 `manifest.sft_final`，旧来源分块和 800/200 名单不代表当前归属。数据校验完成后由用户执行 `bash scripts/sft.sh --balanced --evaluate-after`，三轮验证选最佳模型再自动测试 200 题。
+- RL 仍为 1,000 训练 / 50 验证，测试为 200；其名单、9 大品类覆盖和自然分布不变。RL 训练池还有 9,494 题供后续按授权补充，不能借用测试题或重复使用已入选题。
+- 旧采集器需先接入统一 reward-only 采样与停止规则。质量筛选和正式划分完成前，SFT 启动检查禁止使用旧训练/验证数据开训。

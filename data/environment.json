@@ -6,18 +6,17 @@
   "observation_version": "shopping-observation-v2",
   "product_data_sha256": "57b10950a0064d16c81535a1d764a75879a508d250dde8a2a1787c5e6045559f",
   "reward": {
-    "early_abstain": -0.35,
+    "version": "shopsimulator-reward-strict-v1",
+    "formula": "r_type*r_att*r_option*r_price",
     "gold_purchase": 1.0,
-    "graceful_stop": -0.15,
-    "max_steps": -0.5,
-    "partial_purchase_base": -0.3,
-    "partial_purchase_cap": 0.25,
-    "partial_purchase_scale": 0.55,
-    "repeat_loop": -0.65,
-    "reward_unverifiable": 0.0,
-    "valid_alternative_purchase": 0.55,
-    "version": "shopsimulator-reward-v3",
-    "wrong_purchase": -0.85
+    "valid_alternative_purchase": 1.0,
+    "partial_alternative_purchase": 0.0,
+    "wrong_purchase": 0.0,
+    "graceful_stop": 0.0,
+    "early_abstain": 0.0,
+    "max_steps": 0.0,
+    "repeat_loop": 0.0,
+    "reward_unverifiable": 0.0
   },
   "search": {
     "field_weights": {
@@ -37,7 +36,7 @@
   "runtime_files_sha256": {
     "observation.py": "adabdf0109b8a0f592148c098e44065913ce6c699230047239d8809f412bf998",
     "pack_api.py": "d491f2620c60c115547f330a2e0c131b2796779b718d02cb5318b1bedfe5aadc",
-    "reward.py": "ea692a5bd91c95dc086925372667e74328c0f86b3d6f1c67df3c59883df8990e",
+    "reward.py": "48f3126de4590726f6e6bc5d5da931c5b6b0452e80195ce6a9a56c095db96a0d",
     "slot_lease_pool.py": "5be40275eebbed6735196a1dea4581ce707558e247d23d0de4d98907772a0420",
     "web_agent_text_env.py": "d6db15f282849847a364d8d36af0eed113c1c97184a1ded98eb1fd29dab577d1"
   },

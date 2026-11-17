@@ -1,5 +1,6 @@
 {
   "allocation": "Exact difficulty margins; Hamilton natural category margins; IPF associations; capacity-constrained min-cost integer rounding; whole-instruction groups.",
+  "allocation_code_hashes_scope": "original_source_partition_and_rl_test_materialization_before_sft_collection_policy_updates",
   "code_hashes": {
     "scripts/prepare_data_splits.py": "88a555cce674a326933d761cd4cd6e8e60f73c4aca560c8922f9240dfd859990",
     "src/shopping_grpo/collection/stratification.py": "9ed5021d40602b913ad9f400e906783f66e26ec5efd5cd893bc36196d7ed0b06"
@@ -13,7 +14,17 @@
     "data/grpo/train.parquet": "6266b91c2b9b796975dc49011d3965ac66d3e605cdee0bdf7a0004418c3fb347",
     "data/grpo/validation.jsonl": "d93a7b6874ee6080beea0b487c320f889482f5266a8b8348ccdb48c7d53cce03",
     "data/grpo/validation.parquet": "c4350029b50e6e5b1812655702b2a6b0bf268dfbc0987cfdffbdcb7f8189f02b",
+    "data/sft/candidate_tasks.jsonl": "67e7c203f50c46be60294eb43f65a8fe05214867b0c92b38d66ac74a088b49c0",
+    "data/sft/collection_plan.json": "4b35cf9839d576475c2ff76b072eb44803846407b25fa3ca640e6542dde0ab6e",
+    "data/sft/final_train_tasks.jsonl": "36c2069a6748e408ebc9ce434a361b232a57b1b1a7cffe443a0e2faddd2a43d6",
+    "data/sft/final_validation_tasks.jsonl": "4d38529ed760f0f5dd334a267a220978d76277361a28061ced813967953ae117",
+    "data/sft/metadata.json": "460c1cf08849fcfc00288419bf2af7267b23723583b793e7148f33a65f121f8d",
+    "data/sft/quality_report.json": "ba53703594f1bb3ed1b182013837e00b01ce238c261f857e3df565eb62f4e843",
+    "data/sft/rejected_trajectories.jsonl": "59b28a5b87419016ad50fdaa30f4d62a9ec73d724981071148c1d2fafee0b7f6",
+    "data/sft/train.jsonl": "d9312443983ebab1b15f39e45f72e56858bc1f650692d8de545a77067894a3b5",
     "data/sft/train_tasks.jsonl": "e4d294570f1f3826aad77004b9bb256989f87f87db5359d315cfe9699aad4ab9",
+    "data/sft/trajectories.jsonl": "f714e1b36315c3978c0a064335cf21fe6a69444b9e24acdf91ce9a905cd193f2",
+    "data/sft/validation.jsonl": "68a646c23008982249fbba5ae0766111e0982591c1561da964e7491d3c314b46",
     "data/sft/validation_tasks.jsonl": "bb4b13e76e1f31faeadb305b5256c517132e8d0a5108d011035ef5b57f9a2b68",
     "data/splits/labels.jsonl": "3dd59a1fff71a88c0444e072c7de7cb4a70480ae3d8cfb297f641cc19d5faec3",
     "data/splits/pools/evaluation.jsonl": "91154634a52e57ace99b5e3953190e4d00a56df210365efe8329309e34a4760a",
@@ -22,7 +33,7 @@
     "data/splits/pools/rl_validation.jsonl": "db0b286a49d0d284a15cc06921ca48d65edb50efbbf9ccde6b7c994ffcd5c28b",
     "data/splits/pools/sft_train.jsonl": "13d2e0b03c6940fa20d3fe4108f2e937aa1d7adf7db7641503b0bc9218d01c38",
     "data/splits/pools/sft_validation.jsonl": "6fa710b1232c6262f56c66f5b870fb6a29c35b1aa1f7e07fe9da8bb40bfa91f9",
-    "data/splits/registry.jsonl": "794fe9a7517dfaffaa111fcc1a672196548c2b92ad42566da72b323c36133e8e",
+    "data/splits/registry.jsonl": "68669b12696ed49e9af25f66ec75c5b07fa9ef71fb97fc3b76e88bb81c109b2b",
     "data/splits/reserves/evaluation.jsonl": "b3121df45f72cb0d7c856c8a6c168b9fa5e6aacc8fa3c9131e5093e76d9d2d86",
     "data/splits/reserves/rl_train.jsonl": "62f0684c405c541dac41bb4628131dd4011a6154b6746d9699be1a42ebb1a74c",
     "data/splits/reserves/rl_validation.jsonl": "686bde9bdb9b1e6b37a24be11f01ee33d87868505a71f1448926d83471cbc488",
@@ -855,10 +866,145 @@
   "schema_version": "shopping-stratified-task-split-v1",
   "seed": 42,
   "selection_does_not_mean_trained": true,
+  "sft_candidate_pool": {
+    "path": "data/sft/candidate_tasks.jsonl",
+    "sha256": "67e7c203f50c46be60294eb43f65a8fe05214867b0c92b38d66ac74a088b49c0",
+    "tasks": 5000
+  },
+  "sft_collection_plan": {
+    "path": "data/sft/collection_plan.json",
+    "schema_version": "shopping-sft-rejection-collection-plan-v3",
+    "sha256": "4b35cf9839d576475c2ff76b072eb44803846407b25fa3ca640e6542dde0ab6e"
+  },
+  "sft_dataset_preparation_code_hashes": {
+    "scripts/audit_sft_trajectories.py": "0aed4717da7853552e1a2e27c8be8608b36dc9bb3bbf366cf207f11b926b81f0",
+    "scripts/prepare_sft_dataset.py": "a63c3d5fffbdf018d783aa6e6a8ca00e8b6d91519f0ff3205d83073f7bdd2e0a",
+    "src/shopping_grpo/collection/sft.py": "8ce98c23f23784a145fee507d575ad238d61dc3c8bf599800c10ac25db935ee1",
+    "src/shopping_grpo/training/sft/dataset.py": "1ec109ef9079c35b328f016800f32fccaa3970939434ecc5177e3b8e8695827a"
+  },
   "sft_demonstrations": {
-    "status": "pending_collection",
-    "train_tasks": "data/sft/train_tasks.jsonl",
-    "validation_tasks": "data/sft/validation_tasks.jsonl"
+    "attempts_per_task": 3,
+    "attempts_per_task_semantics": "maximum",
+    "candidate_tasks": "data/sft/candidate_tasks.jsonl",
+    "collection_plan": "data/sft/collection_plan.json",
+    "final_membership_status": "pending_collection_and_later_quality_screening",
+    "quality_status": "stage1_complete_stage2_not_applied",
+    "retained_trajectories": 988,
+    "split_status": "finalized_after_stage1_v1",
+    "status": "planned_unified_rejection_sampling",
+    "stop_task_after_first_success": true,
+    "target_accepted_unique_trajectories": 1000,
+    "train_tasks": 889,
+    "validation_tasks": 99
+  },
+  "sft_final": {
+    "metadata": "data/sft/metadata.json",
+    "total": 988,
+    "train": {
+      "difficulty": {
+        "hard": 173,
+        "medium": 446,
+        "simple": 270
+      },
+      "domain": {
+        "休闲娱乐文教": 128,
+        "家居家装": 150,
+        "家用电器数码": 101,
+        "服饰鞋包饰品": 134,
+        "母婴儿童": 42,
+        "生产材料农用品": 104,
+        "美妆个护健康": 122,
+        "运动户外交通": 63,
+        "食品饮品": 45
+      },
+      "joint": {
+        "休闲娱乐文教|hard": 23,
+        "休闲娱乐文教|medium": 63,
+        "休闲娱乐文教|simple": 42,
+        "家居家装|hard": 41,
+        "家居家装|medium": 77,
+        "家居家装|simple": 32,
+        "家用电器数码|hard": 10,
+        "家用电器数码|medium": 57,
+        "家用电器数码|simple": 34,
+        "服饰鞋包饰品|hard": 50,
+        "服饰鞋包饰品|medium": 56,
+        "服饰鞋包饰品|simple": 28,
+        "母婴儿童|hard": 19,
+        "母婴儿童|medium": 19,
+        "母婴儿童|simple": 4,
+        "生产材料农用品|hard": 13,
+        "生产材料农用品|medium": 47,
+        "生产材料农用品|simple": 44,
+        "美妆个护健康|hard": 9,
+        "美妆个护健康|medium": 69,
+        "美妆个护健康|simple": 44,
+        "运动户外交通|hard": 7,
+        "运动户外交通|medium": 34,
+        "运动户外交通|simple": 22,
+        "食品饮品|hard": 1,
+        "食品饮品|medium": 24,
+        "食品饮品|simple": 20
+      },
+      "path": "data/sft/final_train_tasks.jsonl",
+      "sha256": "36c2069a6748e408ebc9ce434a361b232a57b1b1a7cffe443a0e2faddd2a43d6",
+      "tasks": 889
+    },
+    "validation": {
+      "difficulty": {
+        "hard": 19,
+        "medium": 50,
+        "simple": 30
+      },
+      "domain": {
+        "休闲娱乐文教": 14,
+        "家居家装": 17,
+        "家用电器数码": 11,
+        "服饰鞋包饰品": 15,
+        "母婴儿童": 5,
+        "生产材料农用品": 12,
+        "美妆个护健康": 13,
+        "运动户外交通": 7,
+        "食品饮品": 5
+      },
+      "joint": {
+        "休闲娱乐文教|hard": 3,
+        "休闲娱乐文教|medium": 7,
+        "休闲娱乐文教|simple": 4,
+        "家居家装|hard": 4,
+        "家居家装|medium": 9,
+        "家居家装|simple": 4,
+        "家用电器数码|hard": 1,
+        "家用电器数码|medium": 6,
+        "家用电器数码|simple": 4,
+        "服饰鞋包饰品|hard": 5,
+        "服饰鞋包饰品|medium": 7,
+        "服饰鞋包饰品|simple": 3,
+        "母婴儿童|hard": 2,
+        "母婴儿童|medium": 2,
+        "母婴儿童|simple": 1,
+        "生产材料农用品|hard": 2,
+        "生产材料农用品|medium": 5,
+        "生产材料农用品|simple": 5,
+        "美妆个护健康|hard": 1,
+        "美妆个护健康|medium": 7,
+        "美妆个护健康|simple": 5,
+        "运动户外交通|hard": 1,
+        "运动户外交通|medium": 4,
+        "运动户外交通|simple": 2,
+        "食品饮品|medium": 3,
+        "食品饮品|simple": 2
+      },
+      "path": "data/sft/final_validation_tasks.jsonl",
+      "sha256": "4d38529ed760f0f5dd334a267a220978d76277361a28061ced813967953ae117",
+      "tasks": 99
+    },
+    "version": "shopping-sft-stage1-v1"
+  },
+  "sft_legacy_allocations_role": "provenance_only_not_active_train_validation_splits",
+  "sft_policy_validation_code_hashes": {
+    "scripts/prepare_data_splits.py": "6f692a679827d8df431ad4c4c0ae6d96823c3542ee153219a642c241e975f3cc",
+    "src/shopping_grpo/collection/data_contract.py": "bbcfd1e8635b0d765e843ee654bf7b70260e515cbe2a7c915e39f7dd16b81440"
   },
   "source": {
     "archive": {

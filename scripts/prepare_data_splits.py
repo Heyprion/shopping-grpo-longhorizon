@@ -389,7 +389,7 @@ def verify(root):
             r["task_id"] for r in read_rows(root / manifest["initial"][name]["path"])
         ]:
             raise ValueError("RL JSONL/Parquet task mismatch")
-    return {
+    result = {
         "status": "verified",
         "tasks": len(labels),
         "label_distribution": manifest["label_distribution"],
@@ -397,12 +397,74 @@ def verify(root):
         "reserves": {name: spec["tasks"] for name, spec in manifest["reserves"].items()},
         "rounds": len(manifest["rounds"]),
     }
+    if (
+        manifest.get("sft_demonstrations", {}).get("split_status")
+        in ("deferred_until_after_quality_screening", "finalized_after_stage1_v1")
+    ):
+        plan = json.loads((root / manifest["sft_collection_plan"]["path"]).read_text())
+        candidate_ids = [r["task_id"] for r in read_rows(root / plan["candidate_pool"]["path"])]
+        expected = {i for i, pool in assigned.items() if pool in ("sft_train", "sft_validation")}
+        if (
+            len(candidate_ids) != 5000
+            or len(set(candidate_ids)) != 5000
+            or set(candidate_ids) != expected
+        ):
+            raise ValueError("unified SFT pool identity mismatch")
+        population = distribution([labels[i] for i in candidate_ids])
+        if plan["target_accepted_unique_trajectories"] != 1000 or "splits" in plan:
+            raise ValueError("SFT collection must target one unsplit 1000-trajectory set")
+        for field in ("difficulty", "domain", "joint"):
+            quotas = plan["accepted_" + field + "_quotas"]
+            if sum(quotas.values()) != 1000 or any(
+                n < 0 or n > population[field].get(k, 0) for k, n in quotas.items()
+            ):
+                raise ValueError("invalid unified SFT quotas")
+        if plan["accepted_difficulty_quotas"] != {"simple": 300, "medium": 500, "hard": 200}:
+            raise ValueError("unified SFT difficulty quotas mismatch")
+        if plan["accepted_domain_quotas"] != proportional_counts(population["domain"], 1000):
+            raise ValueError("unified SFT category margins must follow the merged pool")
+        for domain, total in plan["accepted_domain_quotas"].items():
+            if (
+                sum(
+                    v for k, v in plan["accepted_joint_quotas"].items() if k.split("|")[0] == domain
+                )
+                != total
+            ):
+                raise ValueError("unified SFT joint/domain quotas disagree")
+        for level, total in plan["accepted_difficulty_quotas"].items():
+            if (
+                sum(v for k, v in plan["accepted_joint_quotas"].items() if k.split("|")[1] == level)
+                != total
+            ):
+                raise ValueError("unified SFT joint/difficulty quotas disagree")
+        result["initial"] = {k: v for k, v in result["initial"].items() if not k.startswith("sft_")}
+        result["reserves"] = {
+            k: v for k, v in result["reserves"].items() if not k.startswith("sft_")
+        }
+        result["sft_collection"] = {
+            "candidate_tasks": 5000,
+            "accepted_target": 1000,
+            "difficulty_quotas": plan["accepted_difficulty_quotas"],
+            "train_validation_split": "after_later_quality_screening",
+        }
+        if manifest.get("sft_final"):
+            from shopping_grpo.collection.data_contract import validate_current_sft
+            result["sft_final"] = validate_current_sft(root)
+            result["sft_collection"]["train_validation_split"] = "finalized_after_stage1_v1"
+    return result
 
 
 def extend(root, stage, count, ratios=None, dry_run=False):
     verify(root)
     manifest_path = root / "data/splits/manifest.json"
     manifest = json.loads(manifest_path.read_text())
+    if (
+        stage == "sft"
+        and manifest.get("sft_collection_plan")
+    ):
+        raise ValueError(
+            "SFT 已改为统一 5,000 题候选池采集，不能按旧训练/验证分块补题；请按 collection_plan.json 执行统一采集。"
+        )
     pool = stage + "_train"
     labels = {r["task_id"]: r for r in read_rows(root / "data/splits/labels.jsonl")}
     reserve_path = root / manifest["reserves"][pool]["path"]

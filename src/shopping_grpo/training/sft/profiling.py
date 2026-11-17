@@ -7,6 +7,11 @@ import time
 from pathlib import Path
 
 
+def unique_validation_samples(samples):
+    """Distributed sampler padding must not overweight its repeated last sample."""
+    return list({sample["input_sha256"]: sample for sample in samples}.values())
+
+
 def instrument_trainer(base, torch, *, longest_first=False):
     class MeasuredTrainer(base):
         sft_profile = None
@@ -69,6 +74,20 @@ def instrument_trainer(base, torch, *, longest_first=False):
             torch.cuda.synchronize()
             values = torch.tensor(self.sft_eval_counts, dtype=torch.float64, device=self.args.device)
             values = self.accelerator.reduce(values, reduction="sum").tolist()
+            from accelerate.utils import gather_object
+            samples = gather_object(self.sft_eval_samples)
+            if self.args.per_device_eval_batch_size == 1:
+                samples = unique_validation_samples(samples)
+                values = [0.0] * 6
+                for sample in samples:
+                    count = sample["supervised_tokens"]
+                    loss_sum = sample["loss"] * count
+                    values[0] += loss_sum
+                    values[1] += count
+                    index = 4 if sample["input_tokens"] >= 8192 else 2
+                    values[index] += loss_sum
+                    values[index + 1] += count
+                metrics["eval_unique_examples"] = len(samples)
             memory = self.accelerator.gather(torch.tensor([
                 torch.cuda.max_memory_allocated() / 1024**3,
                 torch.cuda.max_memory_reserved() / 1024**3,
@@ -77,8 +96,6 @@ def instrument_trainer(base, torch, *, longest_first=False):
                 if values[index + 1]:
                     metrics[f"eval_{name}"] = values[index] / values[index + 1]
             metrics["eval_supervised_tokens"] = values[1]
-            from accelerate.utils import gather_object
-            samples = gather_object(self.sft_eval_samples)
             sample_file = f"validation_epoch_{self.state.epoch:.4g}.json"
             if self.is_world_process_zero() and samples:
                 Path(self.args.output_dir, sample_file).write_text(json.dumps(samples, indent=2))

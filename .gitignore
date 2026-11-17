@@ -40,3 +40,13 @@ logs/
 
 # Keep the local operation journal without publishing experiment history.
 /operation_log.md
+
+# Keep datasets and generated trajectories local; retain plans and metadata.
+/data/**/*.jsonl
+/data/**/*.parquet
+/data/**/*.arrow
+/data/**/*.gz
+/data/**/*.zip
+/data/**/*.tar
+/data/**/*.tar.*
+/environments/ShopSimulator/shop_env/data/

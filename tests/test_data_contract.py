@@ -11,6 +11,22 @@ from shopping_grpo.environment.reward import REWARD_VERSION
 
 
 class SFTDataContractTests(unittest.TestCase):
+    def test_unified_collection_cannot_start_training_before_quality_and_split(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "data/splits").mkdir(parents=True)
+            (root / "data/splits/manifest.json").write_text(
+                json.dumps(
+                    {
+                        "sft_demonstrations": {
+                            "split_status": "deferred_until_after_quality_screening"
+                        }
+                    }
+                )
+            )
+            with self.assertRaisesRegex(ValueError, "质量筛选"):
+                validate_current_sft(root)
+
     def test_metadata_cannot_hide_wrong_task_membership_or_old_reward(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

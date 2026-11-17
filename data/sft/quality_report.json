@@ -1,0 +1,5058 @@
+{
+  "audit_sha256": {
+    "summary.json": "78b283ab2c88826360dc63db09984ab552ebc5077954250c274053029ee3b195",
+    "trajectory_metrics.jsonl": "305bf080dc47f91e39c4b4909cfef5e8c314b073e1296417f8bd0e8d16faba81"
+  },
+  "completed": true,
+  "excluded": [
+    {
+      "reasons": [
+        "student_context_over_limit"
+      ],
+      "student_tokens": 35368,
+      "task_id": 3995,
+      "trajectory_id": "4a1be2c2-af74-48ed-91c5-e4e3a735ded8"
+    },
+    {
+      "reasons": [
+        "action_not_in_structured_observation"
+      ],
+      "student_tokens": 16318,
+      "task_id": 5976,
+      "trajectory_id": "daaf6214-8617-4080-9107-28c6ab91d2b2"
+    },
+    {
+      "reasons": [
+        "student_context_over_limit"
+      ],
+      "student_tokens": 28653,
+      "task_id": 6431,
+      "trajectory_id": "1ea663e5-7507-45a5-a692-e40494d42405"
+    },
+    {
+      "reasons": [
+        "student_context_over_limit"
+      ],
+      "student_tokens": 27198,
+      "task_id": 9166,
+      "trajectory_id": "58442f19-c465-463f-88f3-8e46116ab4fa"
+    },
+    {
+      "reasons": [
+        "student_context_over_limit"
+      ],
+      "student_tokens": 24683,
+      "task_id": 11110,
+      "trajectory_id": "64fbdfac-2eb0-4c3d-9f97-61366bea36a4"
+    },
+    {
+      "reasons": [
+        "student_context_over_limit"
+      ],
+      "student_tokens": 29147,
+      "task_id": 13593,
+      "trajectory_id": "6cfa53e8-6b4d-4036-89f1-24a8ada6e9e0"
+    },
+    {
+      "reasons": [
+        "student_context_over_limit"
+      ],
+      "student_tokens": 28744,
+      "task_id": 14251,
+      "trajectory_id": "70ca6779-a5d6-4bf1-8670-890c2ff0b18d"
+    },
+    {
+      "reasons": [
+        "student_context_over_limit"
+      ],
+      "student_tokens": 26339,
+      "task_id": 14928,
+      "trajectory_id": "70e306ed-469f-4e43-8330-e7baf2688632"
+    },
+    {
+      "reasons": [
+        "action_not_in_structured_observation",
+        "student_context_over_limit"
+      ],
+      "student_tokens": 29231,
+      "task_id": 14992,
+      "trajectory_id": "7594f94a-b853-4ef2-bff3-12817d7384da"
+    },
+    {
+      "reasons": [
+        "student_context_over_limit"
+      ],
+      "student_tokens": 26464,
+      "task_id": 17123,
+      "trajectory_id": "7394889b-4fad-4e34-bc5a-e30d20ffabd7"
+    },
+    {
+      "reasons": [
+        "student_context_over_limit"
+      ],
+      "student_tokens": 36981,
+      "task_id": 17149,
+      "trajectory_id": "1a084602-06d3-437f-a74c-4cd3d496f3da"
+    },
+    {
+      "reasons": [
+        "student_context_over_limit"
+      ],
+      "student_tokens": 29717,
+      "task_id": 22549,
+      "trajectory_id": "c0715128-3e06-4b67-9ef5-9c62e0956f2e"
+    }
+  ],
+  "max_length": 24576,
+  "retained": [
+    {
+      "assistant_loss_tokens": 276,
+      "student_tokens": 7769,
+      "task_id": 1472
+    },
+    {
+      "assistant_loss_tokens": 213,
+      "student_tokens": 6210,
+      "task_id": 1489
+    },
+    {
+      "assistant_loss_tokens": 518,
+      "student_tokens": 18002,
+      "task_id": 1507
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5634,
+      "task_id": 1532
+    },
+    {
+      "assistant_loss_tokens": 140,
+      "student_tokens": 9606,
+      "task_id": 1544
+    },
+    {
+      "assistant_loss_tokens": 426,
+      "student_tokens": 12778,
+      "task_id": 1547
+    },
+    {
+      "assistant_loss_tokens": 145,
+      "student_tokens": 5017,
+      "task_id": 1601
+    },
+    {
+      "assistant_loss_tokens": 224,
+      "student_tokens": 4959,
+      "task_id": 1614
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 6010,
+      "task_id": 1638
+    },
+    {
+      "assistant_loss_tokens": 200,
+      "student_tokens": 6226,
+      "task_id": 1655
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5549,
+      "task_id": 1677
+    },
+    {
+      "assistant_loss_tokens": 134,
+      "student_tokens": 4954,
+      "task_id": 1695
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5480,
+      "task_id": 1714
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5554,
+      "task_id": 1736
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 5477,
+      "task_id": 1789
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 5947,
+      "task_id": 1815
+    },
+    {
+      "assistant_loss_tokens": 174,
+      "student_tokens": 5407,
+      "task_id": 1823
+    },
+    {
+      "assistant_loss_tokens": 485,
+      "student_tokens": 17070,
+      "task_id": 1873
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 5706,
+      "task_id": 1909
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5837,
+      "task_id": 1926
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 6403,
+      "task_id": 1945
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 6041,
+      "task_id": 1965
+    },
+    {
+      "assistant_loss_tokens": 122,
+      "student_tokens": 4611,
+      "task_id": 2042
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 6449,
+      "task_id": 2062
+    },
+    {
+      "assistant_loss_tokens": 202,
+      "student_tokens": 6330,
+      "task_id": 2064
+    },
+    {
+      "assistant_loss_tokens": 213,
+      "student_tokens": 11180,
+      "task_id": 2078
+    },
+    {
+      "assistant_loss_tokens": 122,
+      "student_tokens": 4853,
+      "task_id": 2089
+    },
+    {
+      "assistant_loss_tokens": 387,
+      "student_tokens": 14942,
+      "task_id": 2161
+    },
+    {
+      "assistant_loss_tokens": 431,
+      "student_tokens": 9996,
+      "task_id": 2187
+    },
+    {
+      "assistant_loss_tokens": 180,
+      "student_tokens": 6052,
+      "task_id": 2201
+    },
+    {
+      "assistant_loss_tokens": 177,
+      "student_tokens": 5176,
+      "task_id": 2237
+    },
+    {
+      "assistant_loss_tokens": 124,
+      "student_tokens": 4987,
+      "task_id": 2245
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5669,
+      "task_id": 2251
+    },
+    {
+      "assistant_loss_tokens": 161,
+      "student_tokens": 5554,
+      "task_id": 2257
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5608,
+      "task_id": 2282
+    },
+    {
+      "assistant_loss_tokens": 205,
+      "student_tokens": 8636,
+      "task_id": 2319
+    },
+    {
+      "assistant_loss_tokens": 154,
+      "student_tokens": 5758,
+      "task_id": 2321
+    },
+    {
+      "assistant_loss_tokens": 215,
+      "student_tokens": 6948,
+      "task_id": 2370
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5414,
+      "task_id": 2415
+    },
+    {
+      "assistant_loss_tokens": 269,
+      "student_tokens": 8360,
+      "task_id": 2420
+    },
+    {
+      "assistant_loss_tokens": 345,
+      "student_tokens": 15215,
+      "task_id": 2437
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 6220,
+      "task_id": 2449
+    },
+    {
+      "assistant_loss_tokens": 292,
+      "student_tokens": 10380,
+      "task_id": 2480
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 6369,
+      "task_id": 2487
+    },
+    {
+      "assistant_loss_tokens": 436,
+      "student_tokens": 6355,
+      "task_id": 2587
+    },
+    {
+      "assistant_loss_tokens": 244,
+      "student_tokens": 6434,
+      "task_id": 2644
+    },
+    {
+      "assistant_loss_tokens": 154,
+      "student_tokens": 5543,
+      "task_id": 2645
+    },
+    {
+      "assistant_loss_tokens": 297,
+      "student_tokens": 8540,
+      "task_id": 2649
+    },
+    {
+      "assistant_loss_tokens": 434,
+      "student_tokens": 13311,
+      "task_id": 2670
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 5715,
+      "task_id": 2671
+    },
+    {
+      "assistant_loss_tokens": 138,
+      "student_tokens": 4901,
+      "task_id": 2680
+    },
+    {
+      "assistant_loss_tokens": 468,
+      "student_tokens": 12347,
+      "task_id": 2693
+    },
+    {
+      "assistant_loss_tokens": 228,
+      "student_tokens": 7946,
+      "task_id": 2706
+    },
+    {
+      "assistant_loss_tokens": 474,
+      "student_tokens": 6914,
+      "task_id": 2719
+    },
+    {
+      "assistant_loss_tokens": 286,
+      "student_tokens": 7368,
+      "task_id": 2731
+    },
+    {
+      "assistant_loss_tokens": 335,
+      "student_tokens": 8742,
+      "task_id": 2742
+    },
+    {
+      "assistant_loss_tokens": 302,
+      "student_tokens": 10927,
+      "task_id": 2768
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5661,
+      "task_id": 2771
+    },
+    {
+      "assistant_loss_tokens": 160,
+      "student_tokens": 5093,
+      "task_id": 2782
+    },
+    {
+      "assistant_loss_tokens": 180,
+      "student_tokens": 6587,
+      "task_id": 2800
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 5719,
+      "task_id": 2807
+    },
+    {
+      "assistant_loss_tokens": 203,
+      "student_tokens": 6239,
+      "task_id": 2827
+    },
+    {
+      "assistant_loss_tokens": 153,
+      "student_tokens": 5390,
+      "task_id": 2844
+    },
+    {
+      "assistant_loss_tokens": 252,
+      "student_tokens": 15388,
+      "task_id": 2853
+    },
+    {
+      "assistant_loss_tokens": 152,
+      "student_tokens": 5149,
+      "task_id": 2859
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 7181,
+      "task_id": 2865
+    },
+    {
+      "assistant_loss_tokens": 218,
+      "student_tokens": 7087,
+      "task_id": 2880
+    },
+    {
+      "assistant_loss_tokens": 381,
+      "student_tokens": 13225,
+      "task_id": 2910
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5660,
+      "task_id": 2939
+    },
+    {
+      "assistant_loss_tokens": 149,
+      "student_tokens": 5098,
+      "task_id": 2944
+    },
+    {
+      "assistant_loss_tokens": 342,
+      "student_tokens": 9449,
+      "task_id": 2949
+    },
+    {
+      "assistant_loss_tokens": 376,
+      "student_tokens": 13349,
+      "task_id": 2953
+    },
+    {
+      "assistant_loss_tokens": 156,
+      "student_tokens": 5514,
+      "task_id": 2998
+    },
+    {
+      "assistant_loss_tokens": 124,
+      "student_tokens": 4675,
+      "task_id": 3000
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5999,
+      "task_id": 3076
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 6018,
+      "task_id": 3118
+    },
+    {
+      "assistant_loss_tokens": 395,
+      "student_tokens": 11642,
+      "task_id": 3124
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5780,
+      "task_id": 3135
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5580,
+      "task_id": 3236
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 5590,
+      "task_id": 3255
+    },
+    {
+      "assistant_loss_tokens": 125,
+      "student_tokens": 4595,
+      "task_id": 3278
+    },
+    {
+      "assistant_loss_tokens": 166,
+      "student_tokens": 5124,
+      "task_id": 3298
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5574,
+      "task_id": 3305
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 6361,
+      "task_id": 3314
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 5085,
+      "task_id": 3319
+    },
+    {
+      "assistant_loss_tokens": 202,
+      "student_tokens": 7679,
+      "task_id": 3323
+    },
+    {
+      "assistant_loss_tokens": 176,
+      "student_tokens": 5262,
+      "task_id": 3325
+    },
+    {
+      "assistant_loss_tokens": 258,
+      "student_tokens": 10483,
+      "task_id": 3356
+    },
+    {
+      "assistant_loss_tokens": 258,
+      "student_tokens": 8117,
+      "task_id": 3378
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 7471,
+      "task_id": 3385
+    },
+    {
+      "assistant_loss_tokens": 276,
+      "student_tokens": 7699,
+      "task_id": 3401
+    },
+    {
+      "assistant_loss_tokens": 124,
+      "student_tokens": 4685,
+      "task_id": 3440
+    },
+    {
+      "assistant_loss_tokens": 232,
+      "student_tokens": 6105,
+      "task_id": 3447
+    },
+    {
+      "assistant_loss_tokens": 125,
+      "student_tokens": 4742,
+      "task_id": 3461
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 6156,
+      "task_id": 3462
+    },
+    {
+      "assistant_loss_tokens": 128,
+      "student_tokens": 4825,
+      "task_id": 3501
+    },
+    {
+      "assistant_loss_tokens": 132,
+      "student_tokens": 4757,
+      "task_id": 3513
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 6058,
+      "task_id": 3540
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 5944,
+      "task_id": 3551
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5965,
+      "task_id": 3580
+    },
+    {
+      "assistant_loss_tokens": 493,
+      "student_tokens": 14502,
+      "task_id": 3595
+    },
+    {
+      "assistant_loss_tokens": 243,
+      "student_tokens": 7662,
+      "task_id": 3616
+    },
+    {
+      "assistant_loss_tokens": 142,
+      "student_tokens": 4721,
+      "task_id": 3650
+    },
+    {
+      "assistant_loss_tokens": 228,
+      "student_tokens": 7464,
+      "task_id": 3657
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 6349,
+      "task_id": 3668
+    },
+    {
+      "assistant_loss_tokens": 248,
+      "student_tokens": 6902,
+      "task_id": 3677
+    },
+    {
+      "assistant_loss_tokens": 198,
+      "student_tokens": 6071,
+      "task_id": 3690
+    },
+    {
+      "assistant_loss_tokens": 156,
+      "student_tokens": 5502,
+      "task_id": 3715
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 8714,
+      "task_id": 3742
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5837,
+      "task_id": 3757
+    },
+    {
+      "assistant_loss_tokens": 150,
+      "student_tokens": 4195,
+      "task_id": 3760
+    },
+    {
+      "assistant_loss_tokens": 121,
+      "student_tokens": 5260,
+      "task_id": 3783
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 5867,
+      "task_id": 3792
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 5712,
+      "task_id": 3793
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5854,
+      "task_id": 3805
+    },
+    {
+      "assistant_loss_tokens": 202,
+      "student_tokens": 6538,
+      "task_id": 3820
+    },
+    {
+      "assistant_loss_tokens": 448,
+      "student_tokens": 11851,
+      "task_id": 3894
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5362,
+      "task_id": 3921
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 6201,
+      "task_id": 3922
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 12742,
+      "task_id": 4114
+    },
+    {
+      "assistant_loss_tokens": 232,
+      "student_tokens": 8590,
+      "task_id": 4147
+    },
+    {
+      "assistant_loss_tokens": 207,
+      "student_tokens": 6327,
+      "task_id": 4154
+    },
+    {
+      "assistant_loss_tokens": 511,
+      "student_tokens": 13104,
+      "task_id": 4204
+    },
+    {
+      "assistant_loss_tokens": 122,
+      "student_tokens": 4646,
+      "task_id": 4229
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5534,
+      "task_id": 4239
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5240,
+      "task_id": 4264
+    },
+    {
+      "assistant_loss_tokens": 198,
+      "student_tokens": 6494,
+      "task_id": 4282
+    },
+    {
+      "assistant_loss_tokens": 337,
+      "student_tokens": 10072,
+      "task_id": 4319
+    },
+    {
+      "assistant_loss_tokens": 248,
+      "student_tokens": 5462,
+      "task_id": 4348
+    },
+    {
+      "assistant_loss_tokens": 237,
+      "student_tokens": 7848,
+      "task_id": 4357
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 6270,
+      "task_id": 4365
+    },
+    {
+      "assistant_loss_tokens": 194,
+      "student_tokens": 7006,
+      "task_id": 4366
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 5689,
+      "task_id": 4405
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5250,
+      "task_id": 4412
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 7093,
+      "task_id": 4413
+    },
+    {
+      "assistant_loss_tokens": 134,
+      "student_tokens": 4710,
+      "task_id": 4419
+    },
+    {
+      "assistant_loss_tokens": 218,
+      "student_tokens": 5994,
+      "task_id": 4424
+    },
+    {
+      "assistant_loss_tokens": 741,
+      "student_tokens": 20627,
+      "task_id": 4436
+    },
+    {
+      "assistant_loss_tokens": 473,
+      "student_tokens": 15425,
+      "task_id": 4497
+    },
+    {
+      "assistant_loss_tokens": 327,
+      "student_tokens": 10097,
+      "task_id": 4507
+    },
+    {
+      "assistant_loss_tokens": 218,
+      "student_tokens": 6723,
+      "task_id": 4590
+    },
+    {
+      "assistant_loss_tokens": 349,
+      "student_tokens": 5783,
+      "task_id": 4591
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5720,
+      "task_id": 4609
+    },
+    {
+      "assistant_loss_tokens": 501,
+      "student_tokens": 13590,
+      "task_id": 4610
+    },
+    {
+      "assistant_loss_tokens": 194,
+      "student_tokens": 5906,
+      "task_id": 4613
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 6116,
+      "task_id": 4622
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 6248,
+      "task_id": 4631
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5903,
+      "task_id": 4649
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 8863,
+      "task_id": 4651
+    },
+    {
+      "assistant_loss_tokens": 207,
+      "student_tokens": 5918,
+      "task_id": 4677
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 6521,
+      "task_id": 4695
+    },
+    {
+      "assistant_loss_tokens": 221,
+      "student_tokens": 6864,
+      "task_id": 4700
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 6302,
+      "task_id": 4701
+    },
+    {
+      "assistant_loss_tokens": 253,
+      "student_tokens": 7799,
+      "task_id": 4704
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5539,
+      "task_id": 4723
+    },
+    {
+      "assistant_loss_tokens": 122,
+      "student_tokens": 4872,
+      "task_id": 4738
+    },
+    {
+      "assistant_loss_tokens": 152,
+      "student_tokens": 5101,
+      "task_id": 4763
+    },
+    {
+      "assistant_loss_tokens": 391,
+      "student_tokens": 16128,
+      "task_id": 4766
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 6654,
+      "task_id": 4782
+    },
+    {
+      "assistant_loss_tokens": 155,
+      "student_tokens": 5056,
+      "task_id": 4815
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 7644,
+      "task_id": 4820
+    },
+    {
+      "assistant_loss_tokens": 147,
+      "student_tokens": 5508,
+      "task_id": 4863
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 9331,
+      "task_id": 4916
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5844,
+      "task_id": 4929
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 6080,
+      "task_id": 4968
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5876,
+      "task_id": 4969
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 6181,
+      "task_id": 4973
+    },
+    {
+      "assistant_loss_tokens": 366,
+      "student_tokens": 14132,
+      "task_id": 4976
+    },
+    {
+      "assistant_loss_tokens": 523,
+      "student_tokens": 13912,
+      "task_id": 4982
+    },
+    {
+      "assistant_loss_tokens": 200,
+      "student_tokens": 6230,
+      "task_id": 5029
+    },
+    {
+      "assistant_loss_tokens": 213,
+      "student_tokens": 7030,
+      "task_id": 5034
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 6182,
+      "task_id": 5037
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5512,
+      "task_id": 5039
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5530,
+      "task_id": 5062
+    },
+    {
+      "assistant_loss_tokens": 157,
+      "student_tokens": 5239,
+      "task_id": 5081
+    },
+    {
+      "assistant_loss_tokens": 194,
+      "student_tokens": 6622,
+      "task_id": 5111
+    },
+    {
+      "assistant_loss_tokens": 117,
+      "student_tokens": 4502,
+      "task_id": 5131
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5795,
+      "task_id": 5134
+    },
+    {
+      "assistant_loss_tokens": 198,
+      "student_tokens": 5649,
+      "task_id": 5140
+    },
+    {
+      "assistant_loss_tokens": 412,
+      "student_tokens": 16683,
+      "task_id": 5154
+    },
+    {
+      "assistant_loss_tokens": 114,
+      "student_tokens": 4722,
+      "task_id": 5158
+    },
+    {
+      "assistant_loss_tokens": 585,
+      "student_tokens": 14268,
+      "task_id": 5165
+    },
+    {
+      "assistant_loss_tokens": 449,
+      "student_tokens": 17149,
+      "task_id": 5228
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 9261,
+      "task_id": 5236
+    },
+    {
+      "assistant_loss_tokens": 154,
+      "student_tokens": 5721,
+      "task_id": 5238
+    },
+    {
+      "assistant_loss_tokens": 540,
+      "student_tokens": 15007,
+      "task_id": 5255
+    },
+    {
+      "assistant_loss_tokens": 150,
+      "student_tokens": 5997,
+      "task_id": 5263
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 6086,
+      "task_id": 5299
+    },
+    {
+      "assistant_loss_tokens": 235,
+      "student_tokens": 6471,
+      "task_id": 5301
+    },
+    {
+      "assistant_loss_tokens": 299,
+      "student_tokens": 7679,
+      "task_id": 5303
+    },
+    {
+      "assistant_loss_tokens": 203,
+      "student_tokens": 5661,
+      "task_id": 5343
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 8805,
+      "task_id": 5412
+    },
+    {
+      "assistant_loss_tokens": 604,
+      "student_tokens": 16526,
+      "task_id": 5413
+    },
+    {
+      "assistant_loss_tokens": 180,
+      "student_tokens": 5444,
+      "task_id": 5416
+    },
+    {
+      "assistant_loss_tokens": 153,
+      "student_tokens": 5163,
+      "task_id": 5438
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 5097,
+      "task_id": 5449
+    },
+    {
+      "assistant_loss_tokens": 114,
+      "student_tokens": 4455,
+      "task_id": 5565
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 5499,
+      "task_id": 5581
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5436,
+      "task_id": 5632
+    },
+    {
+      "assistant_loss_tokens": 130,
+      "student_tokens": 4779,
+      "task_id": 5633
+    },
+    {
+      "assistant_loss_tokens": 837,
+      "student_tokens": 23532,
+      "task_id": 5664
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 5004,
+      "task_id": 5748
+    },
+    {
+      "assistant_loss_tokens": 207,
+      "student_tokens": 5654,
+      "task_id": 5791
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5581,
+      "task_id": 5825
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5629,
+      "task_id": 5826
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 6058,
+      "task_id": 5837
+    },
+    {
+      "assistant_loss_tokens": 254,
+      "student_tokens": 7589,
+      "task_id": 5913
+    },
+    {
+      "assistant_loss_tokens": 329,
+      "student_tokens": 10655,
+      "task_id": 5949
+    },
+    {
+      "assistant_loss_tokens": 150,
+      "student_tokens": 5660,
+      "task_id": 5954
+    },
+    {
+      "assistant_loss_tokens": 219,
+      "student_tokens": 6262,
+      "task_id": 5964
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5573,
+      "task_id": 5988
+    },
+    {
+      "assistant_loss_tokens": 180,
+      "student_tokens": 5457,
+      "task_id": 5989
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5487,
+      "task_id": 5994
+    },
+    {
+      "assistant_loss_tokens": 522,
+      "student_tokens": 20600,
+      "task_id": 6025
+    },
+    {
+      "assistant_loss_tokens": 199,
+      "student_tokens": 6064,
+      "task_id": 6041
+    },
+    {
+      "assistant_loss_tokens": 117,
+      "student_tokens": 4627,
+      "task_id": 6048
+    },
+    {
+      "assistant_loss_tokens": 436,
+      "student_tokens": 13928,
+      "task_id": 6061
+    },
+    {
+      "assistant_loss_tokens": 165,
+      "student_tokens": 5801,
+      "task_id": 6102
+    },
+    {
+      "assistant_loss_tokens": 275,
+      "student_tokens": 9692,
+      "task_id": 6114
+    },
+    {
+      "assistant_loss_tokens": 331,
+      "student_tokens": 8504,
+      "task_id": 6137
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5788,
+      "task_id": 6139
+    },
+    {
+      "assistant_loss_tokens": 233,
+      "student_tokens": 6417,
+      "task_id": 6140
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 5039,
+      "task_id": 6168
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 5346,
+      "task_id": 6175
+    },
+    {
+      "assistant_loss_tokens": 618,
+      "student_tokens": 15649,
+      "task_id": 6205
+    },
+    {
+      "assistant_loss_tokens": 148,
+      "student_tokens": 5348,
+      "task_id": 6227
+    },
+    {
+      "assistant_loss_tokens": 149,
+      "student_tokens": 7039,
+      "task_id": 6235
+    },
+    {
+      "assistant_loss_tokens": 364,
+      "student_tokens": 12067,
+      "task_id": 6321
+    },
+    {
+      "assistant_loss_tokens": 177,
+      "student_tokens": 5122,
+      "task_id": 6349
+    },
+    {
+      "assistant_loss_tokens": 137,
+      "student_tokens": 5300,
+      "task_id": 6369
+    },
+    {
+      "assistant_loss_tokens": 149,
+      "student_tokens": 4982,
+      "task_id": 6381
+    },
+    {
+      "assistant_loss_tokens": 198,
+      "student_tokens": 5882,
+      "task_id": 6401
+    },
+    {
+      "assistant_loss_tokens": 480,
+      "student_tokens": 15442,
+      "task_id": 6415
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 5837,
+      "task_id": 6422
+    },
+    {
+      "assistant_loss_tokens": 217,
+      "student_tokens": 6017,
+      "task_id": 6433
+    },
+    {
+      "assistant_loss_tokens": 116,
+      "student_tokens": 4663,
+      "task_id": 6450
+    },
+    {
+      "assistant_loss_tokens": 319,
+      "student_tokens": 10693,
+      "task_id": 6451
+    },
+    {
+      "assistant_loss_tokens": 621,
+      "student_tokens": 20823,
+      "task_id": 6468
+    },
+    {
+      "assistant_loss_tokens": 198,
+      "student_tokens": 6263,
+      "task_id": 6482
+    },
+    {
+      "assistant_loss_tokens": 194,
+      "student_tokens": 5548,
+      "task_id": 6492
+    },
+    {
+      "assistant_loss_tokens": 180,
+      "student_tokens": 5853,
+      "task_id": 6496
+    },
+    {
+      "assistant_loss_tokens": 243,
+      "student_tokens": 6374,
+      "task_id": 6501
+    },
+    {
+      "assistant_loss_tokens": 362,
+      "student_tokens": 13061,
+      "task_id": 6548
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5608,
+      "task_id": 6557
+    },
+    {
+      "assistant_loss_tokens": 153,
+      "student_tokens": 5113,
+      "task_id": 6615
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 8208,
+      "task_id": 6643
+    },
+    {
+      "assistant_loss_tokens": 115,
+      "student_tokens": 4537,
+      "task_id": 6646
+    },
+    {
+      "assistant_loss_tokens": 555,
+      "student_tokens": 16858,
+      "task_id": 6650
+    },
+    {
+      "assistant_loss_tokens": 209,
+      "student_tokens": 6002,
+      "task_id": 6664
+    },
+    {
+      "assistant_loss_tokens": 120,
+      "student_tokens": 4658,
+      "task_id": 6687
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 6065,
+      "task_id": 6697
+    },
+    {
+      "assistant_loss_tokens": 177,
+      "student_tokens": 5362,
+      "task_id": 6713
+    },
+    {
+      "assistant_loss_tokens": 217,
+      "student_tokens": 6081,
+      "task_id": 6772
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5701,
+      "task_id": 6785
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 6227,
+      "task_id": 6806
+    },
+    {
+      "assistant_loss_tokens": 211,
+      "student_tokens": 5822,
+      "task_id": 6846
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5877,
+      "task_id": 6850
+    },
+    {
+      "assistant_loss_tokens": 429,
+      "student_tokens": 12193,
+      "task_id": 6857
+    },
+    {
+      "assistant_loss_tokens": 128,
+      "student_tokens": 4943,
+      "task_id": 6858
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5497,
+      "task_id": 6868
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 6723,
+      "task_id": 6876
+    },
+    {
+      "assistant_loss_tokens": 222,
+      "student_tokens": 7863,
+      "task_id": 6914
+    },
+    {
+      "assistant_loss_tokens": 195,
+      "student_tokens": 5825,
+      "task_id": 6982
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 7214,
+      "task_id": 7021
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5668,
+      "task_id": 7028
+    },
+    {
+      "assistant_loss_tokens": 146,
+      "student_tokens": 4622,
+      "task_id": 7031
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 6181,
+      "task_id": 7071
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 5868,
+      "task_id": 7090
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 6629,
+      "task_id": 7115
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5501,
+      "task_id": 7127
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5757,
+      "task_id": 7194
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 6039,
+      "task_id": 7199
+    },
+    {
+      "assistant_loss_tokens": 202,
+      "student_tokens": 6789,
+      "task_id": 7205
+    },
+    {
+      "assistant_loss_tokens": 341,
+      "student_tokens": 9102,
+      "task_id": 7209
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5758,
+      "task_id": 7234
+    },
+    {
+      "assistant_loss_tokens": 128,
+      "student_tokens": 4682,
+      "task_id": 7261
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5812,
+      "task_id": 7270
+    },
+    {
+      "assistant_loss_tokens": 317,
+      "student_tokens": 8428,
+      "task_id": 7276
+    },
+    {
+      "assistant_loss_tokens": 324,
+      "student_tokens": 8487,
+      "task_id": 7300
+    },
+    {
+      "assistant_loss_tokens": 123,
+      "student_tokens": 4639,
+      "task_id": 7307
+    },
+    {
+      "assistant_loss_tokens": 222,
+      "student_tokens": 6416,
+      "task_id": 7326
+    },
+    {
+      "assistant_loss_tokens": 152,
+      "student_tokens": 4823,
+      "task_id": 7353
+    },
+    {
+      "assistant_loss_tokens": 161,
+      "student_tokens": 5593,
+      "task_id": 7385
+    },
+    {
+      "assistant_loss_tokens": 241,
+      "student_tokens": 6458,
+      "task_id": 7387
+    },
+    {
+      "assistant_loss_tokens": 195,
+      "student_tokens": 5961,
+      "task_id": 7393
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 7284,
+      "task_id": 7397
+    },
+    {
+      "assistant_loss_tokens": 161,
+      "student_tokens": 5208,
+      "task_id": 7407
+    },
+    {
+      "assistant_loss_tokens": 173,
+      "student_tokens": 5132,
+      "task_id": 7440
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 5478,
+      "task_id": 7548
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5927,
+      "task_id": 7578
+    },
+    {
+      "assistant_loss_tokens": 121,
+      "student_tokens": 5052,
+      "task_id": 7604
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5370,
+      "task_id": 7615
+    },
+    {
+      "assistant_loss_tokens": 130,
+      "student_tokens": 4818,
+      "task_id": 7616
+    },
+    {
+      "assistant_loss_tokens": 393,
+      "student_tokens": 10460,
+      "task_id": 7623
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 5405,
+      "task_id": 7640
+    },
+    {
+      "assistant_loss_tokens": 355,
+      "student_tokens": 13936,
+      "task_id": 7651
+    },
+    {
+      "assistant_loss_tokens": 220,
+      "student_tokens": 8185,
+      "task_id": 7682
+    },
+    {
+      "assistant_loss_tokens": 176,
+      "student_tokens": 5372,
+      "task_id": 7733
+    },
+    {
+      "assistant_loss_tokens": 220,
+      "student_tokens": 6082,
+      "task_id": 7734
+    },
+    {
+      "assistant_loss_tokens": 152,
+      "student_tokens": 4995,
+      "task_id": 7754
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5749,
+      "task_id": 7784
+    },
+    {
+      "assistant_loss_tokens": 470,
+      "student_tokens": 14181,
+      "task_id": 7839
+    },
+    {
+      "assistant_loss_tokens": 150,
+      "student_tokens": 5127,
+      "task_id": 7841
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 5925,
+      "task_id": 7854
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5474,
+      "task_id": 7858
+    },
+    {
+      "assistant_loss_tokens": 350,
+      "student_tokens": 13909,
+      "task_id": 7888
+    },
+    {
+      "assistant_loss_tokens": 231,
+      "student_tokens": 10145,
+      "task_id": 7924
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 5735,
+      "task_id": 7935
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 6829,
+      "task_id": 7963
+    },
+    {
+      "assistant_loss_tokens": 208,
+      "student_tokens": 6228,
+      "task_id": 7966
+    },
+    {
+      "assistant_loss_tokens": 194,
+      "student_tokens": 7308,
+      "task_id": 7970
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5708,
+      "task_id": 7982
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5742,
+      "task_id": 8049
+    },
+    {
+      "assistant_loss_tokens": 273,
+      "student_tokens": 9702,
+      "task_id": 8063
+    },
+    {
+      "assistant_loss_tokens": 359,
+      "student_tokens": 9928,
+      "task_id": 8084
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5353,
+      "task_id": 8112
+    },
+    {
+      "assistant_loss_tokens": 241,
+      "student_tokens": 5680,
+      "task_id": 8132
+    },
+    {
+      "assistant_loss_tokens": 144,
+      "student_tokens": 4650,
+      "task_id": 8146
+    },
+    {
+      "assistant_loss_tokens": 667,
+      "student_tokens": 23339,
+      "task_id": 8164
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5944,
+      "task_id": 8202
+    },
+    {
+      "assistant_loss_tokens": 133,
+      "student_tokens": 5586,
+      "task_id": 8204
+    },
+    {
+      "assistant_loss_tokens": 148,
+      "student_tokens": 5245,
+      "task_id": 8213
+    },
+    {
+      "assistant_loss_tokens": 605,
+      "student_tokens": 14194,
+      "task_id": 8225
+    },
+    {
+      "assistant_loss_tokens": 217,
+      "student_tokens": 6098,
+      "task_id": 8248
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5711,
+      "task_id": 8260
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 5107,
+      "task_id": 8280
+    },
+    {
+      "assistant_loss_tokens": 304,
+      "student_tokens": 11048,
+      "task_id": 8364
+    },
+    {
+      "assistant_loss_tokens": 230,
+      "student_tokens": 6297,
+      "task_id": 8384
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5817,
+      "task_id": 8394
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5738,
+      "task_id": 8400
+    },
+    {
+      "assistant_loss_tokens": 255,
+      "student_tokens": 9052,
+      "task_id": 8406
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 6069,
+      "task_id": 8422
+    },
+    {
+      "assistant_loss_tokens": 130,
+      "student_tokens": 5054,
+      "task_id": 8475
+    },
+    {
+      "assistant_loss_tokens": 169,
+      "student_tokens": 5369,
+      "task_id": 8495
+    },
+    {
+      "assistant_loss_tokens": 114,
+      "student_tokens": 4471,
+      "task_id": 8545
+    },
+    {
+      "assistant_loss_tokens": 833,
+      "student_tokens": 21739,
+      "task_id": 8561
+    },
+    {
+      "assistant_loss_tokens": 297,
+      "student_tokens": 6500,
+      "task_id": 8601
+    },
+    {
+      "assistant_loss_tokens": 195,
+      "student_tokens": 7484,
+      "task_id": 8632
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 6336,
+      "task_id": 8645
+    },
+    {
+      "assistant_loss_tokens": 159,
+      "student_tokens": 5787,
+      "task_id": 8670
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 4953,
+      "task_id": 8678
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 6528,
+      "task_id": 8690
+    },
+    {
+      "assistant_loss_tokens": 351,
+      "student_tokens": 10555,
+      "task_id": 8698
+    },
+    {
+      "assistant_loss_tokens": 511,
+      "student_tokens": 21794,
+      "task_id": 8706
+    },
+    {
+      "assistant_loss_tokens": 118,
+      "student_tokens": 5029,
+      "task_id": 8715
+    },
+    {
+      "assistant_loss_tokens": 563,
+      "student_tokens": 14764,
+      "task_id": 8717
+    },
+    {
+      "assistant_loss_tokens": 195,
+      "student_tokens": 5996,
+      "task_id": 8728
+    },
+    {
+      "assistant_loss_tokens": 547,
+      "student_tokens": 17698,
+      "task_id": 8747
+    },
+    {
+      "assistant_loss_tokens": 213,
+      "student_tokens": 6000,
+      "task_id": 8748
+    },
+    {
+      "assistant_loss_tokens": 200,
+      "student_tokens": 19104,
+      "task_id": 8751
+    },
+    {
+      "assistant_loss_tokens": 119,
+      "student_tokens": 4609,
+      "task_id": 8785
+    },
+    {
+      "assistant_loss_tokens": 231,
+      "student_tokens": 9459,
+      "task_id": 8790
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5763,
+      "task_id": 8792
+    },
+    {
+      "assistant_loss_tokens": 445,
+      "student_tokens": 13200,
+      "task_id": 8831
+    },
+    {
+      "assistant_loss_tokens": 400,
+      "student_tokens": 12205,
+      "task_id": 8934
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 6361,
+      "task_id": 8969
+    },
+    {
+      "assistant_loss_tokens": 266,
+      "student_tokens": 12205,
+      "task_id": 8974
+    },
+    {
+      "assistant_loss_tokens": 217,
+      "student_tokens": 6508,
+      "task_id": 9000
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 5654,
+      "task_id": 9012
+    },
+    {
+      "assistant_loss_tokens": 391,
+      "student_tokens": 10113,
+      "task_id": 9027
+    },
+    {
+      "assistant_loss_tokens": 195,
+      "student_tokens": 6518,
+      "task_id": 9031
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5937,
+      "task_id": 9034
+    },
+    {
+      "assistant_loss_tokens": 641,
+      "student_tokens": 24263,
+      "task_id": 9116
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 5647,
+      "task_id": 9130
+    },
+    {
+      "assistant_loss_tokens": 359,
+      "student_tokens": 9679,
+      "task_id": 9133
+    },
+    {
+      "assistant_loss_tokens": 222,
+      "student_tokens": 11090,
+      "task_id": 9134
+    },
+    {
+      "assistant_loss_tokens": 206,
+      "student_tokens": 6536,
+      "task_id": 9196
+    },
+    {
+      "assistant_loss_tokens": 547,
+      "student_tokens": 15574,
+      "task_id": 9210
+    },
+    {
+      "assistant_loss_tokens": 158,
+      "student_tokens": 5256,
+      "task_id": 9227
+    },
+    {
+      "assistant_loss_tokens": 557,
+      "student_tokens": 13718,
+      "task_id": 9243
+    },
+    {
+      "assistant_loss_tokens": 113,
+      "student_tokens": 4580,
+      "task_id": 9244
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5551,
+      "task_id": 9245
+    },
+    {
+      "assistant_loss_tokens": 209,
+      "student_tokens": 6551,
+      "task_id": 9260
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 6064,
+      "task_id": 9262
+    },
+    {
+      "assistant_loss_tokens": 561,
+      "student_tokens": 16897,
+      "task_id": 9316
+    },
+    {
+      "assistant_loss_tokens": 168,
+      "student_tokens": 6093,
+      "task_id": 9325
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 6137,
+      "task_id": 9354
+    },
+    {
+      "assistant_loss_tokens": 286,
+      "student_tokens": 9857,
+      "task_id": 9360
+    },
+    {
+      "assistant_loss_tokens": 216,
+      "student_tokens": 6620,
+      "task_id": 9364
+    },
+    {
+      "assistant_loss_tokens": 171,
+      "student_tokens": 5332,
+      "task_id": 9416
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 5570,
+      "task_id": 9445
+    },
+    {
+      "assistant_loss_tokens": 161,
+      "student_tokens": 5579,
+      "task_id": 9472
+    },
+    {
+      "assistant_loss_tokens": 238,
+      "student_tokens": 6436,
+      "task_id": 9487
+    },
+    {
+      "assistant_loss_tokens": 213,
+      "student_tokens": 6244,
+      "task_id": 9490
+    },
+    {
+      "assistant_loss_tokens": 213,
+      "student_tokens": 6528,
+      "task_id": 9492
+    },
+    {
+      "assistant_loss_tokens": 200,
+      "student_tokens": 6005,
+      "task_id": 9509
+    },
+    {
+      "assistant_loss_tokens": 149,
+      "student_tokens": 5273,
+      "task_id": 9561
+    },
+    {
+      "assistant_loss_tokens": 615,
+      "student_tokens": 15610,
+      "task_id": 9620
+    },
+    {
+      "assistant_loss_tokens": 148,
+      "student_tokens": 4900,
+      "task_id": 9628
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 6373,
+      "task_id": 9636
+    },
+    {
+      "assistant_loss_tokens": 594,
+      "student_tokens": 15325,
+      "task_id": 9652
+    },
+    {
+      "assistant_loss_tokens": 333,
+      "student_tokens": 9096,
+      "task_id": 9702
+    },
+    {
+      "assistant_loss_tokens": 200,
+      "student_tokens": 7653,
+      "task_id": 9711
+    },
+    {
+      "assistant_loss_tokens": 680,
+      "student_tokens": 16970,
+      "task_id": 9739
+    },
+    {
+      "assistant_loss_tokens": 417,
+      "student_tokens": 8900,
+      "task_id": 9774
+    },
+    {
+      "assistant_loss_tokens": 305,
+      "student_tokens": 9746,
+      "task_id": 9775
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5621,
+      "task_id": 9785
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5615,
+      "task_id": 9790
+    },
+    {
+      "assistant_loss_tokens": 158,
+      "student_tokens": 5261,
+      "task_id": 9807
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 7682,
+      "task_id": 9815
+    },
+    {
+      "assistant_loss_tokens": 692,
+      "student_tokens": 19344,
+      "task_id": 9822
+    },
+    {
+      "assistant_loss_tokens": 162,
+      "student_tokens": 6128,
+      "task_id": 9824
+    },
+    {
+      "assistant_loss_tokens": 358,
+      "student_tokens": 9454,
+      "task_id": 9825
+    },
+    {
+      "assistant_loss_tokens": 307,
+      "student_tokens": 8412,
+      "task_id": 9850
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5505,
+      "task_id": 9909
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5650,
+      "task_id": 9921
+    },
+    {
+      "assistant_loss_tokens": 132,
+      "student_tokens": 5599,
+      "task_id": 9926
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 7181,
+      "task_id": 9932
+    },
+    {
+      "assistant_loss_tokens": 199,
+      "student_tokens": 6744,
+      "task_id": 9946
+    },
+    {
+      "assistant_loss_tokens": 222,
+      "student_tokens": 8208,
+      "task_id": 9952
+    },
+    {
+      "assistant_loss_tokens": 124,
+      "student_tokens": 4918,
+      "task_id": 10017
+    },
+    {
+      "assistant_loss_tokens": 130,
+      "student_tokens": 5477,
+      "task_id": 10029
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5753,
+      "task_id": 10041
+    },
+    {
+      "assistant_loss_tokens": 319,
+      "student_tokens": 10575,
+      "task_id": 10049
+    },
+    {
+      "assistant_loss_tokens": 879,
+      "student_tokens": 22825,
+      "task_id": 10065
+    },
+    {
+      "assistant_loss_tokens": 700,
+      "student_tokens": 24121,
+      "task_id": 10068
+    },
+    {
+      "assistant_loss_tokens": 202,
+      "student_tokens": 10768,
+      "task_id": 10096
+    },
+    {
+      "assistant_loss_tokens": 180,
+      "student_tokens": 5471,
+      "task_id": 10144
+    },
+    {
+      "assistant_loss_tokens": 132,
+      "student_tokens": 6013,
+      "task_id": 10209
+    },
+    {
+      "assistant_loss_tokens": 171,
+      "student_tokens": 5051,
+      "task_id": 10213
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 8983,
+      "task_id": 10221
+    },
+    {
+      "assistant_loss_tokens": 300,
+      "student_tokens": 11483,
+      "task_id": 10243
+    },
+    {
+      "assistant_loss_tokens": 415,
+      "student_tokens": 21382,
+      "task_id": 10295
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 7102,
+      "task_id": 10337
+    },
+    {
+      "assistant_loss_tokens": 131,
+      "student_tokens": 4866,
+      "task_id": 10377
+    },
+    {
+      "assistant_loss_tokens": 159,
+      "student_tokens": 5430,
+      "task_id": 10382
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 6638,
+      "task_id": 10453
+    },
+    {
+      "assistant_loss_tokens": 258,
+      "student_tokens": 6627,
+      "task_id": 10490
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5695,
+      "task_id": 10545
+    },
+    {
+      "assistant_loss_tokens": 430,
+      "student_tokens": 14087,
+      "task_id": 10567
+    },
+    {
+      "assistant_loss_tokens": 223,
+      "student_tokens": 6373,
+      "task_id": 10585
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 6223,
+      "task_id": 10691
+    },
+    {
+      "assistant_loss_tokens": 118,
+      "student_tokens": 4577,
+      "task_id": 10711
+    },
+    {
+      "assistant_loss_tokens": 154,
+      "student_tokens": 5690,
+      "task_id": 10749
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 7779,
+      "task_id": 10779
+    },
+    {
+      "assistant_loss_tokens": 732,
+      "student_tokens": 16579,
+      "task_id": 10837
+    },
+    {
+      "assistant_loss_tokens": 150,
+      "student_tokens": 5177,
+      "task_id": 10854
+    },
+    {
+      "assistant_loss_tokens": 265,
+      "student_tokens": 5405,
+      "task_id": 10883
+    },
+    {
+      "assistant_loss_tokens": 123,
+      "student_tokens": 6196,
+      "task_id": 10907
+    },
+    {
+      "assistant_loss_tokens": 707,
+      "student_tokens": 20084,
+      "task_id": 10944
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5513,
+      "task_id": 10976
+    },
+    {
+      "assistant_loss_tokens": 137,
+      "student_tokens": 6698,
+      "task_id": 10989
+    },
+    {
+      "assistant_loss_tokens": 361,
+      "student_tokens": 9253,
+      "task_id": 10991
+    },
+    {
+      "assistant_loss_tokens": 206,
+      "student_tokens": 6481,
+      "task_id": 10996
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 6829,
+      "task_id": 11059
+    },
+    {
+      "assistant_loss_tokens": 209,
+      "student_tokens": 5713,
+      "task_id": 11183
+    },
+    {
+      "assistant_loss_tokens": 117,
+      "student_tokens": 4592,
+      "task_id": 11204
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 6131,
+      "task_id": 11216
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 5861,
+      "task_id": 11227
+    },
+    {
+      "assistant_loss_tokens": 301,
+      "student_tokens": 12568,
+      "task_id": 11239
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5740,
+      "task_id": 11246
+    },
+    {
+      "assistant_loss_tokens": 201,
+      "student_tokens": 7365,
+      "task_id": 11257
+    },
+    {
+      "assistant_loss_tokens": 284,
+      "student_tokens": 7565,
+      "task_id": 11268
+    },
+    {
+      "assistant_loss_tokens": 125,
+      "student_tokens": 5308,
+      "task_id": 11289
+    },
+    {
+      "assistant_loss_tokens": 413,
+      "student_tokens": 6812,
+      "task_id": 11298
+    },
+    {
+      "assistant_loss_tokens": 355,
+      "student_tokens": 8769,
+      "task_id": 11333
+    },
+    {
+      "assistant_loss_tokens": 171,
+      "student_tokens": 5659,
+      "task_id": 11346
+    },
+    {
+      "assistant_loss_tokens": 216,
+      "student_tokens": 7602,
+      "task_id": 11357
+    },
+    {
+      "assistant_loss_tokens": 259,
+      "student_tokens": 11280,
+      "task_id": 11383
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 6068,
+      "task_id": 11421
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5803,
+      "task_id": 11465
+    },
+    {
+      "assistant_loss_tokens": 366,
+      "student_tokens": 11062,
+      "task_id": 11491
+    },
+    {
+      "assistant_loss_tokens": 122,
+      "student_tokens": 4726,
+      "task_id": 11492
+    },
+    {
+      "assistant_loss_tokens": 199,
+      "student_tokens": 6756,
+      "task_id": 11502
+    },
+    {
+      "assistant_loss_tokens": 221,
+      "student_tokens": 7945,
+      "task_id": 11508
+    },
+    {
+      "assistant_loss_tokens": 124,
+      "student_tokens": 4738,
+      "task_id": 11517
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 6166,
+      "task_id": 11527
+    },
+    {
+      "assistant_loss_tokens": 206,
+      "student_tokens": 10323,
+      "task_id": 11556
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5924,
+      "task_id": 11590
+    },
+    {
+      "assistant_loss_tokens": 409,
+      "student_tokens": 10746,
+      "task_id": 11622
+    },
+    {
+      "assistant_loss_tokens": 126,
+      "student_tokens": 5554,
+      "task_id": 11624
+    },
+    {
+      "assistant_loss_tokens": 346,
+      "student_tokens": 9911,
+      "task_id": 11627
+    },
+    {
+      "assistant_loss_tokens": 180,
+      "student_tokens": 5389,
+      "task_id": 11650
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5666,
+      "task_id": 11654
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 6169,
+      "task_id": 11669
+    },
+    {
+      "assistant_loss_tokens": 155,
+      "student_tokens": 6511,
+      "task_id": 11671
+    },
+    {
+      "assistant_loss_tokens": 155,
+      "student_tokens": 5348,
+      "task_id": 11674
+    },
+    {
+      "assistant_loss_tokens": 437,
+      "student_tokens": 11039,
+      "task_id": 11677
+    },
+    {
+      "assistant_loss_tokens": 176,
+      "student_tokens": 5461,
+      "task_id": 11683
+    },
+    {
+      "assistant_loss_tokens": 212,
+      "student_tokens": 6338,
+      "task_id": 11720
+    },
+    {
+      "assistant_loss_tokens": 557,
+      "student_tokens": 14010,
+      "task_id": 11730
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5461,
+      "task_id": 11768
+    },
+    {
+      "assistant_loss_tokens": 206,
+      "student_tokens": 6704,
+      "task_id": 11770
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 5434,
+      "task_id": 11779
+    },
+    {
+      "assistant_loss_tokens": 530,
+      "student_tokens": 14365,
+      "task_id": 11785
+    },
+    {
+      "assistant_loss_tokens": 423,
+      "student_tokens": 11802,
+      "task_id": 11802
+    },
+    {
+      "assistant_loss_tokens": 143,
+      "student_tokens": 4912,
+      "task_id": 11813
+    },
+    {
+      "assistant_loss_tokens": 361,
+      "student_tokens": 11430,
+      "task_id": 11821
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 5691,
+      "task_id": 11822
+    },
+    {
+      "assistant_loss_tokens": 194,
+      "student_tokens": 8025,
+      "task_id": 11846
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 5859,
+      "task_id": 11866
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 7113,
+      "task_id": 11885
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5370,
+      "task_id": 11915
+    },
+    {
+      "assistant_loss_tokens": 328,
+      "student_tokens": 10078,
+      "task_id": 11937
+    },
+    {
+      "assistant_loss_tokens": 540,
+      "student_tokens": 18454,
+      "task_id": 11939
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 6022,
+      "task_id": 11967
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 6768,
+      "task_id": 12001
+    },
+    {
+      "assistant_loss_tokens": 822,
+      "student_tokens": 23625,
+      "task_id": 12027
+    },
+    {
+      "assistant_loss_tokens": 153,
+      "student_tokens": 5494,
+      "task_id": 12031
+    },
+    {
+      "assistant_loss_tokens": 252,
+      "student_tokens": 6114,
+      "task_id": 12049
+    },
+    {
+      "assistant_loss_tokens": 529,
+      "student_tokens": 14676,
+      "task_id": 12129
+    },
+    {
+      "assistant_loss_tokens": 506,
+      "student_tokens": 21483,
+      "task_id": 12137
+    },
+    {
+      "assistant_loss_tokens": 540,
+      "student_tokens": 19287,
+      "task_id": 12176
+    },
+    {
+      "assistant_loss_tokens": 408,
+      "student_tokens": 11187,
+      "task_id": 12186
+    },
+    {
+      "assistant_loss_tokens": 195,
+      "student_tokens": 7484,
+      "task_id": 12213
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 5752,
+      "task_id": 12222
+    },
+    {
+      "assistant_loss_tokens": 218,
+      "student_tokens": 7860,
+      "task_id": 12240
+    },
+    {
+      "assistant_loss_tokens": 420,
+      "student_tokens": 10462,
+      "task_id": 12258
+    },
+    {
+      "assistant_loss_tokens": 210,
+      "student_tokens": 5952,
+      "task_id": 12264
+    },
+    {
+      "assistant_loss_tokens": 272,
+      "student_tokens": 8027,
+      "task_id": 12268
+    },
+    {
+      "assistant_loss_tokens": 567,
+      "student_tokens": 14720,
+      "task_id": 12289
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5627,
+      "task_id": 12299
+    },
+    {
+      "assistant_loss_tokens": 127,
+      "student_tokens": 4751,
+      "task_id": 12311
+    },
+    {
+      "assistant_loss_tokens": 265,
+      "student_tokens": 7735,
+      "task_id": 12312
+    },
+    {
+      "assistant_loss_tokens": 198,
+      "student_tokens": 13839,
+      "task_id": 12346
+    },
+    {
+      "assistant_loss_tokens": 121,
+      "student_tokens": 4500,
+      "task_id": 12385
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5494,
+      "task_id": 12389
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5462,
+      "task_id": 12393
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5481,
+      "task_id": 12401
+    },
+    {
+      "assistant_loss_tokens": 125,
+      "student_tokens": 5193,
+      "task_id": 12415
+    },
+    {
+      "assistant_loss_tokens": 616,
+      "student_tokens": 19498,
+      "task_id": 12426
+    },
+    {
+      "assistant_loss_tokens": 120,
+      "student_tokens": 4726,
+      "task_id": 12449
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5805,
+      "task_id": 12490
+    },
+    {
+      "assistant_loss_tokens": 177,
+      "student_tokens": 5251,
+      "task_id": 12583
+    },
+    {
+      "assistant_loss_tokens": 716,
+      "student_tokens": 18481,
+      "task_id": 12591
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 5801,
+      "task_id": 12606
+    },
+    {
+      "assistant_loss_tokens": 176,
+      "student_tokens": 5595,
+      "task_id": 12672
+    },
+    {
+      "assistant_loss_tokens": 237,
+      "student_tokens": 6493,
+      "task_id": 12693
+    },
+    {
+      "assistant_loss_tokens": 169,
+      "student_tokens": 5444,
+      "task_id": 12746
+    },
+    {
+      "assistant_loss_tokens": 127,
+      "student_tokens": 4731,
+      "task_id": 12756
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 7521,
+      "task_id": 12778
+    },
+    {
+      "assistant_loss_tokens": 398,
+      "student_tokens": 10930,
+      "task_id": 12786
+    },
+    {
+      "assistant_loss_tokens": 211,
+      "student_tokens": 6521,
+      "task_id": 12795
+    },
+    {
+      "assistant_loss_tokens": 119,
+      "student_tokens": 4737,
+      "task_id": 12805
+    },
+    {
+      "assistant_loss_tokens": 206,
+      "student_tokens": 6341,
+      "task_id": 12856
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5731,
+      "task_id": 12891
+    },
+    {
+      "assistant_loss_tokens": 156,
+      "student_tokens": 5336,
+      "task_id": 12924
+    },
+    {
+      "assistant_loss_tokens": 148,
+      "student_tokens": 5113,
+      "task_id": 12956
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5534,
+      "task_id": 12965
+    },
+    {
+      "assistant_loss_tokens": 353,
+      "student_tokens": 5668,
+      "task_id": 12974
+    },
+    {
+      "assistant_loss_tokens": 311,
+      "student_tokens": 10340,
+      "task_id": 12976
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 5876,
+      "task_id": 12981
+    },
+    {
+      "assistant_loss_tokens": 204,
+      "student_tokens": 6406,
+      "task_id": 12995
+    },
+    {
+      "assistant_loss_tokens": 616,
+      "student_tokens": 18874,
+      "task_id": 12997
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 10067,
+      "task_id": 13046
+    },
+    {
+      "assistant_loss_tokens": 370,
+      "student_tokens": 17118,
+      "task_id": 13048
+    },
+    {
+      "assistant_loss_tokens": 390,
+      "student_tokens": 9836,
+      "task_id": 13060
+    },
+    {
+      "assistant_loss_tokens": 158,
+      "student_tokens": 5067,
+      "task_id": 13076
+    },
+    {
+      "assistant_loss_tokens": 143,
+      "student_tokens": 5050,
+      "task_id": 13092
+    },
+    {
+      "assistant_loss_tokens": 153,
+      "student_tokens": 5490,
+      "task_id": 13111
+    },
+    {
+      "assistant_loss_tokens": 174,
+      "student_tokens": 5376,
+      "task_id": 13133
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5212,
+      "task_id": 13148
+    },
+    {
+      "assistant_loss_tokens": 226,
+      "student_tokens": 6750,
+      "task_id": 13211
+    },
+    {
+      "assistant_loss_tokens": 214,
+      "student_tokens": 6298,
+      "task_id": 13215
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 6214,
+      "task_id": 13223
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5502,
+      "task_id": 13247
+    },
+    {
+      "assistant_loss_tokens": 324,
+      "student_tokens": 9091,
+      "task_id": 13262
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5403,
+      "task_id": 13276
+    },
+    {
+      "assistant_loss_tokens": 494,
+      "student_tokens": 14208,
+      "task_id": 13279
+    },
+    {
+      "assistant_loss_tokens": 129,
+      "student_tokens": 5785,
+      "task_id": 13297
+    },
+    {
+      "assistant_loss_tokens": 177,
+      "student_tokens": 5771,
+      "task_id": 13367
+    },
+    {
+      "assistant_loss_tokens": 128,
+      "student_tokens": 5026,
+      "task_id": 13395
+    },
+    {
+      "assistant_loss_tokens": 376,
+      "student_tokens": 11545,
+      "task_id": 13416
+    },
+    {
+      "assistant_loss_tokens": 122,
+      "student_tokens": 4644,
+      "task_id": 13426
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 6471,
+      "task_id": 13450
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 6039,
+      "task_id": 13478
+    },
+    {
+      "assistant_loss_tokens": 409,
+      "student_tokens": 11498,
+      "task_id": 13519
+    },
+    {
+      "assistant_loss_tokens": 129,
+      "student_tokens": 4701,
+      "task_id": 13540
+    },
+    {
+      "assistant_loss_tokens": 148,
+      "student_tokens": 4929,
+      "task_id": 13595
+    },
+    {
+      "assistant_loss_tokens": 159,
+      "student_tokens": 5599,
+      "task_id": 13611
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5881,
+      "task_id": 13648
+    },
+    {
+      "assistant_loss_tokens": 789,
+      "student_tokens": 22012,
+      "task_id": 13668
+    },
+    {
+      "assistant_loss_tokens": 626,
+      "student_tokens": 14092,
+      "task_id": 13671
+    },
+    {
+      "assistant_loss_tokens": 277,
+      "student_tokens": 8505,
+      "task_id": 13698
+    },
+    {
+      "assistant_loss_tokens": 229,
+      "student_tokens": 8785,
+      "task_id": 13705
+    },
+    {
+      "assistant_loss_tokens": 243,
+      "student_tokens": 7099,
+      "task_id": 13729
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5761,
+      "task_id": 13739
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 5560,
+      "task_id": 13765
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 6665,
+      "task_id": 13782
+    },
+    {
+      "assistant_loss_tokens": 131,
+      "student_tokens": 4693,
+      "task_id": 13886
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5794,
+      "task_id": 13891
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5765,
+      "task_id": 13892
+    },
+    {
+      "assistant_loss_tokens": 418,
+      "student_tokens": 16155,
+      "task_id": 13925
+    },
+    {
+      "assistant_loss_tokens": 292,
+      "student_tokens": 8336,
+      "task_id": 13949
+    },
+    {
+      "assistant_loss_tokens": 423,
+      "student_tokens": 12629,
+      "task_id": 14050
+    },
+    {
+      "assistant_loss_tokens": 657,
+      "student_tokens": 23182,
+      "task_id": 14057
+    },
+    {
+      "assistant_loss_tokens": 309,
+      "student_tokens": 9034,
+      "task_id": 14073
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5649,
+      "task_id": 14113
+    },
+    {
+      "assistant_loss_tokens": 166,
+      "student_tokens": 5318,
+      "task_id": 14124
+    },
+    {
+      "assistant_loss_tokens": 329,
+      "student_tokens": 8399,
+      "task_id": 14141
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5983,
+      "task_id": 14157
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 6240,
+      "task_id": 14172
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 5439,
+      "task_id": 14180
+    },
+    {
+      "assistant_loss_tokens": 213,
+      "student_tokens": 8786,
+      "task_id": 14182
+    },
+    {
+      "assistant_loss_tokens": 371,
+      "student_tokens": 11008,
+      "task_id": 14194
+    },
+    {
+      "assistant_loss_tokens": 176,
+      "student_tokens": 7029,
+      "task_id": 14198
+    },
+    {
+      "assistant_loss_tokens": 217,
+      "student_tokens": 5732,
+      "task_id": 14232
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5446,
+      "task_id": 14248
+    },
+    {
+      "assistant_loss_tokens": 157,
+      "student_tokens": 5119,
+      "task_id": 14279
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 5086,
+      "task_id": 14308
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5950,
+      "task_id": 14309
+    },
+    {
+      "assistant_loss_tokens": 208,
+      "student_tokens": 5760,
+      "task_id": 14328
+    },
+    {
+      "assistant_loss_tokens": 157,
+      "student_tokens": 5387,
+      "task_id": 14395
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5597,
+      "task_id": 14427
+    },
+    {
+      "assistant_loss_tokens": 216,
+      "student_tokens": 6659,
+      "task_id": 14443
+    },
+    {
+      "assistant_loss_tokens": 219,
+      "student_tokens": 6668,
+      "task_id": 14538
+    },
+    {
+      "assistant_loss_tokens": 362,
+      "student_tokens": 12692,
+      "task_id": 14547
+    },
+    {
+      "assistant_loss_tokens": 124,
+      "student_tokens": 5146,
+      "task_id": 14548
+    },
+    {
+      "assistant_loss_tokens": 226,
+      "student_tokens": 6746,
+      "task_id": 14564
+    },
+    {
+      "assistant_loss_tokens": 221,
+      "student_tokens": 6123,
+      "task_id": 14566
+    },
+    {
+      "assistant_loss_tokens": 163,
+      "student_tokens": 5667,
+      "task_id": 14615
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 6214,
+      "task_id": 14644
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5586,
+      "task_id": 14697
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 8500,
+      "task_id": 14709
+    },
+    {
+      "assistant_loss_tokens": 159,
+      "student_tokens": 6698,
+      "task_id": 14712
+    },
+    {
+      "assistant_loss_tokens": 134,
+      "student_tokens": 4668,
+      "task_id": 14722
+    },
+    {
+      "assistant_loss_tokens": 204,
+      "student_tokens": 5982,
+      "task_id": 14789
+    },
+    {
+      "assistant_loss_tokens": 533,
+      "student_tokens": 15548,
+      "task_id": 14802
+    },
+    {
+      "assistant_loss_tokens": 176,
+      "student_tokens": 5635,
+      "task_id": 14806
+    },
+    {
+      "assistant_loss_tokens": 198,
+      "student_tokens": 5618,
+      "task_id": 14863
+    },
+    {
+      "assistant_loss_tokens": 180,
+      "student_tokens": 5379,
+      "task_id": 14924
+    },
+    {
+      "assistant_loss_tokens": 211,
+      "student_tokens": 5885,
+      "task_id": 14938
+    },
+    {
+      "assistant_loss_tokens": 150,
+      "student_tokens": 5421,
+      "task_id": 14945
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 6312,
+      "task_id": 14962
+    },
+    {
+      "assistant_loss_tokens": 149,
+      "student_tokens": 5189,
+      "task_id": 14983
+    },
+    {
+      "assistant_loss_tokens": 131,
+      "student_tokens": 4725,
+      "task_id": 14985
+    },
+    {
+      "assistant_loss_tokens": 118,
+      "student_tokens": 4746,
+      "task_id": 14997
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 6090,
+      "task_id": 15001
+    },
+    {
+      "assistant_loss_tokens": 195,
+      "student_tokens": 8558,
+      "task_id": 15011
+    },
+    {
+      "assistant_loss_tokens": 236,
+      "student_tokens": 6868,
+      "task_id": 15022
+    },
+    {
+      "assistant_loss_tokens": 160,
+      "student_tokens": 5189,
+      "task_id": 15040
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 9637,
+      "task_id": 15045
+    },
+    {
+      "assistant_loss_tokens": 406,
+      "student_tokens": 10487,
+      "task_id": 15055
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 6125,
+      "task_id": 15060
+    },
+    {
+      "assistant_loss_tokens": 198,
+      "student_tokens": 6439,
+      "task_id": 15079
+    },
+    {
+      "assistant_loss_tokens": 228,
+      "student_tokens": 6699,
+      "task_id": 15129
+    },
+    {
+      "assistant_loss_tokens": 218,
+      "student_tokens": 8683,
+      "task_id": 15138
+    },
+    {
+      "assistant_loss_tokens": 411,
+      "student_tokens": 10602,
+      "task_id": 15139
+    },
+    {
+      "assistant_loss_tokens": 496,
+      "student_tokens": 13746,
+      "task_id": 15146
+    },
+    {
+      "assistant_loss_tokens": 180,
+      "student_tokens": 5737,
+      "task_id": 15159
+    },
+    {
+      "assistant_loss_tokens": 118,
+      "student_tokens": 4632,
+      "task_id": 15164
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 7296,
+      "task_id": 15192
+    },
+    {
+      "assistant_loss_tokens": 146,
+      "student_tokens": 5096,
+      "task_id": 15201
+    },
+    {
+      "assistant_loss_tokens": 261,
+      "student_tokens": 7114,
+      "task_id": 15212
+    },
+    {
+      "assistant_loss_tokens": 209,
+      "student_tokens": 6229,
+      "task_id": 15236
+    },
+    {
+      "assistant_loss_tokens": 150,
+      "student_tokens": 5179,
+      "task_id": 15237
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5863,
+      "task_id": 15258
+    },
+    {
+      "assistant_loss_tokens": 137,
+      "student_tokens": 6284,
+      "task_id": 15290
+    },
+    {
+      "assistant_loss_tokens": 116,
+      "student_tokens": 4535,
+      "task_id": 15293
+    },
+    {
+      "assistant_loss_tokens": 214,
+      "student_tokens": 6792,
+      "task_id": 15332
+    },
+    {
+      "assistant_loss_tokens": 211,
+      "student_tokens": 6073,
+      "task_id": 15340
+    },
+    {
+      "assistant_loss_tokens": 149,
+      "student_tokens": 4921,
+      "task_id": 15350
+    },
+    {
+      "assistant_loss_tokens": 456,
+      "student_tokens": 11435,
+      "task_id": 15396
+    },
+    {
+      "assistant_loss_tokens": 411,
+      "student_tokens": 12473,
+      "task_id": 15406
+    },
+    {
+      "assistant_loss_tokens": 161,
+      "student_tokens": 5956,
+      "task_id": 15417
+    },
+    {
+      "assistant_loss_tokens": 458,
+      "student_tokens": 12799,
+      "task_id": 15427
+    },
+    {
+      "assistant_loss_tokens": 367,
+      "student_tokens": 14253,
+      "task_id": 15456
+    },
+    {
+      "assistant_loss_tokens": 218,
+      "student_tokens": 6797,
+      "task_id": 15478
+    },
+    {
+      "assistant_loss_tokens": 216,
+      "student_tokens": 5895,
+      "task_id": 15484
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 9199,
+      "task_id": 15495
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 6085,
+      "task_id": 15496
+    },
+    {
+      "assistant_loss_tokens": 134,
+      "student_tokens": 5763,
+      "task_id": 15510
+    },
+    {
+      "assistant_loss_tokens": 366,
+      "student_tokens": 11767,
+      "task_id": 15530
+    },
+    {
+      "assistant_loss_tokens": 194,
+      "student_tokens": 7296,
+      "task_id": 15565
+    },
+    {
+      "assistant_loss_tokens": 338,
+      "student_tokens": 14040,
+      "task_id": 15582
+    },
+    {
+      "assistant_loss_tokens": 573,
+      "student_tokens": 14822,
+      "task_id": 15602
+    },
+    {
+      "assistant_loss_tokens": 139,
+      "student_tokens": 6801,
+      "task_id": 15610
+    },
+    {
+      "assistant_loss_tokens": 337,
+      "student_tokens": 8853,
+      "task_id": 15614
+    },
+    {
+      "assistant_loss_tokens": 390,
+      "student_tokens": 10094,
+      "task_id": 15630
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 6261,
+      "task_id": 15674
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5742,
+      "task_id": 15681
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 5306,
+      "task_id": 15709
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5776,
+      "task_id": 15710
+    },
+    {
+      "assistant_loss_tokens": 240,
+      "student_tokens": 12364,
+      "task_id": 15737
+    },
+    {
+      "assistant_loss_tokens": 209,
+      "student_tokens": 7019,
+      "task_id": 15756
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5964,
+      "task_id": 15776
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 8494,
+      "task_id": 15838
+    },
+    {
+      "assistant_loss_tokens": 195,
+      "student_tokens": 7152,
+      "task_id": 15839
+    },
+    {
+      "assistant_loss_tokens": 546,
+      "student_tokens": 17972,
+      "task_id": 15857
+    },
+    {
+      "assistant_loss_tokens": 117,
+      "student_tokens": 4596,
+      "task_id": 15900
+    },
+    {
+      "assistant_loss_tokens": 223,
+      "student_tokens": 6294,
+      "task_id": 15905
+    },
+    {
+      "assistant_loss_tokens": 220,
+      "student_tokens": 6660,
+      "task_id": 15955
+    },
+    {
+      "assistant_loss_tokens": 158,
+      "student_tokens": 5273,
+      "task_id": 15956
+    },
+    {
+      "assistant_loss_tokens": 175,
+      "student_tokens": 7708,
+      "task_id": 15960
+    },
+    {
+      "assistant_loss_tokens": 201,
+      "student_tokens": 8934,
+      "task_id": 15988
+    },
+    {
+      "assistant_loss_tokens": 121,
+      "student_tokens": 4533,
+      "task_id": 16000
+    },
+    {
+      "assistant_loss_tokens": 247,
+      "student_tokens": 7532,
+      "task_id": 16013
+    },
+    {
+      "assistant_loss_tokens": 662,
+      "student_tokens": 16906,
+      "task_id": 16068
+    },
+    {
+      "assistant_loss_tokens": 134,
+      "student_tokens": 5524,
+      "task_id": 16096
+    },
+    {
+      "assistant_loss_tokens": 132,
+      "student_tokens": 4789,
+      "task_id": 16101
+    },
+    {
+      "assistant_loss_tokens": 130,
+      "student_tokens": 5093,
+      "task_id": 16110
+    },
+    {
+      "assistant_loss_tokens": 488,
+      "student_tokens": 15838,
+      "task_id": 16185
+    },
+    {
+      "assistant_loss_tokens": 423,
+      "student_tokens": 10910,
+      "task_id": 16210
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 6264,
+      "task_id": 16229
+    },
+    {
+      "assistant_loss_tokens": 150,
+      "student_tokens": 5068,
+      "task_id": 16275
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 5675,
+      "task_id": 16280
+    },
+    {
+      "assistant_loss_tokens": 206,
+      "student_tokens": 5962,
+      "task_id": 16282
+    },
+    {
+      "assistant_loss_tokens": 262,
+      "student_tokens": 7668,
+      "task_id": 16289
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 6666,
+      "task_id": 16312
+    },
+    {
+      "assistant_loss_tokens": 951,
+      "student_tokens": 13195,
+      "task_id": 16325
+    },
+    {
+      "assistant_loss_tokens": 127,
+      "student_tokens": 4898,
+      "task_id": 16338
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5719,
+      "task_id": 16348
+    },
+    {
+      "assistant_loss_tokens": 125,
+      "student_tokens": 4619,
+      "task_id": 16399
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5765,
+      "task_id": 16407
+    },
+    {
+      "assistant_loss_tokens": 117,
+      "student_tokens": 4501,
+      "task_id": 16419
+    },
+    {
+      "assistant_loss_tokens": 199,
+      "student_tokens": 7388,
+      "task_id": 16474
+    },
+    {
+      "assistant_loss_tokens": 203,
+      "student_tokens": 5988,
+      "task_id": 16500
+    },
+    {
+      "assistant_loss_tokens": 199,
+      "student_tokens": 6290,
+      "task_id": 16559
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 9873,
+      "task_id": 16585
+    },
+    {
+      "assistant_loss_tokens": 158,
+      "student_tokens": 6318,
+      "task_id": 16609
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 6072,
+      "task_id": 16623
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5770,
+      "task_id": 16629
+    },
+    {
+      "assistant_loss_tokens": 152,
+      "student_tokens": 4926,
+      "task_id": 16635
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 5749,
+      "task_id": 16647
+    },
+    {
+      "assistant_loss_tokens": 124,
+      "student_tokens": 4648,
+      "task_id": 16648
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 5003,
+      "task_id": 16661
+    },
+    {
+      "assistant_loss_tokens": 163,
+      "student_tokens": 8868,
+      "task_id": 16683
+    },
+    {
+      "assistant_loss_tokens": 459,
+      "student_tokens": 10850,
+      "task_id": 16750
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 6616,
+      "task_id": 16768
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 6181,
+      "task_id": 16794
+    },
+    {
+      "assistant_loss_tokens": 290,
+      "student_tokens": 8065,
+      "task_id": 16798
+    },
+    {
+      "assistant_loss_tokens": 486,
+      "student_tokens": 13470,
+      "task_id": 16804
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 6056,
+      "task_id": 16814
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5656,
+      "task_id": 16838
+    },
+    {
+      "assistant_loss_tokens": 135,
+      "student_tokens": 5827,
+      "task_id": 16846
+    },
+    {
+      "assistant_loss_tokens": 167,
+      "student_tokens": 4931,
+      "task_id": 16856
+    },
+    {
+      "assistant_loss_tokens": 115,
+      "student_tokens": 4749,
+      "task_id": 16904
+    },
+    {
+      "assistant_loss_tokens": 523,
+      "student_tokens": 17350,
+      "task_id": 16935
+    },
+    {
+      "assistant_loss_tokens": 221,
+      "student_tokens": 6209,
+      "task_id": 16970
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5828,
+      "task_id": 16995
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 5124,
+      "task_id": 17048
+    },
+    {
+      "assistant_loss_tokens": 200,
+      "student_tokens": 8515,
+      "task_id": 17072
+    },
+    {
+      "assistant_loss_tokens": 230,
+      "student_tokens": 6421,
+      "task_id": 17073
+    },
+    {
+      "assistant_loss_tokens": 223,
+      "student_tokens": 7030,
+      "task_id": 17106
+    },
+    {
+      "assistant_loss_tokens": 156,
+      "student_tokens": 5104,
+      "task_id": 17125
+    },
+    {
+      "assistant_loss_tokens": 153,
+      "student_tokens": 5297,
+      "task_id": 17134
+    },
+    {
+      "assistant_loss_tokens": 217,
+      "student_tokens": 6076,
+      "task_id": 17146
+    },
+    {
+      "assistant_loss_tokens": 156,
+      "student_tokens": 5322,
+      "task_id": 17153
+    },
+    {
+      "assistant_loss_tokens": 148,
+      "student_tokens": 6411,
+      "task_id": 17155
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5490,
+      "task_id": 17195
+    },
+    {
+      "assistant_loss_tokens": 204,
+      "student_tokens": 8877,
+      "task_id": 17207
+    },
+    {
+      "assistant_loss_tokens": 129,
+      "student_tokens": 4680,
+      "task_id": 17225
+    },
+    {
+      "assistant_loss_tokens": 177,
+      "student_tokens": 5975,
+      "task_id": 17239
+    },
+    {
+      "assistant_loss_tokens": 224,
+      "student_tokens": 6308,
+      "task_id": 17259
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 7164,
+      "task_id": 17272
+    },
+    {
+      "assistant_loss_tokens": 202,
+      "student_tokens": 8605,
+      "task_id": 17326
+    },
+    {
+      "assistant_loss_tokens": 759,
+      "student_tokens": 18657,
+      "task_id": 17333
+    },
+    {
+      "assistant_loss_tokens": 408,
+      "student_tokens": 11408,
+      "task_id": 17355
+    },
+    {
+      "assistant_loss_tokens": 163,
+      "student_tokens": 7347,
+      "task_id": 17392
+    },
+    {
+      "assistant_loss_tokens": 132,
+      "student_tokens": 4712,
+      "task_id": 17438
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 5820,
+      "task_id": 17500
+    },
+    {
+      "assistant_loss_tokens": 228,
+      "student_tokens": 8963,
+      "task_id": 17501
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 7098,
+      "task_id": 17508
+    },
+    {
+      "assistant_loss_tokens": 143,
+      "student_tokens": 4773,
+      "task_id": 17539
+    },
+    {
+      "assistant_loss_tokens": 234,
+      "student_tokens": 8430,
+      "task_id": 17542
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5646,
+      "task_id": 17569
+    },
+    {
+      "assistant_loss_tokens": 223,
+      "student_tokens": 5809,
+      "task_id": 17585
+    },
+    {
+      "assistant_loss_tokens": 126,
+      "student_tokens": 4572,
+      "task_id": 17586
+    },
+    {
+      "assistant_loss_tokens": 180,
+      "student_tokens": 5479,
+      "task_id": 17657
+    },
+    {
+      "assistant_loss_tokens": 129,
+      "student_tokens": 4711,
+      "task_id": 17660
+    },
+    {
+      "assistant_loss_tokens": 291,
+      "student_tokens": 11435,
+      "task_id": 17681
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 5855,
+      "task_id": 17682
+    },
+    {
+      "assistant_loss_tokens": 523,
+      "student_tokens": 13437,
+      "task_id": 17691
+    },
+    {
+      "assistant_loss_tokens": 123,
+      "student_tokens": 4514,
+      "task_id": 17708
+    },
+    {
+      "assistant_loss_tokens": 221,
+      "student_tokens": 6956,
+      "task_id": 17751
+    },
+    {
+      "assistant_loss_tokens": 308,
+      "student_tokens": 8684,
+      "task_id": 17799
+    },
+    {
+      "assistant_loss_tokens": 207,
+      "student_tokens": 5899,
+      "task_id": 17854
+    },
+    {
+      "assistant_loss_tokens": 206,
+      "student_tokens": 6350,
+      "task_id": 17859
+    },
+    {
+      "assistant_loss_tokens": 153,
+      "student_tokens": 5097,
+      "task_id": 17879
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 6287,
+      "task_id": 17888
+    },
+    {
+      "assistant_loss_tokens": 217,
+      "student_tokens": 6382,
+      "task_id": 17899
+    },
+    {
+      "assistant_loss_tokens": 555,
+      "student_tokens": 18952,
+      "task_id": 17932
+    },
+    {
+      "assistant_loss_tokens": 175,
+      "student_tokens": 5808,
+      "task_id": 17940
+    },
+    {
+      "assistant_loss_tokens": 147,
+      "student_tokens": 5188,
+      "task_id": 18022
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 6355,
+      "task_id": 18031
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 6137,
+      "task_id": 18040
+    },
+    {
+      "assistant_loss_tokens": 142,
+      "student_tokens": 4842,
+      "task_id": 18048
+    },
+    {
+      "assistant_loss_tokens": 153,
+      "student_tokens": 5563,
+      "task_id": 18097
+    },
+    {
+      "assistant_loss_tokens": 158,
+      "student_tokens": 5063,
+      "task_id": 18124
+    },
+    {
+      "assistant_loss_tokens": 176,
+      "student_tokens": 8440,
+      "task_id": 18173
+    },
+    {
+      "assistant_loss_tokens": 143,
+      "student_tokens": 4965,
+      "task_id": 18209
+    },
+    {
+      "assistant_loss_tokens": 403,
+      "student_tokens": 14120,
+      "task_id": 18226
+    },
+    {
+      "assistant_loss_tokens": 154,
+      "student_tokens": 5156,
+      "task_id": 18233
+    },
+    {
+      "assistant_loss_tokens": 479,
+      "student_tokens": 14677,
+      "task_id": 18283
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5841,
+      "task_id": 18294
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 6351,
+      "task_id": 18296
+    },
+    {
+      "assistant_loss_tokens": 217,
+      "student_tokens": 6359,
+      "task_id": 18297
+    },
+    {
+      "assistant_loss_tokens": 150,
+      "student_tokens": 4877,
+      "task_id": 18301
+    },
+    {
+      "assistant_loss_tokens": 161,
+      "student_tokens": 5459,
+      "task_id": 18303
+    },
+    {
+      "assistant_loss_tokens": 128,
+      "student_tokens": 4959,
+      "task_id": 18315
+    },
+    {
+      "assistant_loss_tokens": 124,
+      "student_tokens": 5284,
+      "task_id": 18316
+    },
+    {
+      "assistant_loss_tokens": 339,
+      "student_tokens": 13181,
+      "task_id": 18337
+    },
+    {
+      "assistant_loss_tokens": 515,
+      "student_tokens": 19349,
+      "task_id": 18341
+    },
+    {
+      "assistant_loss_tokens": 157,
+      "student_tokens": 5160,
+      "task_id": 18342
+    },
+    {
+      "assistant_loss_tokens": 151,
+      "student_tokens": 5246,
+      "task_id": 18406
+    },
+    {
+      "assistant_loss_tokens": 219,
+      "student_tokens": 7431,
+      "task_id": 18418
+    },
+    {
+      "assistant_loss_tokens": 160,
+      "student_tokens": 5196,
+      "task_id": 18450
+    },
+    {
+      "assistant_loss_tokens": 201,
+      "student_tokens": 5641,
+      "task_id": 18473
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 6096,
+      "task_id": 18507
+    },
+    {
+      "assistant_loss_tokens": 144,
+      "student_tokens": 4940,
+      "task_id": 18519
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 6080,
+      "task_id": 18520
+    },
+    {
+      "assistant_loss_tokens": 135,
+      "student_tokens": 4831,
+      "task_id": 18545
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 5357,
+      "task_id": 18570
+    },
+    {
+      "assistant_loss_tokens": 194,
+      "student_tokens": 6730,
+      "task_id": 18572
+    },
+    {
+      "assistant_loss_tokens": 152,
+      "student_tokens": 4874,
+      "task_id": 18580
+    },
+    {
+      "assistant_loss_tokens": 210,
+      "student_tokens": 15072,
+      "task_id": 18664
+    },
+    {
+      "assistant_loss_tokens": 224,
+      "student_tokens": 6547,
+      "task_id": 18677
+    },
+    {
+      "assistant_loss_tokens": 157,
+      "student_tokens": 4866,
+      "task_id": 18742
+    },
+    {
+      "assistant_loss_tokens": 464,
+      "student_tokens": 15884,
+      "task_id": 18752
+    },
+    {
+      "assistant_loss_tokens": 146,
+      "student_tokens": 5208,
+      "task_id": 18774
+    },
+    {
+      "assistant_loss_tokens": 227,
+      "student_tokens": 6951,
+      "task_id": 18786
+    },
+    {
+      "assistant_loss_tokens": 213,
+      "student_tokens": 6437,
+      "task_id": 18804
+    },
+    {
+      "assistant_loss_tokens": 174,
+      "student_tokens": 5403,
+      "task_id": 18809
+    },
+    {
+      "assistant_loss_tokens": 116,
+      "student_tokens": 4641,
+      "task_id": 18810
+    },
+    {
+      "assistant_loss_tokens": 161,
+      "student_tokens": 5396,
+      "task_id": 18851
+    },
+    {
+      "assistant_loss_tokens": 152,
+      "student_tokens": 5053,
+      "task_id": 18860
+    },
+    {
+      "assistant_loss_tokens": 165,
+      "student_tokens": 6225,
+      "task_id": 18911
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5821,
+      "task_id": 18926
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 5660,
+      "task_id": 18983
+    },
+    {
+      "assistant_loss_tokens": 135,
+      "student_tokens": 4706,
+      "task_id": 19034
+    },
+    {
+      "assistant_loss_tokens": 141,
+      "student_tokens": 5128,
+      "task_id": 19039
+    },
+    {
+      "assistant_loss_tokens": 211,
+      "student_tokens": 6575,
+      "task_id": 19046
+    },
+    {
+      "assistant_loss_tokens": 173,
+      "student_tokens": 8167,
+      "task_id": 19122
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 6422,
+      "task_id": 19222
+    },
+    {
+      "assistant_loss_tokens": 534,
+      "student_tokens": 17100,
+      "task_id": 19255
+    },
+    {
+      "assistant_loss_tokens": 175,
+      "student_tokens": 8027,
+      "task_id": 19276
+    },
+    {
+      "assistant_loss_tokens": 382,
+      "student_tokens": 9059,
+      "task_id": 19284
+    },
+    {
+      "assistant_loss_tokens": 175,
+      "student_tokens": 5176,
+      "task_id": 19335
+    },
+    {
+      "assistant_loss_tokens": 205,
+      "student_tokens": 5710,
+      "task_id": 19336
+    },
+    {
+      "assistant_loss_tokens": 442,
+      "student_tokens": 17129,
+      "task_id": 19353
+    },
+    {
+      "assistant_loss_tokens": 129,
+      "student_tokens": 4659,
+      "task_id": 19362
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 5756,
+      "task_id": 19365
+    },
+    {
+      "assistant_loss_tokens": 271,
+      "student_tokens": 11180,
+      "task_id": 19405
+    },
+    {
+      "assistant_loss_tokens": 158,
+      "student_tokens": 5524,
+      "task_id": 19418
+    },
+    {
+      "assistant_loss_tokens": 174,
+      "student_tokens": 6250,
+      "task_id": 19482
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5627,
+      "task_id": 19511
+    },
+    {
+      "assistant_loss_tokens": 124,
+      "student_tokens": 4680,
+      "task_id": 19547
+    },
+    {
+      "assistant_loss_tokens": 143,
+      "student_tokens": 4979,
+      "task_id": 19562
+    },
+    {
+      "assistant_loss_tokens": 148,
+      "student_tokens": 5146,
+      "task_id": 19573
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 6400,
+      "task_id": 19576
+    },
+    {
+      "assistant_loss_tokens": 201,
+      "student_tokens": 8042,
+      "task_id": 19606
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5823,
+      "task_id": 19670
+    },
+    {
+      "assistant_loss_tokens": 228,
+      "student_tokens": 7539,
+      "task_id": 19693
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 5533,
+      "task_id": 19726
+    },
+    {
+      "assistant_loss_tokens": 126,
+      "student_tokens": 4559,
+      "task_id": 19747
+    },
+    {
+      "assistant_loss_tokens": 470,
+      "student_tokens": 12143,
+      "task_id": 19801
+    },
+    {
+      "assistant_loss_tokens": 214,
+      "student_tokens": 6075,
+      "task_id": 19828
+    },
+    {
+      "assistant_loss_tokens": 178,
+      "student_tokens": 5765,
+      "task_id": 19839
+    },
+    {
+      "assistant_loss_tokens": 470,
+      "student_tokens": 15382,
+      "task_id": 19848
+    },
+    {
+      "assistant_loss_tokens": 208,
+      "student_tokens": 6592,
+      "task_id": 19858
+    },
+    {
+      "assistant_loss_tokens": 143,
+      "student_tokens": 4942,
+      "task_id": 19889
+    },
+    {
+      "assistant_loss_tokens": 133,
+      "student_tokens": 4963,
+      "task_id": 19968
+    },
+    {
+      "assistant_loss_tokens": 196,
+      "student_tokens": 6294,
+      "task_id": 19984
+    },
+    {
+      "assistant_loss_tokens": 145,
+      "student_tokens": 4865,
+      "task_id": 19997
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5944,
+      "task_id": 20004
+    },
+    {
+      "assistant_loss_tokens": 204,
+      "student_tokens": 9750,
+      "task_id": 20006
+    },
+    {
+      "assistant_loss_tokens": 200,
+      "student_tokens": 10609,
+      "task_id": 20018
+    },
+    {
+      "assistant_loss_tokens": 175,
+      "student_tokens": 5419,
+      "task_id": 20032
+    },
+    {
+      "assistant_loss_tokens": 157,
+      "student_tokens": 5398,
+      "task_id": 20051
+    },
+    {
+      "assistant_loss_tokens": 356,
+      "student_tokens": 13109,
+      "task_id": 20059
+    },
+    {
+      "assistant_loss_tokens": 164,
+      "student_tokens": 5114,
+      "task_id": 20155
+    },
+    {
+      "assistant_loss_tokens": 211,
+      "student_tokens": 6222,
+      "task_id": 20168
+    },
+    {
+      "assistant_loss_tokens": 139,
+      "student_tokens": 4857,
+      "task_id": 20208
+    },
+    {
+      "assistant_loss_tokens": 381,
+      "student_tokens": 15941,
+      "task_id": 20274
+    },
+    {
+      "assistant_loss_tokens": 214,
+      "student_tokens": 7671,
+      "task_id": 20382
+    },
+    {
+      "assistant_loss_tokens": 126,
+      "student_tokens": 4655,
+      "task_id": 20386
+    },
+    {
+      "assistant_loss_tokens": 363,
+      "student_tokens": 10506,
+      "task_id": 20400
+    },
+    {
+      "assistant_loss_tokens": 732,
+      "student_tokens": 19924,
+      "task_id": 20508
+    },
+    {
+      "assistant_loss_tokens": 464,
+      "student_tokens": 14032,
+      "task_id": 20529
+    },
+    {
+      "assistant_loss_tokens": 138,
+      "student_tokens": 5066,
+      "task_id": 20532
+    },
+    {
+      "assistant_loss_tokens": 173,
+      "student_tokens": 7701,
+      "task_id": 20604
+    },
+    {
+      "assistant_loss_tokens": 239,
+      "student_tokens": 6220,
+      "task_id": 20630
+    },
+    {
+      "assistant_loss_tokens": 204,
+      "student_tokens": 5507,
+      "task_id": 20635
+    },
+    {
+      "assistant_loss_tokens": 153,
+      "student_tokens": 5364,
+      "task_id": 20659
+    },
+    {
+      "assistant_loss_tokens": 115,
+      "student_tokens": 4670,
+      "task_id": 20686
+    },
+    {
+      "assistant_loss_tokens": 172,
+      "student_tokens": 7436,
+      "task_id": 20691
+    },
+    {
+      "assistant_loss_tokens": 118,
+      "student_tokens": 4565,
+      "task_id": 20719
+    },
+    {
+      "assistant_loss_tokens": 118,
+      "student_tokens": 4549,
+      "task_id": 20771
+    },
+    {
+      "assistant_loss_tokens": 449,
+      "student_tokens": 6184,
+      "task_id": 20855
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5424,
+      "task_id": 20857
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5600,
+      "task_id": 20873
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 6085,
+      "task_id": 20904
+    },
+    {
+      "assistant_loss_tokens": 217,
+      "student_tokens": 5914,
+      "task_id": 20925
+    },
+    {
+      "assistant_loss_tokens": 216,
+      "student_tokens": 8190,
+      "task_id": 20933
+    },
+    {
+      "assistant_loss_tokens": 157,
+      "student_tokens": 4980,
+      "task_id": 20954
+    },
+    {
+      "assistant_loss_tokens": 208,
+      "student_tokens": 6153,
+      "task_id": 21010
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 5372,
+      "task_id": 21115
+    },
+    {
+      "assistant_loss_tokens": 233,
+      "student_tokens": 6259,
+      "task_id": 21131
+    },
+    {
+      "assistant_loss_tokens": 217,
+      "student_tokens": 6097,
+      "task_id": 21142
+    },
+    {
+      "assistant_loss_tokens": 207,
+      "student_tokens": 8690,
+      "task_id": 21163
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5611,
+      "task_id": 21185
+    },
+    {
+      "assistant_loss_tokens": 137,
+      "student_tokens": 5131,
+      "task_id": 21245
+    },
+    {
+      "assistant_loss_tokens": 154,
+      "student_tokens": 5022,
+      "task_id": 21289
+    },
+    {
+      "assistant_loss_tokens": 183,
+      "student_tokens": 8370,
+      "task_id": 21336
+    },
+    {
+      "assistant_loss_tokens": 273,
+      "student_tokens": 7828,
+      "task_id": 21421
+    },
+    {
+      "assistant_loss_tokens": 267,
+      "student_tokens": 7419,
+      "task_id": 21422
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 7740,
+      "task_id": 21465
+    },
+    {
+      "assistant_loss_tokens": 152,
+      "student_tokens": 5909,
+      "task_id": 21498
+    },
+    {
+      "assistant_loss_tokens": 135,
+      "student_tokens": 5417,
+      "task_id": 21502
+    },
+    {
+      "assistant_loss_tokens": 146,
+      "student_tokens": 6030,
+      "task_id": 21506
+    },
+    {
+      "assistant_loss_tokens": 143,
+      "student_tokens": 5458,
+      "task_id": 21539
+    },
+    {
+      "assistant_loss_tokens": 149,
+      "student_tokens": 4826,
+      "task_id": 21540
+    },
+    {
+      "assistant_loss_tokens": 158,
+      "student_tokens": 5128,
+      "task_id": 21542
+    },
+    {
+      "assistant_loss_tokens": 383,
+      "student_tokens": 9847,
+      "task_id": 21652
+    },
+    {
+      "assistant_loss_tokens": 174,
+      "student_tokens": 5900,
+      "task_id": 21709
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5436,
+      "task_id": 21744
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5275,
+      "task_id": 21748
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 5792,
+      "task_id": 21750
+    },
+    {
+      "assistant_loss_tokens": 229,
+      "student_tokens": 6848,
+      "task_id": 21770
+    },
+    {
+      "assistant_loss_tokens": 214,
+      "student_tokens": 5639,
+      "task_id": 21779
+    },
+    {
+      "assistant_loss_tokens": 146,
+      "student_tokens": 4768,
+      "task_id": 21788
+    },
+    {
+      "assistant_loss_tokens": 135,
+      "student_tokens": 4585,
+      "task_id": 21820
+    },
+    {
+      "assistant_loss_tokens": 122,
+      "student_tokens": 4664,
+      "task_id": 21843
+    },
+    {
+      "assistant_loss_tokens": 491,
+      "student_tokens": 14401,
+      "task_id": 21866
+    },
+    {
+      "assistant_loss_tokens": 424,
+      "student_tokens": 12733,
+      "task_id": 21871
+    },
+    {
+      "assistant_loss_tokens": 135,
+      "student_tokens": 4919,
+      "task_id": 21891
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 6556,
+      "task_id": 21899
+    },
+    {
+      "assistant_loss_tokens": 200,
+      "student_tokens": 8165,
+      "task_id": 21911
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5277,
+      "task_id": 21917
+    },
+    {
+      "assistant_loss_tokens": 229,
+      "student_tokens": 6911,
+      "task_id": 21934
+    },
+    {
+      "assistant_loss_tokens": 124,
+      "student_tokens": 4502,
+      "task_id": 21994
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5340,
+      "task_id": 22003
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5884,
+      "task_id": 22004
+    },
+    {
+      "assistant_loss_tokens": 189,
+      "student_tokens": 5570,
+      "task_id": 22059
+    },
+    {
+      "assistant_loss_tokens": 148,
+      "student_tokens": 5007,
+      "task_id": 22062
+    },
+    {
+      "assistant_loss_tokens": 154,
+      "student_tokens": 5539,
+      "task_id": 22070
+    },
+    {
+      "assistant_loss_tokens": 459,
+      "student_tokens": 10651,
+      "task_id": 22087
+    },
+    {
+      "assistant_loss_tokens": 339,
+      "student_tokens": 9728,
+      "task_id": 22177
+    },
+    {
+      "assistant_loss_tokens": 327,
+      "student_tokens": 16170,
+      "task_id": 22178
+    },
+    {
+      "assistant_loss_tokens": 159,
+      "student_tokens": 6074,
+      "task_id": 22246
+    },
+    {
+      "assistant_loss_tokens": 346,
+      "student_tokens": 9466,
+      "task_id": 22282
+    },
+    {
+      "assistant_loss_tokens": 184,
+      "student_tokens": 5498,
+      "task_id": 22349
+    },
+    {
+      "assistant_loss_tokens": 187,
+      "student_tokens": 5604,
+      "task_id": 22350
+    },
+    {
+      "assistant_loss_tokens": 210,
+      "student_tokens": 7159,
+      "task_id": 22352
+    },
+    {
+      "assistant_loss_tokens": 152,
+      "student_tokens": 5567,
+      "task_id": 22369
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 6872,
+      "task_id": 22371
+    },
+    {
+      "assistant_loss_tokens": 119,
+      "student_tokens": 4623,
+      "task_id": 22402
+    },
+    {
+      "assistant_loss_tokens": 417,
+      "student_tokens": 15152,
+      "task_id": 22412
+    },
+    {
+      "assistant_loss_tokens": 205,
+      "student_tokens": 11126,
+      "task_id": 22430
+    },
+    {
+      "assistant_loss_tokens": 230,
+      "student_tokens": 10011,
+      "task_id": 22481
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 6942,
+      "task_id": 22544
+    },
+    {
+      "assistant_loss_tokens": 380,
+      "student_tokens": 10859,
+      "task_id": 22548
+    },
+    {
+      "assistant_loss_tokens": 166,
+      "student_tokens": 5653,
+      "task_id": 22589
+    },
+    {
+      "assistant_loss_tokens": 125,
+      "student_tokens": 4896,
+      "task_id": 22590
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 5466,
+      "task_id": 22601
+    },
+    {
+      "assistant_loss_tokens": 155,
+      "student_tokens": 6931,
+      "task_id": 22640
+    },
+    {
+      "assistant_loss_tokens": 336,
+      "student_tokens": 8384,
+      "task_id": 22643
+    },
+    {
+      "assistant_loss_tokens": 340,
+      "student_tokens": 13328,
+      "task_id": 22667
+    },
+    {
+      "assistant_loss_tokens": 163,
+      "student_tokens": 5898,
+      "task_id": 22668
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 5818,
+      "task_id": 22677
+    },
+    {
+      "assistant_loss_tokens": 169,
+      "student_tokens": 5567,
+      "task_id": 22687
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 8837,
+      "task_id": 22694
+    },
+    {
+      "assistant_loss_tokens": 160,
+      "student_tokens": 10243,
+      "task_id": 22758
+    },
+    {
+      "assistant_loss_tokens": 206,
+      "student_tokens": 6180,
+      "task_id": 22771
+    },
+    {
+      "assistant_loss_tokens": 175,
+      "student_tokens": 5323,
+      "task_id": 22787
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 5868,
+      "task_id": 22789
+    },
+    {
+      "assistant_loss_tokens": 304,
+      "student_tokens": 9425,
+      "task_id": 22793
+    },
+    {
+      "assistant_loss_tokens": 179,
+      "student_tokens": 5359,
+      "task_id": 22841
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5686,
+      "task_id": 22891
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 5679,
+      "task_id": 22910
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5983,
+      "task_id": 22914
+    },
+    {
+      "assistant_loss_tokens": 188,
+      "student_tokens": 5712,
+      "task_id": 22922
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 5620,
+      "task_id": 22957
+    },
+    {
+      "assistant_loss_tokens": 206,
+      "student_tokens": 5923,
+      "task_id": 22962
+    },
+    {
+      "assistant_loss_tokens": 202,
+      "student_tokens": 15217,
+      "task_id": 22977
+    },
+    {
+      "assistant_loss_tokens": 186,
+      "student_tokens": 6139,
+      "task_id": 22996
+    },
+    {
+      "assistant_loss_tokens": 181,
+      "student_tokens": 7593,
+      "task_id": 23010
+    },
+    {
+      "assistant_loss_tokens": 414,
+      "student_tokens": 14242,
+      "task_id": 23013
+    },
+    {
+      "assistant_loss_tokens": 197,
+      "student_tokens": 6302,
+      "task_id": 23023
+    },
+    {
+      "assistant_loss_tokens": 149,
+      "student_tokens": 4896,
+      "task_id": 23028
+    },
+    {
+      "assistant_loss_tokens": 212,
+      "student_tokens": 7167,
+      "task_id": 23030
+    },
+    {
+      "assistant_loss_tokens": 165,
+      "student_tokens": 6913,
+      "task_id": 23047
+    },
+    {
+      "assistant_loss_tokens": 487,
+      "student_tokens": 14439,
+      "task_id": 23051
+    },
+    {
+      "assistant_loss_tokens": 172,
+      "student_tokens": 6411,
+      "task_id": 23066
+    },
+    {
+      "assistant_loss_tokens": 228,
+      "student_tokens": 9022,
+      "task_id": 23087
+    },
+    {
+      "assistant_loss_tokens": 185,
+      "student_tokens": 6109,
+      "task_id": 23104
+    },
+    {
+      "assistant_loss_tokens": 221,
+      "student_tokens": 6024,
+      "task_id": 23110
+    },
+    {
+      "assistant_loss_tokens": 193,
+      "student_tokens": 7350,
+      "task_id": 23141
+    },
+    {
+      "assistant_loss_tokens": 190,
+      "student_tokens": 5863,
+      "task_id": 23183
+    },
+    {
+      "assistant_loss_tokens": 192,
+      "student_tokens": 6073,
+      "task_id": 23217
+    },
+    {
+      "assistant_loss_tokens": 504,
+      "student_tokens": 13498,
+      "task_id": 23263
+    },
+    {
+      "assistant_loss_tokens": 222,
+      "student_tokens": 6510,
+      "task_id": 23273
+    },
+    {
+      "assistant_loss_tokens": 120,
+      "student_tokens": 4493,
+      "task_id": 23284
+    },
+    {
+      "assistant_loss_tokens": 182,
+      "student_tokens": 5734,
+      "task_id": 23335
+    },
+    {
+      "assistant_loss_tokens": 130,
+      "student_tokens": 4729,
+      "task_id": 23347
+    },
+    {
+      "assistant_loss_tokens": 447,
+      "student_tokens": 11657,
+      "task_id": 23367
+    },
+    {
+      "assistant_loss_tokens": 270,
+      "student_tokens": 7959,
+      "task_id": 23397
+    },
+    {
+      "assistant_loss_tokens": 191,
+      "student_tokens": 5692,
+      "task_id": 23405
+    }
+  ],
+  "source": {
+    "path": "outputs/sft-unified-collection-64k/accepted.jsonl",
+    "rows": 1000,
+    "sha256": "1950fafa3cdc6f201afe821b3d589522ce035efff48335c501253e0040729fdc"
+  },
+  "stage2_applied": false,
+  "student_model": "Qwen/Qwen3.5-2B",
+  "student_revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "version": "shopping-sft-stage1-v1"
+}

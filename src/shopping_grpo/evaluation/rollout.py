@@ -10,26 +10,25 @@ import time
 import traceback
 from datetime import datetime, timezone
 from http.client import RemoteDisconnected
-from urllib.error import URLError
 from pathlib import Path
+from urllib.error import URLError
 from urllib.request import Request, urlopen
 from uuid import uuid4
 
 from shopping_grpo.environment.actions import action_guard_tool_message, action_reject_reason
+from shopping_grpo.environment.client import ShopAgentEnv, ShopEnvironmentError, ShopHttpError
 from shopping_grpo.environment.context import (
     ContextBudgetError,
     VllmChatTokenCounter,
     VllmTextTokenCounter,
     compact_chat_messages,
 )
+from shopping_grpo.environment.observation import render_structured_observation
 from shopping_grpo.environment.projection import project_observation
-from shopping_grpo.environment.client import ShopAgentEnv, ShopEnvironmentError, ShopHttpError
 from shopping_grpo.environment.tools import (
     SHOP_TOOL_SCHEMAS,
     tool_call_to_action,
 )
-from shopping_grpo.environment.observation import render_structured_observation
-
 
 SYSTEM_PROMPT = """你是一个购物 Agent，负责在 ShopSimulator 中替用户完成一次单轮购物任务。
 
@@ -127,12 +126,14 @@ class OpenAIChatClient:
             self.observation_token_counter = observation_token_counter
         self.last_context_event = None
         self.last_context_tokens = None
+        self.last_completion_event = None
         self.transport = transport
 
     def complete(self, messages, tools):
         """请求模型下一轮回复，并在上下文超限时按配置压缩历史。"""
         self.last_context_event = None
         self.last_context_tokens = None
+        self.last_completion_event = None
         request_messages = messages
         if self.context_window is not None:
             input_budget = self.context_window - self.max_tokens - self.context_safety_margin
@@ -204,6 +205,25 @@ class OpenAIChatClient:
                     )
                     with urlopen(request, timeout=self.timeout) as raw:
                         response = json.loads(raw.read().decode("utf-8"))
+                response = _plain(response)
+                if self.responses_api:
+                    finish_reason = (response.get("incomplete_details") or {}).get("reason")
+                    truncated = response.get("status") == "incomplete"
+                else:
+                    finish_reason = response["choices"][0].get("finish_reason")
+                    truncated = finish_reason == "length"
+                self.last_completion_event = {
+                    "finish_reason": finish_reason,
+                    "usage": response.get("usage") or {},
+                    "model": response.get("model", self.model),
+                    "max_tokens": self.max_tokens,
+                    "truncated": truncated,
+                }
+                if truncated:
+                    raise ModelOutputTruncatedError(
+                        f"Model output is incomplete (finish_reason={finish_reason}, "
+                        f"max_tokens={self.max_tokens}); no tool action was executed."
+                    )
                 return _response_message(response, responses_api=self.responses_api)
             except (RemoteDisconnected, TimeoutError, URLError):
                 if attempt >= MODEL_COMPLETION_RETRIES:
@@ -224,6 +244,10 @@ class OpenAIChatClient:
             search_top_k=self.observation_search_top_k,
         )
         return visible, meta.to_dict()
+
+
+class ModelOutputTruncatedError(RuntimeError):
+    """An incomplete API response must not be treated as a completed model turn."""
 
 
 class ToolExecutionError(RuntimeError):
@@ -297,6 +321,7 @@ def collect_for_task(
         "tool_call_truncations": [],
         "context_compactions": [],
         "context_turn_tokens": [],
+        "model_completions": [],
         "initial_result": {},
         "terminal_result": {},
         "final_reward": 0.0,
@@ -325,7 +350,18 @@ def collect_for_task(
 
         while len(trajectory["steps"]) < int(max_steps):
             # 先请求模型，再校验动作；工具结果会追加到 messages，成为下一轮上下文。
-            assistant = client.complete(messages, tool_schemas)
+            try:
+                assistant = client.complete(messages, tool_schemas)
+            finally:
+                completion_event = getattr(client, "last_completion_event", None)
+                if completion_event is not None:
+                    trajectory["model_completions"].append(
+                        {
+                            "step_index": len(trajectory["steps"]),
+                            "message_index": len(messages),
+                            **completion_event,
+                        }
+                    )
             context_tokens = getattr(client, "last_context_tokens", None)
             if context_tokens is not None:
                 trajectory["context_turn_tokens"].append(
@@ -502,6 +538,8 @@ def _is_infrastructure_failure(trajectory):
     if error_type in {URLError.__name__, RemoteDisconnected.__name__, TimeoutError.__name__}:
         return True
     if error_type == ShopHttpError.__name__:
+        return True
+    if error_type == ModelOutputTruncatedError.__name__:
         return True
     return (
         error_type == ShopEnvironmentError.__name__

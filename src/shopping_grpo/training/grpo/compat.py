@@ -154,7 +154,9 @@ def install_torch_padding_fallback():
     from shopping_grpo.training.grpo.checkpointing import install_selective_checkpointing
     from shopping_grpo.training.grpo.fused_output import install_fused_output_layout
     from shopping_grpo.training.grpo.kernel_optimizations import install_actor_fusions
+    from shopping_grpo.training.grpo.task_sampling import install_task_sampling
     from shopping_grpo.training.grpo.validation import install_validation_metrics
+    from shopping_grpo.training.grpo.weight_sync import install_lora_sync_snapshot
 
     functions = (
         fallback.index_first_axis,
@@ -170,6 +172,8 @@ def install_torch_padding_fallback():
     install_fused_output_layout()
     install_selective_checkpointing()
     install_actor_fusions()
+    install_task_sampling()
     _install_rollout_wakeup_cache_cleanup()
+    install_lora_sync_snapshot()
     seed = int(os.environ.get("SHOPPING_GRPO_SEED", "42"))
     _seed_runtime(seed)

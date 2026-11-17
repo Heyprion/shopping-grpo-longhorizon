@@ -59,8 +59,9 @@ actor_rollout_ref:
     name: vllm
     mode: async
     n: 4
-    temperature: 0.7
-    top_p: 0.9
+    temperature: 1.0
+    top_p: 1.0
+    top_k: -1
     tensor_model_parallel_size: 1
     gpu_memory_utilization: 0.45
     max_num_seqs: 8
@@ -109,6 +110,12 @@ algorithm:
     rollout_is: null
     rollout_rs: null
     loss_type: ppo_clip
+
+shopping_task_sampling:
+  enable: true
+  seed: 42
+  difficulty_weights: [0.1, 0.3, 0.6]
+  preserve_domain_marginal: true
 
 shopping_dynamic_sampling:
   enable: true

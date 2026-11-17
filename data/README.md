@@ -1,19 +1,18 @@
 # Data
 
-The current task selections are fixed and audited. Read [the data plan](../docs/data-plan.md) and [the split index](splits/README.md) before launching training.
+The current data decisions are in [the data plan](../docs/data-plan.md). Cleaning, complexity labels, SFT-versus-RL/test ownership, and the RL/test selections are fixed. **SFT stage-one-v1 is finalized: 988 formatted trajectories, with 889 training and 99 validation examples (seed 42).** Only the first-stage context/legality filters are applied; stage two is deferred.
 
-| Purpose | Fixed task list | Tasks | Remaining training pool |
-|---|---|---:|---:|
-| SFT training | `sft/train_tasks.jsonl` | 800 | 3,700 |
-| SFT validation | `sft/validation_tasks.jsonl` | 200 | — |
-| RL training | `grpo/train.jsonl` and `train.parquet` | 1,000 | 9,494 |
-| RL validation | `grpo/validation.jsonl` and `validation.parquet` | 50 | — |
-| Test | `evaluation/tasks.jsonl` | 200 | — |
+| Purpose | Current source/list | Current target |
+|---|---|---:|
+| Unified SFT collection | `sft/candidate_tasks.jsonl`: 5,000 candidates | 1,000 accepted trajectories |
+| RL training | `grpo/train.jsonl` / `train.parquet` | 1,000 tasks |
+| RL validation | `grpo/validation.jsonl` / `validation.parquet` | 50 tasks |
+| Test | `evaluation/tasks.jsonl` | 200 tasks |
 
-All selections cover the nine original product domains. Training difficulty mixtures are 30/50/20 for SFT and 20/50/30 for RL; category margins follow the natural source-pool proportions. Validation and test difficulty margins also follow their natural source pools.
+SFT uses at most three rejection-sampling attempts per candidate and stops at the first success, accepts solely actual terminal Strict Reward=1, and retains one trajectory per task. Its final accepted mixture is simple/medium/hard=300/500/200 with natural category margins across nine domains. See [`sft/README.md`](sft/README.md) and [`collection_plan.json`](sft/collection_plan.json).
 
-The 16,741 passing source tasks remain in [`cleaned/`](cleaned/README.md). Their per-task labels, fixed candidate pools, unused tasks and selection batches are in `splits/`. The complete 944-task original-eval pool and its three cross-tag instruction duplicates are held out from training. All active phase pools are disjoint.
+The old 4,500/500 SFT partitions and 800/200 task files remain provenance records only. Both SFT source chunks are now merged for collection; they are not current training/validation assignments. The current final memberships are in `manifest.sft_final` and `sft/final_*_tasks.jsonl`. Current conversation files have been replaced with this new Strict Reward dataset; replaced files are backed up under `outputs/sft-stage1-v1/previous/`.
 
-SFT **task identities are ready**; new demonstrations have not been collected. The old `sft/train.jsonl`, `sft/validation.jsonl` and their metadata retain their original Reward-v3 provenance and cannot train this selection. The SFT launcher checks the reward version and exact fixed task membership before training. See [`sft/README.md`](sft/README.md).
+The 16,741 passing tasks are in [`cleaned/`](cleaned/README.md), with labels and provenance in [`splits/`](splits/README.md). The entire original-eval pool and its cross-tag instruction duplicates remain held out. RL has 9,494 additional unselected training tasks, accessible through `prepare_data_splits.py extend --stage rl`; its validation and test lists remain unchanged.
 
-Expand training using `scripts/prepare_data_splits.py extend`, which selects only previously unselected tasks from the same training pool and records a new batch. It preserves initial, validation and test lists. Nothing in this preparation starts training or evaluation.
+This update does not launch collection, quality screening, splitting, training or evaluation.

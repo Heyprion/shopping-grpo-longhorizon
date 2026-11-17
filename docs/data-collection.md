@@ -1,103 +1,14 @@
-# Data collection
+# SFT 统一采集方案
 
-New collections use [Strict Reward](reward-strict.md). The frozen collection
-statistics below retain their original Reward-v3 provenance; they have not been
-revalidated or recollected by the reward migration.
+完整说明见 [SFT 任务目录](../data/sft/README.md) 和 [机器可读配置](../data/sft/collection_plan.json)。本阶段目标只有 **1,000 条合格轨迹**，不提前区分训练 / 验证。
 
-## Goal
+1. 从 [`data/sft/candidate_tasks.jsonl`](../data/sft/candidate_tasks.jsonl) 的统一 5,000 道 SFT 候选题中按分层配额尝试。原 4,500/500 来源分块不再表示训练 / 验证归属，RL、测试与封存题仍不得使用。
+2. 每题最多安排 3 次独立拒绝采样，首次成功立即接受并停止该题，每次只看真实环境终局 Strict Reward 是否为 1。其他轨迹质量筛选暂不加入；不要求 gold ASIN 或 `gold_purchase` 标签。
+3. 同题首次成功立即接受且不再采样，只保留最早成功轨迹；三次失败则在统一 SFT 池同商品大类 × 难度层补题。成功和失败的原始尝试均记录，便于断点恢复。
+4. 最终接受轨迹按 SFT 难度 3:5:2，即 **simple 300、medium 500、hard 200**；品类按统一来源池自然比例并覆盖 9 大类。按实际接受结果填联合配额，不仅限制候选尝试分布。
+5. 收满 1,000 道不同任务各一条合格轨迹、所有配额填满后停止，不再启动剩余尝试。超额、同题额外成功和失败均不计入目标；库存不足则记录缺额，不跨池或复制填充。
+6. 输出一份未划分的轨迹集合及任务、尝试、reward 和接受记录。**之后先执行用户另行指定的质量筛选，再决定训练 / 验证划分。** 本阶段不设训练 / 验证目标，也不默认沿用旧 800/200；筛选后样本数量及补采安排后续再定。
 
-The SFT stage needs complete examples of a shopping agent using tools correctly:
-searching, opening products, inspecting evidence, choosing options and ending
-with a valid purchase. The repository contains the accepted action-only
-trajectories, not historical failed collection attempts.
+清洗通过的数据、复杂度标签、SFT 与 RL / 测试用途边界保持固定。第一阶段规则已执行，第二阶段暂不应用；不得把它提前加入当前仅按 Strict Reward=1 的验收环节。正式训练 / 验证划分时，任务和指令重复组应保持隔离。
 
-## How the dataset was produced
-
-The current collection used ShopSimulator Environment v2.1, Reward v3 and
-`deepseek-v4-flash` as the teacher. It produced 2,498 raw trajectories.
-Every trajectory executed its actions in ShopSimulator during collection. The
-saved result was accepted only when Environment v2.1 returned a valid Reward v3
-gold purchase; no second model judged whether the trajectory succeeded.
-
-Collection audit:
-
-| Item | Value |
-|---|---:|
-| Raw trajectories | 2,498 |
-| Accepted trajectories | 1,026 |
-| Acceptance rate | 41.07% |
-| Frozen rows used | 1,000 |
-| Unused accepted rows | 26 |
-
-The frozen subset was split into 800 training and 200 validation rows. The two
-splits are task-disjoint and also have zero task-ID overlap with GRPO and the
-Final-200 evaluation set.
-
-## Frozen deliverables
-
-| File | Rows | SHA-256 |
-|---|---:|---|
-| `data/sft/train.jsonl` | 800 | `8c3a6ff0033f6ea672af609891e747d60652ddc17e8d3c8eacb19e9d96dd9477` |
-| `data/sft/validation.jsonl` | 200 | `9525cc2fb04a1d8d38ae2db959397da908dde3fea766f580fdcf77d1239533cc` |
-
-Raw teacher responses are intentionally not committed; their collection path
-is retained in `data/sft/metadata.json` as provenance.
-
-## Run a new collection
-
-Start ShopSimulator, configure an OpenAI-compatible Teacher endpoint, and run:
-
-```bash
-export OPENAI_BASE_URL=https://your-provider.example/v1
-export OPENAI_API_KEY=your-key
-
-python scripts/collect_sft_data.py \
-  --tasks data/grpo/train.jsonl \
-  --output-dir outputs/sft-collection \
-  --model deepseek-v4-flash \
-  --target-accepted 1000 \
-  --workers 4
-```
-
-`raw.jsonl` is the resumable source of truth. Running the same command again
-skips completed task attempts and rebuilds all derived files:
-
-```text
-outputs/sft-collection/
-  raw.jsonl           complete Teacher responses and environment results
-  accepted.jsonl      valid gold trajectories under the active Strict Reward
-  rejected.jsonl      task IDs and deterministic rejection reasons
-  reject_stats.json   aggregate acceptance audit
-  sft.jsonl           sanitized training rows before splitting
-  train.jsonl         task-disjoint training split
-  validation.jsonl    task-disjoint validation split
-  metadata.json       row counts, configuration and SHA-256 hashes
-```
-
-The command removes all task IDs listed in `data/evaluation/tasks.jsonl` before
-collection and checks again while building artifacts. It also keeps at most one
-accepted trajectory per task. To rebuild the derived files without contacting
-the Teacher or environment, run:
-
-```bash
-python scripts/collect_sft_data.py \
-  --build-only \
-  --output-dir outputs/sft-collection
-```
-
-Only copy `train.jsonl`, `validation.jsonl` and their metadata into `data/sft/`
-after reviewing the collection audit. Raw Teacher responses remain in
-`outputs/` and should not be committed.
-
-## What a training row contains
-
-Each JSONL row is a chat trajectory with:
-
-- the shopping instruction;
-- assistant tool calls;
-- ShopSimulator tool observations;
-- the final terminal action;
-- metadata tying the collection to Environment v2.1 and its actual reward version.
-
-During SFT, user and tool tokens are masked. Loss is computed only on assistant
-actions. See [SFT](sft.md) for the exact training recipe.
+当前统一入口 `bash scripts/start_sft_collection.sh` 已接入首次成功即停、最多三次的方案，64K 批次已完成 1,000 道不同任务的合格轨迹采集及联合配额；第一阶段筛选及 889/99 正式划分已完成，保留 988 条，第二阶段暂不应用。详细执行状态见[数据方案](data-plan.md)。尚未启动训练、合并或测试；训练入口校验当前第一版正式名单。

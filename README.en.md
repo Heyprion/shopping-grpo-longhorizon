@@ -273,32 +273,28 @@ Stop the model server again before GRPO.
 
 ### 5. Train GRPO
 
-First inspect the fully resolved launcher without starting CUDA or Ray:
+First verify the frozen data and best SFT provenance and inspect the resolved configuration:
 
 ```bash
 bash scripts/grpo.sh --dry-run
 ```
 
-Then train:
+Then train and automatically evaluate:
 
 ```bash
 bash scripts/grpo.sh
 ```
 
-Choose a checkpoint using validation metrics and export its actor:
-
-```bash
-bash scripts/export_grpo.sh \
-  outputs/models/grpo/global_step_100/actor \
-  outputs/models/grpo-merged
-```
-
-Evaluate it:
-
-```bash
-bash scripts/serve_model.sh outputs/models/grpo-merged
-bash scripts/evaluate.sh grpo
-```
+The launcher starts a 64-slot environment and runs configuration C (temperature/top-p
+1.0/1.0, top-k -1, candidate difficulty sampling 1:3:6) with the selected two-GPU recipe
+for 500 effective updates from `outputs/models/sft-stage1-v1-best-merged`.
+It selects the highest strict success rate on the 50-task validation set
+(earliest checkpoint on ties), merges the RL adapter, then tests that model
+once on the fixed 200 tasks. See [GRPO](docs/grpo.md).
+The actor recomputes 20 of 24 decoder layers and keeps a per-GPU micro batch of 4.
+Checkpoints and the merged best model are saved as `outputs/models/grpo-stage1-v2-config-c-cp20`
+and `grpo-stage1-v2-config-c-cp20-best-merged`; logs and reports are in
+`outputs/logs/grpo-stage1-v2-config-c-cp20/` and `outputs/evaluation/grpo-stage1-v2-config-c-cp20/`.
 
 Generated checkpoints, rollouts and logs are written under `outputs/`, which is
 ignored by Git.
@@ -362,20 +358,16 @@ Most users only need these environment variables:
 | `SFT_SWANLAB_PROJECT` | `shopping-grpo-sft` |
 | `SFT_SWANLAB_RUN_NAME` | `sft-single-stage-seed42` |
 
-Advanced GRPO overrides can be appended after `--`:
+Advanced Hydra overrides use the lower-level training-only entry point:
 
 ```bash
-bash scripts/grpo.sh -- \
+.venv/bin/python scripts/train_grpo.py --logger swanlab -- \
   trainer.total_training_steps=20 \
   trainer.save_freq=10
 ```
 
-SwanLab logging is opt-in:
-
-```bash
-export SWANLAB_API_KEY=...
-bash scripts/grpo.sh --logger swanlab
-```
+The pipeline uses the existing SwanLab login, recording training in `shopping-grpo`
+and final evaluation in `shopping-grpo-evaluation`, with names based on the launch date.
 
 ## Documentation
 

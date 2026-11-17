@@ -1,58 +1,184 @@
 {
   "environment": "shopsimulator-environment-v2.1",
-  "provenance": {
-    "acceptance_rate": 0.4107,
-    "accepted": 1026,
-    "drop_counts": {
-      "guard_violation": 716,
-      "not_gold:early_abstain": 2,
-      "not_gold:graceful_stop": 1,
-      "not_gold:max_steps": 85,
-      "not_gold:partial_alternative_purchase": 223,
-      "not_gold:repeat_loop": 214,
-      "not_gold:reward_unverifiable": 32,
-      "not_gold:unknown": 100,
-      "not_gold:valid_alternative_purchase": 2,
-      "not_gold:wrong_purchase": 97
-    },
-    "raw_trajectories": 2498,
-    "reward_type_counts": {
-      "early_abstain": 2,
-      "gold_purchase": 1742,
-      "graceful_stop": 1,
-      "max_steps": 85,
-      "partial_alternative_purchase": 223,
-      "repeat_loop": 214,
-      "reward_unverifiable": 32,
-      "unknown": 100,
-      "valid_alternative_purchase": 2,
-      "wrong_purchase": 97
-    },
+  "observation_version": "shopping-observation-v2",
+  "quality_screening": {
+    "completed": true,
+    "path": "data/sft/quality_report.json",
+    "sha256": "ba53703594f1bb3ed1b182013837e00b01ce238c261f857e3df565eb62f4e843",
+    "stage2_applied": false,
+    "version": "shopping-sft-stage1-v1"
+  },
+  "reward": "shopsimulator-reward-strict-v1",
+  "schema_version": "shopping-sft-stage1-v1",
+  "source": {
+    "path": "outputs/sft-unified-collection-64k/accepted.jsonl",
+    "rows": 1000,
+    "sha256": "1950fafa3cdc6f201afe821b3d589522ce035efff48335c501253e0040729fdc"
+  },
+  "split": {
+    "finalized": true,
+    "method": "whole_instruction_group_joint_stratification_natural_margins",
+    "rounding": "round(total * 0.1)",
     "seed": 42,
-    "source_files": [
-      "outputs/teacher_collection/raw_trajectories.jsonl"
-    ],
-    "split_mode": "exact_rows",
-    "teacher_models": [
-      "deepseek-v4-flash"
-    ],
-    "unused_accepted": 26,
-    "val_ratio": null
+    "validation_ratio": 0.1
   },
-  "reward": "shopsimulator-reward-v3",
-  "schema_version": "shopping-sft-dataset-v1",
-  "test": {
-    "note": "测试集由 evaluation/ 承载，不在 sft/ 下重复存放",
-    "path": "data/evaluation/tasks.jsonl"
-  },
+  "tool_version": "shopping-tools-v2",
   "train": {
+    "distribution": {
+      "difficulty": {
+        "hard": 173,
+        "medium": 446,
+        "simple": 270
+      },
+      "domain": {
+        "休闲娱乐文教": 128,
+        "家居家装": 150,
+        "家用电器数码": 101,
+        "服饰鞋包饰品": 134,
+        "母婴儿童": 42,
+        "生产材料农用品": 104,
+        "美妆个护健康": 122,
+        "运动户外交通": 63,
+        "食品饮品": 45
+      },
+      "joint": {
+        "休闲娱乐文教|hard": 23,
+        "休闲娱乐文教|medium": 63,
+        "休闲娱乐文教|simple": 42,
+        "家居家装|hard": 41,
+        "家居家装|medium": 77,
+        "家居家装|simple": 32,
+        "家用电器数码|hard": 10,
+        "家用电器数码|medium": 57,
+        "家用电器数码|simple": 34,
+        "服饰鞋包饰品|hard": 50,
+        "服饰鞋包饰品|medium": 56,
+        "服饰鞋包饰品|simple": 28,
+        "母婴儿童|hard": 19,
+        "母婴儿童|medium": 19,
+        "母婴儿童|simple": 4,
+        "生产材料农用品|hard": 13,
+        "生产材料农用品|medium": 47,
+        "生产材料农用品|simple": 44,
+        "美妆个护健康|hard": 9,
+        "美妆个护健康|medium": 69,
+        "美妆个护健康|simple": 44,
+        "运动户外交通|hard": 7,
+        "运动户外交通|medium": 34,
+        "运动户外交通|simple": 22,
+        "食品饮品|hard": 1,
+        "食品饮品|medium": 24,
+        "食品饮品|simple": 20
+      },
+      "tasks": 889
+    },
     "path": "data/sft/train.jsonl",
-    "rows": 800,
-    "sha256": "8c3a6ff0033f6ea672af609891e747d60652ddc17e8d3c8eacb19e9d96dd9477"
+    "rows": 889,
+    "sha256": "d9312443983ebab1b15f39e45f72e56858bc1f650692d8de545a77067894a3b5"
+  },
+  "trajectories": {
+    "distribution": {
+      "difficulty": {
+        "hard": 192,
+        "medium": 496,
+        "simple": 300
+      },
+      "domain": {
+        "休闲娱乐文教": 142,
+        "家居家装": 167,
+        "家用电器数码": 112,
+        "服饰鞋包饰品": 149,
+        "母婴儿童": 47,
+        "生产材料农用品": 116,
+        "美妆个护健康": 135,
+        "运动户外交通": 70,
+        "食品饮品": 50
+      },
+      "joint": {
+        "休闲娱乐文教|hard": 26,
+        "休闲娱乐文教|medium": 70,
+        "休闲娱乐文教|simple": 46,
+        "家居家装|hard": 45,
+        "家居家装|medium": 86,
+        "家居家装|simple": 36,
+        "家用电器数码|hard": 11,
+        "家用电器数码|medium": 63,
+        "家用电器数码|simple": 38,
+        "服饰鞋包饰品|hard": 55,
+        "服饰鞋包饰品|medium": 63,
+        "服饰鞋包饰品|simple": 31,
+        "母婴儿童|hard": 21,
+        "母婴儿童|medium": 21,
+        "母婴儿童|simple": 5,
+        "生产材料农用品|hard": 15,
+        "生产材料农用品|medium": 52,
+        "生产材料农用品|simple": 49,
+        "美妆个护健康|hard": 10,
+        "美妆个护健康|medium": 76,
+        "美妆个护健康|simple": 49,
+        "运动户外交通|hard": 8,
+        "运动户外交通|medium": 38,
+        "运动户外交通|simple": 24,
+        "食品饮品|hard": 1,
+        "食品饮品|medium": 27,
+        "食品饮品|simple": 22
+      },
+      "tasks": 988
+    },
+    "path": "data/sft/trajectories.jsonl",
+    "rows": 988,
+    "sha256": "f714e1b36315c3978c0a064335cf21fe6a69444b9e24acdf91ce9a905cd193f2"
   },
   "validation": {
+    "distribution": {
+      "difficulty": {
+        "hard": 19,
+        "medium": 50,
+        "simple": 30
+      },
+      "domain": {
+        "休闲娱乐文教": 14,
+        "家居家装": 17,
+        "家用电器数码": 11,
+        "服饰鞋包饰品": 15,
+        "母婴儿童": 5,
+        "生产材料农用品": 12,
+        "美妆个护健康": 13,
+        "运动户外交通": 7,
+        "食品饮品": 5
+      },
+      "joint": {
+        "休闲娱乐文教|hard": 3,
+        "休闲娱乐文教|medium": 7,
+        "休闲娱乐文教|simple": 4,
+        "家居家装|hard": 4,
+        "家居家装|medium": 9,
+        "家居家装|simple": 4,
+        "家用电器数码|hard": 1,
+        "家用电器数码|medium": 6,
+        "家用电器数码|simple": 4,
+        "服饰鞋包饰品|hard": 5,
+        "服饰鞋包饰品|medium": 7,
+        "服饰鞋包饰品|simple": 3,
+        "母婴儿童|hard": 2,
+        "母婴儿童|medium": 2,
+        "母婴儿童|simple": 1,
+        "生产材料农用品|hard": 2,
+        "生产材料农用品|medium": 5,
+        "生产材料农用品|simple": 5,
+        "美妆个护健康|hard": 1,
+        "美妆个护健康|medium": 7,
+        "美妆个护健康|simple": 5,
+        "运动户外交通|hard": 1,
+        "运动户外交通|medium": 4,
+        "运动户外交通|simple": 2,
+        "食品饮品|medium": 3,
+        "食品饮品|simple": 2
+      },
+      "tasks": 99
+    },
     "path": "data/sft/validation.jsonl",
-    "rows": 200,
-    "sha256": "9525cc2fb04a1d8d38ae2db959397da908dde3fea766f580fdcf77d1239533cc"
+    "rows": 99,
+    "sha256": "68a646c23008982249fbba5ae0766111e0982591c1561da964e7491d3c314b46"
   }
 }

@@ -291,37 +291,28 @@ bash scripts/evaluate.sh sft
 
 ### 5. 训练 GRPO
 
-先只解析并打印最终命令，不启动 CUDA 或 Ray：
+先核验固定数据、最佳 SFT 来源并打印最终配置，不启动服务、训练或评测：
 
 ```bash
 bash scripts/grpo.sh --dry-run
 ```
 
-开始训练：
+从 `outputs/models/sft-stage1-v1-best-merged` 开始训练，完成后自动按验证集选模、合并并评测：
 
 ```bash
 bash scripts/grpo.sh
 ```
 
-根据验证集指标选择 Checkpoint，并导出 veRL Actor：
+该入口自动启动 64 槽环境，执行配置 C（temperature/top-p=1.0/1.0，top-k=-1，候选题按 1:3:6 分层抽样）和当前双卡加速配方的 500 次有效更新；
+使用 50 题验证集的 Strict Success 最高点选模，并列取较早步数，
+合并 RL adapter 后仅对最佳模型测试固定 200 题。详见 [GRPO](docs/grpo.md)。
+actor 对 24 层中的 20 层启用重算，每卡 micro batch 保持 4。
+模型输出为 `outputs/models/grpo-stage1-v2-config-c-cp20` 和 `grpo-stage1-v2-config-c-cp20-best-merged`，
+日志位于 `outputs/logs/grpo-stage1-v2-config-c-cp20/`，报告位于 `outputs/evaluation/grpo-stage1-v2-config-c-cp20/`。
+对已有评测结果补生成报告：
 
 ```bash
-bash scripts/export_grpo.sh \
-  outputs/models/grpo/global_step_100/actor \
-  outputs/models/grpo-merged
-```
-
-启动并评估导出的模型：
-
-```bash
-bash scripts/serve_model.sh outputs/models/grpo-merged
-bash scripts/evaluate.sh grpo
-```
-
-每次 `evaluate.sh` 完成后会自动生成 `outputs/evaluation/grpo/report.html`。对已有评测结果补生成报告：
-
-```bash
-bash scripts/report.sh grpo
+bash scripts/report.sh grpo-stage1-v2-config-c-cp20
 ```
 
 批量生成所有单模型报告和综合比较报告：
@@ -387,20 +378,16 @@ tests/                           核心单元、入口和 Wheel 安装检查
 | `SFT_SWANLAB_PROJECT` | `shopping-grpo-sft` |
 | `SFT_SWANLAB_RUN_NAME` | `sft-single-stage-seed42` |
 
-GRPO 的高级 Hydra 参数可以追加在 `--` 后：
+底层 GRPO 入口的高级 Hydra 参数可以追加在 `--` 后；该入口只训练：
 
 ```bash
-bash scripts/grpo.sh -- \
+.venv/bin/python scripts/train_grpo.py --logger swanlab -- \
   trainer.total_training_steps=20 \
   trainer.save_freq=10
 ```
 
-SwanLab 默认关闭，需要时显式启用：
-
-```bash
-export SWANLAB_API_KEY=...
-bash scripts/grpo.sh --logger swanlab
-```
+一键入口默认使用已登录的 SwanLab，训练复用 `shopping-grpo`，评测复用
+`shopping-grpo-evaluation`。运行名称按实际启动日期生成。
 
 ## 文档导航
 

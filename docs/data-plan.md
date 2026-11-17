@@ -9,11 +9,13 @@
 | 全量清洗及通过名单 | **已执行、已审计** | 固定使用当前版本，不因调整训练配比重新清洗 |
 | 分层维度与首版复杂度规则 | **本方案确定** | 统一应用于全部清洗通过任务；规则变更必须另记版本 |
 | 每条任务的正式分层标签 | **已生成 16,741 条** | 固定在 `data/splits/labels.jsonl`，规则版本为 `shopping-structural-complexity-v1` |
-| 候选池、活跃子集与新测试名单 | **已全部生成、已审计** | 池边界和首批题目已经固定，见 `data/splits/manifest.json` |
-| 首次 SFT / RL 训练样本数 | **暂定** | 可根据训练和验证结果，在各自训练候选池内调整 |
-| 首次训练的复杂度配比 | **暂定** | 可根据训练和验证结果调整，不能用测试结果调配 |
+| 候选池、RL / 测试首批名单 | **已全部生成、已审计** | 池边界和 RL / 测试题目固定，见 `data/splits/manifest.json` |
+| SFT 采集 | **64K 批次已完成 1,000 条合格轨迹采集** | 5,000 题统一候选池，独立 64K 批次已满足 1,000 条联合配额；不预分训练/验证 |
+| SFT 质量筛选及训练/验证划分 | **第一阶段筛选及正式划分已执行** | 第一版保留 988 条：889 训练 / 99 验证；第二阶段暂不应用，不补采 |
+| 首次 RL 训练样本数 | **暂定** | 根据训练和验证结果，在 RL 训练池内调整 |
+| SFT 采集 / RL 训练复杂度配比 | **暂定** | 当前分别为 3:5:2 / 2:5:3，不能用测试结果调配 |
 
-当前 [`data/cleaned/metadata.json`](../data/cleaned/metadata.json) 的 `split_status` 已为 `partitioned`。[划分 manifest](../data/splits/manifest.json) 记录每个池、首批名单、剩余题目、分布与校验和；[逐题登记表](../data/splits/registry.jsonl) 覆盖全部任务。SFT 的 800/200 题、RL 的 1,000/50 题和测试 200 题都已确定，不留给启动训练的会话重新抽取。SFT 示范对话的采集仍是后续步骤，固定任务不表示已经训练。
+当前 [`data/cleaned/metadata.json`](../data/cleaned/metadata.json) 的 `split_status=partitioned` 表示已完成用途来源分配及 RL / 测试名单，不表示 SFT 已有当前训练/验证划分。[manifest](../data/splits/manifest.json) 和[登记表](../data/splits/registry.jsonl) 保留来源信息。RL 的 1,000/50 题和测试 200 题固定；SFT 最新要求是统一采集 1,000 条，后续另做质量筛选再划分训练/验证。机器可读计划在 [`collection_plan.json`](../data/sft/collection_plan.json)，当前 64K 批次已完成 1,000 条采集，第一阶段筛选后正式保留 988 条，已冻结 889/99 训练/验证名单。
 
 ## 2. 数据来源及方案形成原因
 
@@ -115,98 +117,128 @@ r_type * r_att * r_option * r_price
 
 正式标签已经生成，16,741 条分别为 **simple 2,532、medium 10,038、hard 4,171**。其中测试候选池 944 条为 101/560/283；除去跨来源重复封存后，训练来源 15,794 条为 2,431/9,477/3,886。预算边界余量、预算类型、检索目标排名和相似候选数保留为后续辅助诊断方向，当前不增加到主评分中。
 
-## 5. 候选池边界与容量方案
+## 5. 当前用途边界与统一 SFT 候选池
 
-清洗保留任务中：`tag=train` 有 **15,797** 条，`tag=eval` 有 **944** 条。
+清洗保留任务中原始 `tag=train` 有 15,797 条，`tag=eval` 有 944 条。跨来源重复指令组 `[680,13358]`、`[202,8413]`、`[894,5423]` 的 train 侧 13358、8413、5423 封存，不进入训练来源。剩余 15,794 条分为 **SFT 5,000、RL 训练 10,494、RL 验证 300**，整个 eval 池保持测试用途。
 
-相同指令的四组任务是：
+SFT 原来生成过 4,500 / 500 两个分块和 800 / 200 首批队列。用户最新明确要求：**现在只采 1,000 条合格轨迹，质量筛选以后再划分训练 / 验证。** 因此这两个 SFT 分块合并为一份 [`data/sft/candidate_tasks.jsonl`](../data/sft/candidate_tasks.jsonl)，共 5,000 题，seed=42。旧分块文件及 manifest 的原 `sft_train` / `sft_validation` 项只作来源追踪，不再具有当前训练 / 验证归属含义。
 
-- `[680, 13358]`：eval / train。
-- `[202, 8413]`：eval / train。
-- `[894, 5423]`：eval / train。
-- `[7179, 14650]`：train / train。
+| 当前用途 | 固定候选数量 | 本阶段目标 / 固定首批 | 状态 |
+|---|---:|---:|---|
+| SFT 统一采集 | 5,000 | 1,000 条合格轨迹 | 不预分训练 / 验证 |
+| RL 训练 | 10,494 | 1,000 题 | 固定，尚余 9,494 题 |
+| RL 验证 | 300 | 50 题 | 固定，余 250 题保留验证用途 |
+| 测试 | 944 | 200 题 | 固定，余 744 题保留测试用途 |
+| 跨来源重复封存 | 3 | 0 | 不参与采样 |
+| **总计** | **16,741** | | |
 
-跨来源三组中，eval 任务保留测试候选资格；train 侧 **13358、8413、5423** 封存，不用于训练或验证。它们仍在清洗通过数据里，不改判为清洗失败，也不进入人工复核队列。剩余 **15,794** 条用于 SFT / RL。train 内重复指令组按组分配，不能跨训练、验证或阶段池。
+SFT 内部本次不设置训练或验证来源边界；SFT 与 RL、测试之间的用途边界依然固定。测试整个 944 题池及 3 条跨来源重复题均受防泄漏清单保护，不只保护抽出的 200 题。
 
-| 用途 | 固定候选池 | 已固定首批题目 | 尚未入选 |
-|---|---:|---:|---:|
-| SFT 训练 | 4,500 | 800 | 3,700 |
-| SFT 验证 | 500 | 200 | 300 |
-| RL 训练 | 10,494 | 1,000 | 9,494 |
-| RL 验证 | 300 | 50 | 250 |
-| 测试 | 944 | 200 | 744 |
-| 跨来源重复指令封存 | 3 | 0 | 不参与抽样 |
-| **合计** | **16,741** | **2,250** | |
-
-名单已经落盘：SFT 共预留 5,000 条，RL 共预留 10,794 条。各候选池按联合分层、固定 **seed=42** 分配，并相互隔离。测试候选池只使用原始 eval 标签的 944 条，未抽中的 744 条继续保留测试用途。整个 eval 池及跨来源重复的 3 条任务均受防泄漏清单保护，不只保护最终抽出的 200 题。
-
-候选池边界现已固定。增加 SFT / RL 用量时从本阶段训练池补充，不能挪用其他阶段训练池、阶段验证池或测试池。若未来确需重做池边界，要作为一次明确的数据划分版本变更，重做全部泄漏检查。
-
-| 已固定名单 | 文件 |
+| 当前文件 | 用途 |
 |---|---|
-| SFT 训练 800 题 | [`data/sft/train_tasks.jsonl`](../data/sft/train_tasks.jsonl) |
-| SFT 验证 200 题 | [`data/sft/validation_tasks.jsonl`](../data/sft/validation_tasks.jsonl) |
-| RL 训练 1,000 题 | [`data/grpo/train.jsonl`](../data/grpo/train.jsonl)，对应 `train.parquet` 已同步 |
-| RL 验证 50 题 | [`data/grpo/validation.jsonl`](../data/grpo/validation.jsonl)，对应 `validation.parquet` 已同步 |
-| 测试 200 题 | [`data/evaluation/tasks.jsonl`](../data/evaluation/tasks.jsonl) |
-| 所有候选池 | `data/splits/pools/` |
-| 各池尚未入选题目 | `data/splits/reserves/` |
-| 每题所属池、入选批次、补题顺序 | [`data/splits/registry.jsonl`](../data/splits/registry.jsonl) |
+| [`data/sft/candidate_tasks.jsonl`](../data/sft/candidate_tasks.jsonl) | 统一 SFT 5,000 题候选队列 |
+| [`data/sft/collection_plan.json`](../data/sft/collection_plan.json) | 统一 1,000 条采集目标及完整联合配额 |
+| `data/sft/train_tasks.jsonl` / `validation_tasks.jsonl` | 旧队列来源记录，不是当前训练 / 验证名单 |
+| [`data/grpo/train.jsonl`](../data/grpo/train.jsonl) 及 Parquet | 固定 RL 训练 1,000 题 |
+| [`data/grpo/validation.jsonl`](../data/grpo/validation.jsonl) 及 Parquet | 固定 RL 验证 50 题 |
+| [`data/evaluation/tasks.jsonl`](../data/evaluation/tasks.jsonl) | 固定测试 200 题 |
+| [`data/splits/manifest.json`](../data/splits/manifest.json) / [`registry.jsonl`](../data/splits/registry.jsonl) | 标签、来源、原分配记录、当前统一策略和登记 |
 
-## 6. 暂定训练数量和难度配比
+原 registry 中 SFT 记录的 pool / selection_batch 反映生成时分块，不表示已经采集成功、已经训练或已经完成新的训练 / 验证划分。实际执行采集时须记录统一采集的尝试、接受、耗尽状态与成功任务名单，不能继续按旧角色推断未来用途。
 
-以下是**初始参数，可以依据训练和验证结果调整**；调整参数不要求重做已固定的清洗，也不允许悄悄改变分层定义。
+## 6. 当前样本目标和难度配比
 
-| 阶段 | simple | medium | hard | 唯一训练任务数 |
-|---|---:|---:|---:|---:|
-| **SFT** | **30%：240** | **50%：400** | **20%：160** | **800** |
-| **RL** | **20%：200** | **50%：500** | **30%：300** | **1,000** |
+| 阶段 | simple | medium | hard | 本阶段目标 |
+|---|---:|---:|---:|---|
+| **SFT 统一采集** | **300** | **500** | **200** | **1,000 条合格轨迹，暂不划分** |
+| **RL 训练** | **200** | **500** | **300** | **1,000 个唯一任务** |
 
-比例按**唯一任务数**计算，不是 token 数、轨迹总采样次数或 GPU 时间占比。已经同时满足训练难度配额和商品大类的自然比例：大类配额用最大余数法取整，逐类相对自然期望误差小于 1 条；难度配额精确为上述数量。联合单元格采用 IPF 拟合两组边际，再做带库存上限的整数分配，尽量保留原品类与难度的关联，不能只改变难度而让整体品类分布随之偏移。所有首批训练、验证和测试均覆盖 9 大类。第一版混合打乱、均匀使用抽出的任务，不再叠加同一套难度采样权重，SFT 仍为单阶段训练。
+SFT 整体难度沿用 3:5:2，品类按统一 5,000 题来源池自然比例，目标覆盖 9 大类。品类数采用最大余数法取整，各类距自然期望小于 1 条；联合配额使用 IPF 和带库存上限的整数分配，同时满足难度配额和品类自然边际。具体值保存在 collection plan，约束的是最终接受的 1,000 条轨迹，不仅是候选尝试分布。
 
-SFT 的 800 训练、200 验证最终指各自通过质量检查的、唯一任务的完整示范轨迹。清洗任务文件不是可直接送入 SFT 的对话数据。教师采集失败时在同一候选池、同一层内按固定顺序补位，不通过重复同一任务凑数。RL 的 1,000 指唯一训练任务，group=4 等 rollout 设置仍按训练配方执行。
+RL 训练源清单仍为 2:5:3（200/500/300 道唯一题），其任务 ID 和文件不变。当前配置 C 在这 1,000 题内调整候选抽样频率：simple/medium/hard=1:3:6。按品类×难度联合配额，每 1,000 次候选抽样为 100/300/600，并保持九大品类原有自然边际；层内随机轮转，允许同题跨 batch 再次采样，同一 batch 的两题不属于同一重复指令组。它不新增、替换或复制数据文件中的任务，不改变正式名单或 registry。动态奖励过滤后的实际优化任务比例不保证仍为 1:3:6。
 
-阶段验证及测试保持固定的自然分布，**不跟随训练配比反复重抽**。实际 simple/medium/hard 数量是：SFT 验证 **30/121/49**，RL 验证 **8/30/12**，测试 **21/119/60**。测试按 eval 候选池自身分布抽取，不套用 train 来源的比例。整数配额、联合分布及校验和已经写进 manifest；没有重复抽样凑数，50 题验证集的细层结果应结合样本数判断。
+RL 验证和测试按各自池的自然分布，simple/medium/hard 分别为 8/30/12 和 21/119/60。它们的任务 ID、分布和文件均不变。
 
-### 参考依据与后续调整
+采集阶段没有预分训练/验证。按最新决定，第一阶段筛选后已确定 **889 条训练、99 条验证**，不沿用旧 800/200；原 4,500/500 来源分块不约束本次最终归属。
 
-[DeReason](https://arxiv.org/abs/2603.11193) 为 SFT 侧重基础覆盖、RL 增加推理密集问题提供参考；[E2H Reasoner](https://arxiv.org/html/2506.06632v2) 提示过难任务可能导致稀疏奖励、需要保留可学习任务。这些结果主要来自推理基准，**没有证明本项目的 3:5:2 或 2:5:3 最优**。
+### 每题最多 3 次拒绝采样，首次成功即停，收满 1,000 条即停
 
-后续结合固定验证集的分层成功率和训练诊断调整。例如：
+1. 从统一 SFT 5,000 题候选池按商品大类 × 难度配额尝试，不取 RL、测试或封存题。
+2. 每题最多安排 3 次独立采样，首次成功立即接受并停止该题，每次从任务初始状态运行完整轨迹；单次只按真实环境终局 **Strict Reward==1** 验收。不附加长度、步数、guard、重复搜索、教师解释、gold ASIN 或 `gold_purchase` 标签等质量过滤。运行时的四因子乘积和正式评估的 strict success 统计定义不变。
+3. 同题首次成功立即保留并停止后续尝试；已有多条成功记录时只保留 attempt 序号最早的一条。三次失败则在统一池同品类 × 难度层补下一题，允许跨旧 SFT 分块，不把同题多条轨迹重复计入 1,000。
+4. 已满的层停止加入最终数据，未满的层继续尝试。实际接受 1,000 条不同任务轨迹且联合配额填满后停止，不再启动剩余尝试；超额返回、失败及同题额外成功不计入目标。
+5. 某层候选耗尽则记录缺额，不从其他阶段借题、不放宽奖励、不复制填充。
+6. 输出**一份未划分的合格轨迹集合**、成功任务名单、原始尝试、终局 reward、接受 / 耗尽 / 未尝试状态、替补关系与校验和。断点恢复时读取已接受数量及各层剩余配额，避免重复计数。
 
-- hard 任务频繁产生全零奖励组时，可把 RL 从 2:5:3 调为 2:6:2。
-- simple 已稳定掌握、hard 也能产生有效奖励差异时，可尝试 1:5:4。
+### 后续质量筛选和训练 / 验证划分
 
-这些是待验证的调整方向，不是自动触发规则。当前 GRPO 组内做奖励减均值，组内实际奖励完全相同则优势为零；Strict Reward 有部分分数，不能只按成功 / 失败判断组内信号。[DAPO](https://arxiv.org/html/2503.14476) 对相同组奖励的问题有直接讨论。不能根据单轮小验证集的波动频繁调比，也不能使用测试集选择配比或训练数量。
+流程已按顺序完成：**统一采集 1,000 条 → 仅执行第一阶段筛选保留 988 条 → 冻结 889/99 训练/验证**。采集仍按 reward=1 验收；筛选不追溯改变采样规则。第二阶段暂不处理，不补采，也不恢复旧 800/200。正式版本及启动命令见第 10 节。
 
-每次调整训练样本数或配比，记录新的活跃任务名单、seed、数量、标签版本及校验和。固定验证和测试名单，保证不同训练设置可以比较。
+正式划分时，任务及指令重复组不得跨训练和验证。当前不发布新的 SFT train/validation 轨迹文件，也不把旧 Reward-v3 示例仅修改 metadata 后当作本次结果。
 
-## 7. 后续补题及续训时如何避免重用
+### 配比的参考依据和可调整性
 
-登记表的 `selected` 表示已经被某批次占用，`available` 表示仍可抽取；`execution_status=not_started` 表示本次只固定了题目，不能把入选误报为已经训练。训练执行状态由实际训练产物记录。
+[DeReason](https://arxiv.org/abs/2603.11193) 为 SFT 基础覆盖与 RL 推理密集任务分配提供参考，[E2H Reasoner](https://arxiv.org/html/2506.06632v2) 提示过难任务可能产生稀疏奖励。这些主要来自推理基准，没有证明本项目的 3:5:2 或 2:5:3 最优。后续可以依据训练和验证结果调整训练数量与配比，不改变固定清洗结果和标签定义，也不使用测试结果调参。
 
-补题先读取**本阶段训练池的剩余题目**，按所需数量和配比选出新批次，再更新登记表、剩余名单和 manifest。旧首批名单、验证集与测试集不变。每批保存独立文件，不覆盖先前批次，也不重复抽到已经入选的题。重复指令组保持同池、同批，不能拆开；首批优先使用独立指令任务。
+当前 GRPO 组内奖励减均值，组内实际奖励完全相同则优势为零；Strict Reward 有部分分数，不能仅按成功 / 失败判断信号。[DAPO](https://arxiv.org/html/2503.14476) 对相同组奖励的问题有讨论。
+
+## 7. 扩量与登记
+
+RL 训练可从剩余 9,494 题中补充，使用原有命令生成互不重叠的新批次，保持 RL 验证和测试名单不变：
 
 ```bash
-# 查看再补 1,000 道 RL 新题的结果；不修改任何名单。
 PYTHONPATH=src .venv/bin/python scripts/prepare_data_splits.py extend --stage rl --count 1000 --dry-run
-
-# 用户要求补题时执行，产生 data/splits/rounds/rl_001.jsonl 和 .parquet。
-PYTHONPATH=src .venv/bin/python scripts/prepare_data_splits.py extend --stage rl --count 1000
-
-# 若本次明确调整难度比例，可指定 simple/medium/hard 权重。
-PYTHONPATH=src .venv/bin/python scripts/prepare_data_splits.py extend --stage rl --count 1000 --ratios 10 50 40 --dry-run
 ```
 
-SFT 补题使用 `--stage sft`，产生新任务名单，后续再采集对应示范。补题命令只分配题目，不启动训练或自动决定 checkpoint 恢复方式。数量或目标配额超出剩余库存时明确报错，不跨池、不复制任务。当前已验证补题预览及连续两批互不重用的行为，实际仓库还没有追加训练批次。
+明确要求追加时去掉 `--dry-run`；可通过 `--ratios A B C` 指定难度权重。命令只分配题目，不自动启动训练或决定 checkpoint 恢复方式。
 
-## 8. 其他会话启动训练时必须遵循的顺序
+SFT 当前按统一采集计划在 5,000 题中补位；旧 `extend --stage sft` 仅针对旧训练分块，已在此模式下禁用。SFT 后续扩量及续训安排应在质量筛选与正式划分后确定，不能提前耗用原分块来隐式恢复训练 / 验证归属。
 
-1. **先读本文和 AGENTS.md。** 检查清洗 metadata 与任务、预算文件校验和。使用已清洗任务，不能退回原始全量任务或旧 SFT/RL 划分。
-2. **核验并复用固定名单。** 执行 `PYTHONPATH=src .venv/bin/python scripts/prepare_data_splits.py verify`，核验正式标签、候选池、首批任务和登记表。它们已经生成，不重新抽样，不重新清洗。`build` 在已有 manifest 时只核验，不会重置题目或补题记录。
-3. **准备阶段所需产物。** SFT 按已经固定的 `train_tasks.jsonl` 和 `validation_tasks.jsonl` 分别采集新的 Strict Reward 示范，不把两组混合后再次随机划分；RL JSONL / Parquet 已经同步。旧 SFT 示范仍保留原始来源，但训练入口会因其奖励版本或任务名单不匹配而拒绝使用，不能仅修改 metadata 当作新的成功示范。
-4. **接入相同预算。** 从仓库根目录设置 `export SHOPPING_TASK_BUDGETS="$PWD/data/cleaned/task_budgets.jsonl"`。所有环境进程及 Ray worker 都必须获得可读取的该路径。缺失预算标注应视为不可核验，不能退回无预算。
-5. **使用已同步的入口。** `data/evaluation/tasks.jsonl`、评测 metadata、blind ID / hash 及整个测试候选池保护清单均已更新；GRPO 默认数据文件已换成新任务。SFT 启动前必须核验新示范与固定任务一致，禁止静默使用旧对话数据。
-6. **核对后按用户授权执行。** dry-run 核对数据路径、样本数、配比、预算传递及当前训练配方，SwanLab 记录数据版本与训练配置。只有用户明确请求相应执行时才启动训练、合并模型或跑正式 200 题评估。
+## 8. 其他会话执行时的顺序
 
-本次已经完成全量分层、候选池分配、首批名单和补题登记，并未启动示范采集、SFT、RL、模型合并或正式评测。
+1. 阅读本文、[SFT 采集说明](../data/sft/README.md)、collection plan 和 AGENTS.md。核验固定来源和标签，不重做清洗或打标签。
+2. 运行 `prepare_data_splits.py verify`。它核验统一 SFT 池、1,000 条配额及固定 RL / 测试；旧 SFT 分块只按来源记录核验，不代表仍有当前训练 / 验证数据。
+3. 实际采集前，接入旧采集器尚不具备的统一候选池、每题最多 3 次且首次成功即停、reward-only 验收、联合配额、断点状态和统一停止条件；禁止默认生成或随机划分 SFT train / validation。
+4. 所有环境进程及 Ray worker 使用规范预算：从仓库根目录设置 `export SHOPPING_TASK_BUDGETS="$PWD/data/cleaned/task_budgets.jsonl"`，不使用旧正则或无预算回退。
+5. 收集并保存一份未划分的 1,000 条合格轨迹。第一版已在此后完成第一阶段筛选和 889/99 正式划分；训练前检查现使用新名单和 metadata。
+6. RL JSONL / Parquet、测试 metadata、防泄漏清单和固定名单保持不变。任何训练、模型合并或正式 200 题评估仍须用户明确请求；训练配方按 AGENTS.md，SwanLab 记录数据版本与配置。
+
+当前统一采集器已接入上述方案，并完成接口及并发小测。此前 2,048-token 采集记录保存在 `outputs/sft-unified-collection/`，已暂停且不改写；因未记录 API 截断原因，该批次需单独审计。修正后的入口为 `bash scripts/start_sft_collection.sh`：DeepSeek-V4.1 Flash（`deepseek-flash`）、`high` 思考、单次输出上限 65,536 tokens、请求等待 600 秒、默认并发 64。每次响应记录结束原因和 token 用量；输出截断按基础设施故障暂停，不消耗一次普通拒绝采样。默认使用 `outputs/sft-unified-collection-64k/`，配置不符时拒绝混合续采。当前 64K 批次已完成：1,327 次完整尝试得到 1,000 道不同任务各一条合格轨迹，74 道题三次耗尽，联合配额全部满足；原始尝试及早期多采的 7 条成功记录均保留作审计。已完成第一阶段筛选并冻结 889/99 正式划分；第二阶段暂不处理，尚未训练、合并或测试。
+
+
+## 9. 当前教师轨迹质量审计与筛选建议
+
+本节为已完成采集的诊断与方案建议，未生成正式筛选名单。输入为 `outputs/sft-unified-collection-64k/accepted.jsonl`，SHA-256 为 `1950fafa3cdc6f201afe821b3d589522ce035efff48335c501253e0040729fdc`。审计脚本为 `scripts/audit_sft_trajectories.py`，配置、逐条指标、第一阶段排除预览及详细报告在 `outputs/sft-quality-audit/`，SwanLab 复用 `shopping-grpo-sft-collection`。
+
+第一阶段先复用 `build_sft_row` 规范化成 Student 消息，去掉教师私有思考、守卫拒绝的消息对及终局奖励详情，再采用与 SFT 训练相同的 Qwen3.5-2B 固定 revision tokenizer、processor 模板和 assistant labels 构造检查。完整序列（含工具定义、system 和观察）上限为 24,576 tokens，不截断凑长。11 条超长；2 条规格选择的单/双空格差异被文本 footer 归一化掩盖，动作在环境未生效，其中 1 条同时超长。第一阶段排除预览并集为 12 条，候选剩余 988 条、simple/medium/hard=300/496/192。其他已检查的工具 schema、调用/回复配对、训练模板及有效 labels 未发现问题。直接计算包含教师思考的原始消息会多误判 12 条超长。
+
+第二阶段建议基于动作有没有新信息或必要状态变化、购买决定是否有当时可见证据、是否保留搜索改写/候选比较/翻页等有用技能进行轻度审计；目前不设置固定删除比例或步数阈值。344 条原始轨迹有守卫拒绝，格式化器会移除相应错误消息，不直接整条淘汰。99 条重复状态动作主要是重开商品后恢复选择；23 条修改过规格，其中有依据实际价格与预算作比较的有用样例，不能按次数直接删。当前明确检查的相同信息页连续重复往返为 0 条。5 条 `valid_alternative_purchase` 四因子奖励仍全部为 1，不以 gold ASIN 身份作新增筛选条件；正式评估的 strict-success 定义不变。
+
+上述为审计时的发现。按用户最新决定，第一阶段规则已正式应用：排除 12 条、保留 988 条；第二阶段暂不处理，不补采，训练/验证已冻结为 889/99。原始 1,000 条教师集合保持原样。详细方法、具体任务样例、研究来源和静态审计局限见[审计报告](../outputs/sft-quality-audit/report.md)。
+
+
+## 10. 第一版正式 SFT 数据与一键训练评测
+
+用户已确定只应用第一阶段筛选，第二阶段暂不应用。使用已核验的 Qwen3.5-2B 固定 tokenizer/processor 模板，按 24,576-token 上限及结构合法性排除 12 条，得到 **988 条正式 Student SFT 示范**。确定性格式化复用 `build_sft_row`，去除私有思考、守卫拒绝消息和终局奖励详情；不按守卫次数、重复动作、步数、gold ASIN 等新增条件删除。原始采集记录和原始 RL/测试用途边界均保持不变。
+
+固定 seed=42，以筛选后集合的自然品类与难度边际分层并隔离重复指令组。验证数量为 `round(988×0.1)=99`，其余 889 条训练；由于整数取整，验证:训练约为 1:9。正式归属在 `manifest.sft_final`，旧 `initial.sft_train` / `initial.sft_validation` 和旧任务文件只作来源记录。
+
+| 正式集合 | 总数 | simple | medium | hard |
+|---|---:|---:|---:|---:|
+| SFT 全集 | 988 | 300 | 496 | 192 |
+| 训练 | 889 | 270 | 446 | 173 |
+| 验证 | 99 | 30 | 50 | 19 |
+
+对话位于 `data/sft/trajectories.jsonl`、`train.jsonl`、`validation.jsonl`；正式 ID 位于 `final_train_tasks.jsonl`、`final_validation_tasks.jsonl`。`quality_report.json` 和 `rejected_trajectories.jsonl` 保存第一阶段决定，`metadata.json` 保存来源和哈希。登记表新增本次 SFT 最终角色，不改原 pool/selection 来源字段。旧数据与替换前 manifest/登记表备份在 `outputs/sft-stage1-v1/previous/`。
+
+训练入口会检查质量筛选完成、角色名单与文件校验和、候选池归属、任务/指令组隔离、完整集合覆盖和预处理标签长度；预处理发生额外丢弃时中止。
+
+用户在仓库根目录执行：
+
+```bash
+bash scripts/sft.sh --balanced --evaluate-after
+```
+
+脚本采用 AGENTS.md 的三 epoch 双卡 FSDP2 balanced 配方，每轮在固定 99 条验证集上计算 assistant-token 加权 NLL：`sum(每条轨迹NLL×有效assistant tokens) / sum(有效assistant tokens)`。分布式补齐产生的重复验证样本先去重。取此指标最低的检查点，训练结束加载该检查点并导出最佳 adapter；测试 200 题不参与选择。
+
+最佳 adapter 保存至 `outputs/models/sft-stage1-v1-balanced/`，`train_summary.json` 记录选模指标、最佳检查点及数据身份。随后自动与同 revision 基座合并至 `outputs/models/sft-stage1-v1-best-merged/`，启动专用环境/vLLM，并按既有协议执行固定 200 题测试。结果、完整轨迹与报告在 `outputs/evaluation/sft-stage1-v1/`，`final_report.json` 关联最佳模型与测试结果。训练/测试分别复用 SwanLab 的 `shopping-grpo-sft` / `shopping-grpo-evaluation`。只准备脚本和 dry-run，本次未启动训练、合并或测试。

@@ -33,3 +33,21 @@ def test_sft_dry_run_never_executes_training_and_preserves_effective_batch(tmp_p
         assert args[args.index("--fsdp-checkpoint-stride") + 1] == "2"
         assert any(item.startswith("PYTORCH_ALLOC_CONF=") for item in args)
     assert not output.exists()
+
+
+def test_auto_evaluation_dry_run_is_ordered_and_does_not_execute(tmp_path):
+    forbidden = tmp_path / 'forbidden-python'
+    forbidden.write_text('#!/bin/sh\nexit 99\n')
+    forbidden.chmod(0o755)
+    output = tmp_path / 'new-adapter'
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(['bash','scripts/sft.sh','--balanced','--evaluate-after','--dry-run'], cwd=root,
+                            env={**os.environ,'SFT_PYTHON':str(forbidden),'SFT_ADAPTER_DIR':str(output)},
+                            text=True,capture_output=True,check=True)
+    lines = result.stdout.splitlines()
+    assert len(lines) == 2
+    training, evaluation = map(shlex.split, lines)
+    assert training[training.index('--epochs')+1] == '3'
+    assert evaluation[1].endswith('scripts/evaluate_sft_checkpoint.py')
+    assert evaluation[evaluation.index('--adapter')+1] == str(output)
+    assert not output.exists()

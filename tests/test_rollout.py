@@ -3,17 +3,19 @@ import tempfile
 import unittest
 from http.client import RemoteDisconnected
 from pathlib import Path
-from urllib.error import URLError
 from unittest.mock import patch
+from urllib.error import URLError
 
 from shopping_grpo.environment.actions import action_guard_tool_message
 from shopping_grpo.environment.client import ShopEnvironmentError
 from shopping_grpo.evaluation.rollout import (
-    CollectionInfrastructureError,
-    OpenAIChatClient,
     SYSTEM_PROMPT,
-    collect_tasks,
+    CollectionInfrastructureError,
+    ModelOutputTruncatedError,
+    OpenAIChatClient,
+    _is_infrastructure_failure,
     collect_for_task,
+    collect_tasks,
     completed_task_attempts,
     load_tasks,
     rollout_interrupted,
@@ -680,6 +682,69 @@ class RolloutTest(unittest.TestCase):
         self.assertEqual(captured["payload"]["temperature"], 0.2)
         self.assertEqual(captured["headers"]["Authorization"], "Bearer secret")
         self.assertEqual(captured["headers"]["User-Agent"], "shopping-grpo-longhorizon/0.1")
+
+    def test_truncated_tool_call_is_recorded_and_never_executed(self):
+        usage = {
+            "prompt_tokens": 100,
+            "completion_tokens": 65536,
+            "completion_tokens_details": {"reasoning_tokens": 65520},
+        }
+        responses = [
+            (
+                "https://api.example.test",
+                {
+                    "model": "deepseek-flash",
+                    "choices": [{
+                        "finish_reason": "length",
+                        "message": assistant_tool("search_products", {"query": "乳胶枕"}, "cut"),
+                    }],
+                    "usage": usage,
+                },
+            ),
+            (
+                "https://api.example.test/responses",
+                {
+                    "status": "incomplete",
+                    "incomplete_details": {"reason": "max_output_tokens"},
+                    "output": [{"type": "function_call", "name": "search_products", "arguments": '{"query":"乳胶枕"}'}],
+                    "usage": usage,
+                },
+            ),
+        ]
+        for base_url, response in responses:
+            with self.subTest(base_url=base_url):
+                env = FakeEnv()
+                client = OpenAIChatClient(
+                    model="deepseek-flash", base_url=base_url, api_key="secret",
+                    thinking=True, max_tokens=65536,
+                    transport=lambda *args, response=response: response,
+                )
+                t = collect_for_task({"task_id": 9}, client=client, env_factory=lambda env=env, **kw: env)
+                self.assertEqual(t["error"]["type"], ModelOutputTruncatedError.__name__)
+                self.assertTrue(_is_infrastructure_failure(t))
+                self.assertTrue(env.released)
+                self.assertEqual(env.actions, [])
+                self.assertEqual(len(t["messages"]), 2)
+                self.assertEqual(t["model_completions"][0]["usage"], usage)
+                self.assertTrue(t["model_completions"][0]["truncated"])
+
+    def test_completion_usage_stays_in_audit_and_out_of_model_messages(self):
+        def transport(*args):
+            return {
+                "choices": [{"finish_reason": "tool_calls", "message": assistant_tool("search_products", {"query": "乳胶枕"}, "search")}],
+                "usage": {"completion_tokens": 42, "completion_tokens_details": {"reasoning_tokens": 30}},
+            }
+        client = OpenAIChatClient(
+            model="deepseek-flash", base_url="https://api.example.test", api_key="secret",
+            thinking=True, max_tokens=65536, transport=transport,
+        )
+        env = FakeEnv()
+        t = collect_for_task({"task_id": 9}, client=client, env_factory=lambda **kw: env, max_steps=1)
+        self.assertEqual(t["model_completions"][0]["finish_reason"], "tool_calls")
+        self.assertEqual(t["model_completions"][0]["usage"]["completion_tokens"], 42)
+        self.assertFalse(t["model_completions"][0]["truncated"])
+        self.assertNotIn("usage", t["messages"][2])
+        self.assertEqual(env.actions, ["search[乳胶枕]"])
 
     def test_openai_client_supports_responses_tool_payload_and_result(self):
         captured = {}

@@ -440,6 +440,23 @@ def validate_fsdp2_config(config):
     print("FSDP2 config preflight passed: two GPUs, actor/ref engine strategy=fsdp2")
 
 
+def validate_task_sampling(config):
+    sampling = config.get("shopping_task_sampling", {})
+    if not sampling.get("enable", False):
+        return
+    import pyarrow.parquet as pq
+
+    from shopping_grpo.training.grpo.task_sampling import StratifiedTaskSampler
+
+    task_ids = [r["task_id"] for r in pq.read_table(
+        os.environ["GRPO_TRAIN_FILE"], columns=["extra_info"]
+    ).to_pydict()["extra_info"]]
+    batch_size = int(config.data.get("gen_batch_size") or config.data.train_batch_size)
+    sampler = StratifiedTaskSampler(task_ids, sampling, batch_size=batch_size)
+    sampler.schedule(0)
+    print("GRPO task sampling preflight passed: " + json.dumps(sampler.summary(), ensure_ascii=False))
+
+
 def main():
     config = compose_runtime_config(sys.argv[1:])
     if os.environ.get("SHOPPING_LENGTH_SHAPING_ENABLE", "false").lower() in {"true", "1"}:
@@ -454,6 +471,7 @@ def main():
         raise SystemExit("missing GRPO parquet file(s): " + ", ".join(missing))
     validate_training_memory_budget(config)
     validate_fsdp2_config(config)
+    validate_task_sampling(config)
     validate_trace(config)
 
     if sys.version_info[:2] != (3, 12):
@@ -507,6 +525,10 @@ def main():
     validate_dynamic_sampling(config, verl_source, installed)
     validate_swanlab_tracking(config)
     install_torch_padding_fallback()
+    if config.get("shopping_task_sampling", {}).get("enable", False):
+        from verl.trainer.ppo.ray_trainer import RayPPOTrainer
+        if not getattr(RayPPOTrainer._create_dataloader, "_shopping_task_sampling", False):
+            raise SystemExit("selected training task sampler hook is not installed")
     print(
         "GRPO runtime preflight passed: "
         + ", ".join(f"{name}={value}" for name, value in installed.items())

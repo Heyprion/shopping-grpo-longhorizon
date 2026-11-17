@@ -1,184 +1,268 @@
 # GRPO with veRL
 
-## Purpose
+SFT provides the initial policy; GRPO optimizes fresh ShopSimulator trajectories.
+The runtime is Environment v2.1, observation/tool schema v2, and Strict Reward
+`r_type * r_att * r_option * r_price`. The data boundaries and selected recipe
+in [AGENTS.md](../AGENTS.md) and [the data plan](data-plan.md) take precedence over
+bare YAML defaults.
 
-SFT teaches the action format and a strong initial policy. GRPO then samples
-fresh trajectories in ShopSimulator and optimizes the terminal Strict Reward signal.
-The goal is to improve constraint satisfaction and termination behavior without
-requiring a learned reward model.
+## Train and evaluate
 
-## Integration boundary
-
-veRL is installed from the pinned `verl==0.8.0` package. This repository does
-not vendor the veRL source tree. Project-owned integration code lives in:
-
-```text
-src/shopping_grpo/training/grpo/
-  adapter/              AgentLoop and ShopSimulator tools
-  compat.py             narrow runtime compatibility hook
-  dynamic_sampling.py   bounded non-zero-reward sampling
-  fused_output.py       per-sequence layout for the fused output head
-  validation.py         strict Strict Reward validation diagnostics
-```
-
-`scripts/setup.sh` applies one SHA-256-checked patch needed to connect the
-bounded dynamic sampler to veRL 0.8.0. Setup fails rather than patching an
-unknown veRL version.
-
-## Inputs
-
-- Initial policy: `outputs/models/sft-merged`
-- Train set: `data/grpo/train.parquet` (1,000 tasks)
-- Validation set: `data/grpo/validation.parquet` (50 tasks)
-- Environment: ShopSimulator Environment v2.1
-- Reward: Strict Reward
-
-Hashes are recorded in [`data/grpo/metadata.json`](../data/grpo/metadata.json).
-
-## Run
-
-Inspect the resolved command first:
+Run from the repository root in the training terminal. Inspect the complete
+resolved configuration first:
 
 ```bash
 bash scripts/grpo.sh --dry-run
 ```
 
-Train:
+Start the full workflow:
 
 ```bash
 bash scripts/grpo.sh
 ```
 
-Important defaults:
+The launcher performs these steps automatically:
+
+1. Verify the frozen split artifacts, final SFT ownership, RL Parquet files and
+   held-out isolation using `prepare_data_splits.py verify`. Verify that the
+   initial merged model comes from the validation-best completed SFT adapter.
+2. Start its own ShopSimulator service with 64 slots on port 15705. Every
+   environment process and Ray worker receives the canonical
+   `data/cleaned/task_budgets.jsonl` path.
+3. Run configuration C (temperature/top-p 1.0/1.0, top-k -1) and the selected two-GPU recipe from
+   `outputs/models/sft-stage1-v1-best-merged`, with a new rank-16/alpha-32 LoRA.
+   The low-level trainer checks installed runtime versions before loading weights.
+4. After 500 consecutive effective updates, select the saved checkpoint with
+   the highest `val-core/shopsimulator/acc/mean@1` on the fixed 50 validation tasks;
+   ties select the earlier step. Initial step-0 SFT validation is a reference,
+   not a saved RL candidate. All ten scheduled checkpoints are retained.
+5. Export that actor's FSDP shards. veRL exports frozen base weights and an
+   RL `lora_adapter` separately, so merge the adapter into the exported base
+   before starting the model server on port 18005.
+6. Run the fixed 200-task evaluation once, then generate the HTML report and
+   `final_report.json`. Test results do not select checkpoints or tune parameters.
+
+The launcher stops if training fails, updates or validation records are incomplete,
+checkpoints are missing, or data change during training. It closes the services
+it started on completion, failure or interruption. It does not stop other jobs.
+The dry run performs read-only validation and configuration composition; it does
+not start services, Ray, training, model export or evaluation.
+
+Existing nonempty output directories are rejected. To run a separate experiment,
+choose a new name; the merged model, log and evaluation names follow it:
+
+```bash
+bash scripts/grpo.sh --output outputs/models/grpo-stage1-v2-config-c-cp20-02
+```
+
+Use `--environment-port` and `--llm-port` if the default ports are occupied.
+`CUDA_VISIBLE_DEVICES` defaults to `0,1` and must expose two GPUs. The final
+model server uses the first of these GPUs. Launch in a persistent terminal
+session if the remote terminal may disconnect.
+
+## Selected recipe
 
 | Setting | Value |
 |---|---|
-| Algorithm | GRPO |
-| Training backend | FSDP2, one node / two GPUs |
-| FSDP shard group | 2 GPUs, reshard after forward |
-| Rollout tensor parallel size | 1 (two data-parallel replicas) |
-| Rollouts per prompt | 4 |
-| Rollout temperature / top-p | 0.7 / 0.9 |
-| Train / validation batch | 2 / 2 |
-| Policy learning rate | `1e-6` |
-| LoRA rank / alpha | 16 / 32 |
-| Maximum model length | 24,576 |
-| Maximum training steps | 500 |
-| Save / validation frequency | 50 / 50 |
-| KL reward / KL loss | disabled / disabled |
-| Policy entropy measurement | enabled (logging only) |
+| Data | Frozen 1,000-task train pool / 50 validation; fixed 200-task final test |
+| Candidate task sampling | Simple/medium/hard 1:3:6; preserve all nine category marginals |
+| Seed | 42, including vLLM and Ray worker settings |
+| Training | One node, two GPUs, FSDP2, BF16 mixed precision / SDPA |
+| LoRA | Fresh rank 16 / alpha 32, all-linear |
+| Updates / LR / warmup | 500 effective updates / `1e-6` / 15 steps |
+| Task batch / PPO mini batch | 2 / 2 |
+| Group / per-GPU micro batch / accumulation | 4 / 4 / 1; 8 effective trajectories |
+| Actor parameters / optimizer offload | Both disabled |
+| Reshard after forward | Disabled |
+| Recomputed decoder layers | 20 of 24, preserving RNG |
+| Actor fast kernels | FLA convolution, Liger Norm, Triton fused PPO output head |
+| General Liger / padding removal / dynamic batch | Disabled |
+| Rollout | Async vLLM, TP1 × 2 replicas |
+| Rollout memory / max sequences | 0.45 / 8 |
+| Train sampling | Configuration C: temperature 1.0 / top-p 1.0 / top-k -1 |
+| Maximum sequence | 24,576 tokens |
+| GRPO advantage | Group mean subtraction, no standard deviation normalization |
+| PPO clip | 0.2 |
+| KL reward / KL loss / entropy reward | Disabled; entropy diagnostics retained |
+| Validation | Before training, then every 50 updates; batch 50 |
+| Save | Every 50 updates, retain all candidates |
+| Logging | SwanLab online plus console / JSONL diagnostics |
 
-Dynamic sampling can generate at most three batches to find a useful update and
-permits at most ten consecutive skipped updates. These bounds prevent an
-all-equal reward batch from causing an unbounded resampling loop.
+`SHOPPING_GRPO_CHECKPOINTED_LAYERS="20"` and
+`SHOPPING_GRPO_FAST_KERNELS="fla_conv,liger_norm"` are set both in the launcher
+environment and as strings in Ray's `runtime_env.env_vars`. Allocator overrides
+are unset to match the selected RL command. The complete combination's end-to-end
+speed and long-run quality have not yet been measured.
 
-Each run also appends `training_diagnostics.jsonl` under its output directory.
-`generation_batch` records contain every generated rollout, its public tool
-sequence, terminal result, reward breakdown, Guard rejection reasons and group
-keep/drop decision. `optimizer_step` records preserve the scalar veRL metrics,
-including entropy, PPO KL, clip fractions, response lengths and effective-group
-rates. `skipped_update` records make zero-signal attempts visible even though
-they do not advance the optimizer step.
+Bounded dynamic sampling keeps groups with unequal actual rewards, generates at
+most three batches per update attempt, and permits at most ten consecutive
+skipped updates. Skipped attempts do not count toward the 500 effective updates.
+A failure at that bound stops the pipeline without running the final test.
 
-The canonical configuration is [`configs/grpo.yaml`](../configs/grpo.yaml).
-An optional resource configuration keeps the same objective, rank 16 / alpha
-32, learning rate `1e-6`, four rollouts per prompt, and eight trajectories per
-optimizer update. It uses microbatch 2 per GPU, resident actor parameters and
-optimizer state, no resharding after forward, and the Triton fused
-log-probability/entropy head.
-Gradient checkpointing remains enabled. The fused head avoids materializing
-the full sequence-by-vocabulary tensor; it still measures full-vocabulary
-entropy. The project hook preserves each padded sequence's token boundaries
-in veRL 0.8.0's output layout. Padding removal remains disabled.
+## Outputs
 
-An additional optional resource setting uses actor microbatch 4 per GPU and
-`SHOPPING_GRPO_CHECKPOINTED_LAYERS=18`. With two tasks and four rollouts per task,
-the effective batch remains eight and accumulation becomes one. The environment
-setting retains HF recomputation on 18 of 24 decoder layers, preserving RNG for
-dropout; it is applied before FSDP wrapping. Unset it to keep full recomputation.
-It changes memory and computation, not the reward or learning-rate schedule.
-Short trajectories can still use less memory than a longest-context stress run.
+| Artifact | Default path |
+|---|---|
+| Checkpoints and training/validation diagnostics | `outputs/models/grpo-stage1-v2-config-c-cp20/` |
+| Validation selection and all candidate scores | `outputs/models/grpo-stage1-v2-config-c-cp20/model_selection.json` |
+| Exported base and RL adapter | `outputs/models/grpo-stage1-v2-config-c-cp20/best-export/` |
+| Standalone best RL model | `outputs/models/grpo-stage1-v2-config-c-cp20-best-merged/` |
+| Configuration, provenance, training/service/export/evaluation logs | `outputs/logs/grpo-stage1-v2-config-c-cp20/` |
+| Final test trajectories, summary, final report and HTML | `outputs/evaluation/grpo-stage1-v2-config-c-cp20/` |
 
-`SHOPPING_GRPO_FAST_KERNELS=fla_conv` optionally uses the installed FLA Triton
-causal convolution in the actor. It retains the separate BF16 convolution output
-and SiLU rounding boundary, requires `use_remove_padding=false`, and leaves the
-PPO head, RMSNorm, rollout implementation and learning parameters unchanged.
-Unset the variable to use the original PyTorch convolution. General
-`model.use_liger` is independent of this narrower option.
+Training reuses SwanLab project `shopping-grpo`; final testing reuses
+`shopping-grpo-evaluation`. Names use the actual start date and stage, for example
+`YYYY-MM-DD-RL-配置C显存调整` and `YYYY-MM-DD-EVAL-配置C显存调整最佳模型`.
+Strict success requires a complete, valid `gold_purchase` terminal result.
 
-`SHOPPING_GRPO_FAST_KERNELS=fla_conv,liger_norm` additionally enables Liger
-RMSNorm on the actor's Qwen3.5 normalization modules. It uses the installed
-Qwen3.5 adapter's `offset=1.0`, `casting_mode="gemma"`, `in_place=false`
-settings without changing HF classes globally. Keep `model.use_liger=false`
-to select Norm separately from Liger MLP and loss fusion. Pass the same kernel
-selection as a quoted string to Ray's `runtime_env.env_vars` so worker
-processes receive it. Fixed-input Norm-only measurements reduced actor compute
-time by about 11%, with gradient relative L2 differences of 1.37–1.85%; these
-are numerical differences, not measured changes in success rate. Combined
-kernel speed and long-run training quality have not been measured.
+## Integration
 
-This configuration validates all 50 tasks in one batch. veRL pads that to 56 concurrent
-rollouts with eight agent workers, so start the environment with 64 slots:
+The supported dependency is pinned `verl==0.8.0`; the repository does not vendor
+veRL. Project integration lives in `src/shopping_grpo/training/grpo/`. Setup
+applies the SHA-256-checked bounded sampling patch and refuses unknown versions.
+`training_diagnostics.jsonl` records generated groups, skipped attempts and
+optimizer metrics; `validation_diagnostics.jsonl` preserves validation rollouts.
 
-```bash
-SHOPSIM_ENV_SLOTS=64 bash scripts/start_environment.sh
-```
+`scripts/run_grpo_pipeline.py` orchestrates the workflow above through the existing
+`scripts/train_grpo.py`, `scripts/export_grpo.sh`, `scripts/merge_lora_adapter.py`
+and evaluation tools. Advanced Hydra overrides belong to the low-level
+`train_grpo.py` entry point; it only trains and does not manage services or final
+model evaluation. `configs/grpo.yaml` remains the base configuration; the pipeline
+applies the explicitly selected overrides and saves the resolved configuration.
 
-Use the supported launcher and explicitly select the intended merged SFT:
+## Frozen SFT sampling study before RL
+
+Prepare and inspect the bounded study without running models:
 
 ```bash
-.venv/bin/python scripts/train_grpo.py \
-  --model outputs/models/sft-balanced-best-merged \
-  --output outputs/models/grpo-balanced \
-  --logger swanlab --experiment-name grpo-balanced-seed42 -- \
-  data.seed=42 data.val_batch_size=50 data.dataloader_num_workers=0 \
-  +actor_rollout_ref.rollout.engine_kwargs.vllm.seed=42 \
-  actor_rollout_ref.model.use_fused_kernels=true \
-  actor_rollout_ref.model.fused_kernel_options.impl_backend=triton \
-  actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=2 \
-  actor_rollout_ref.actor.fsdp_config.param_offload=false \
-  actor_rollout_ref.actor.fsdp_config.optimizer_offload=false \
-  actor_rollout_ref.actor.fsdp_config.reshard_after_forward=false
+bash scripts/probe_rl_sampling.sh --dry-run
 ```
 
-The launcher uses the existing SwanLab login. Each validation also appends
-`validation_diagnostics.jsonl`; `val-core/shopsimulator/acc/mean@1` requires
-a complete, valid `gold_purchase` terminal result. Validation metrics do not
-change the training reward. Resource short tests cannot establish final
-500-update quality or the maximum safe memory use of every long trajectory.
-
-Both the actor strategy and its engine strategy select `fsdp2`; the reference
-configuration follows the same two-GPU shard group. Run the prerequisite check
-before training:
+Run it in a separate terminal:
 
 ```bash
-.venv/bin/python scripts/check_fsdp2_runtime.py --distributed
+bash scripts/probe_rl_sampling.sh
 ```
 
-GRPO still requires a completed SFT merged model. For curriculum SFT, pass
-`--model outputs/models/sft-curriculum/stage-c/merged` to `scripts/grpo.sh`.
-The default path remains the output of `scripts/sft.sh`.
+The default total wall-clock budget is 90 minutes, including data preflight,
+service/model startup and cleanup. Set `--budget-minutes 60` for a shorter bound;
+values above 120 are rejected. Completed results survive a timeout or interruption.
+The study exits as soon as its planned observations finish; it does not fill the
+remaining time with extra trials.
 
-The environment manifest includes the repository's `d99a0ac` correction removing
-an undefined item-page argument; the runtime hash reflects that committed fix.
-Advanced overrides may be appended after `--`:
+The study freezes `sft-stage1-v1-best-merged` and uses native veRL standalone
+vLLM TP1 × two replicas plus `ShoppingToolAgentLoop`. It never constructs an actor,
+optimizer, new LoRA or model merger. Reward, observations, tools, token budgets
+and prompts match the RL path. All environment processes use canonical task
+budgets. Training resampling remains three batches; the study never changes it.
+
+The fixed seed-42 plan uses only the current 1,000 RL training tasks, never RL
+validation or any held-out test tasks. The task manifests and registry are read
+without allocating or replacing data. The panels are deterministic, have no
+shared instruction groups, and cover all nine domains:
+
+| Phase | Tasks | Sampling | Maximum trajectories |
+|---|---|---|---:|
+| Shared warmup, excluded from analysis | 2 | Group 4 | 8 |
+| Screen | 48: 16 simple / 16 medium / 16 hard | Same tasks under A/B/C, group 4 | 576 |
+| Fresh training-task confirmation | 24: 8 / 8 / 8 | Locked candidate vs A; group 4 | 192 |
+| Conditional fallback | Same 24 confirmation tasks | Only selected setting, native group 8 | 192 |
+
+A/B/C are temperature/top-p `0.7/0.9`, `1.0/0.9`, `1.0/1.0`; top-k stays `-1`.
+Sample-specific streams derive from master seed 42 and task/sample/turn index; the
+same indices match across settings. Settings rotate within matched task pairs
+so initial warmup and run order do not systematically favor an arm. Every task
+is sampled in full; successful trajectories do not stop subsequent samples.
+
+Difficulty mixtures `20/50/30`, `10/40/50`, and `10/30/60` are estimated by
+reweighting the balanced panel, without extra model calls. They represent task
+sampling probabilities and do not replace the frozen 1,000-task list. Selection
+ranks valid reward-varying groups per sampling minute, with an invalid-group ceiling of
+`max(10%, baseline+5 percentage points)`; gains below 5% retain the unchanged
+recipe. These are predeclared diagnostic rules, not claims of optimal RL quality.
+The candidate is locked before confirmation on fresh training tasks. Group 8 is
+only tested when the confirmed effective-group rate is below 50% or its sampling
+throughput is below baseline, and enough time remains according to measured
+sampling cost. It is a fallback, not another full parameter sweep.
+
+Raw Strict Reward differences determine learning signal, including fractional
+scores. Strict gold success is reported separately. Whole-dataset success near
+50% cannot replace per-task success histograms or group reward variance.
+Timeouts and exceptions are recorded as invalid, never relabelled as valid
+zero-reward trajectories.
+
+The maximum is 968 trajectories, including warmup. Outputs are under
+`outputs/pre-rl-sampling/<UTC timestamp>/`: `plan.json`, `panels.json`,
+`resolved_config.json`, `console.log`, `environment.log`, `trajectories.jsonl`,
+`groups.jsonl`, `summary.json`, `report.md` and `recommendation.json`. SwanLab
+reuses `shopping-grpo` with an actual-date `RL-SFT采样诊断` run name. Partial
+matched panels remain visibly incomplete, and small or overlapping confidence
+intervals are labelled inconclusive. Recommendations never start training or
+modify the frozen data/configuration.
+
+Native group-8 sampling timing is reported on the same confirmation task IDs.
+It excludes actor update and weight synchronization. At two tasks per update,
+group 8 means 16 trajectories and accumulation 2 at microbatch 4 per GPU; a
+sampling-rate improvement alone does not establish a full-training speedup.
+
+For the synchronization-fixed 50-update experiment, run:
 
 ```bash
-bash scripts/grpo.sh -- \
-  trainer.total_training_steps=20 \
-  trainer.save_freq=10
+bash scripts/grpo.sh --pilot-steps 50
 ```
 
-## Export
+This uses the current configuration C and the best SFT source, preserving the
+500-step optimizer schedule and 15-step warmup while stopping at 50 effective
+updates. It automatically evaluates the fixed 50-task RL validation set before
+training and after step 50, saves the step-50 checkpoint, and writes success
+rates and per-task gains/losses to
+`outputs/models/grpo-stage1-v3-syncfix-pilot50/validation_report.json`.
+Logs, `resolved_config.json` and `run_contract.json` are under
+`outputs/logs/grpo-stage1-v3-syncfix-pilot50/`. SwanLab remains enabled. This
+mode does not export/merge a model or run the held-out test. Use
+`--pilot-steps 50 --dry-run` to inspect it without starting services or training;
+use `--output` to choose a new directory for a repeat run.
 
-veRL checkpoints are not directly served by the evaluation launcher. Export the
-selected actor:
+To run the batch4 comparison from the same best SFT source:
 
 ```bash
-bash scripts/export_grpo.sh \
-  outputs/models/grpo/global_step_100/actor \
-  outputs/models/grpo-merged
+bash scripts/grpo.sh --pilot-steps 50 --task-batch-size 4
 ```
 
-The reported comparison uses step 100. Select checkpoints using validation
-metrics rather than assuming that the final training step is best.
+This changes training and PPO mini-batches to four tasks: group4, 16 effective
+trajectories, micro4 per GPU and two accumulation passes on two GPUs. All other
+learning settings stay the same. It evaluates the fixed 50-task validation set
+before and after training and saves the checkpoint and `validation_report.json`
+under `outputs/models/grpo-stage1-v3-syncfix-pilot50-batch4/`, with logs under
+`outputs/logs/grpo-stage1-v3-syncfix-pilot50-batch4/`. Existing batch2 results
+are retained. The comparison uses 800 optimized trajectories versus batch2's
+400; compare sample use and elapsed time along with success. Append `--dry-run`
+to validate the command without starting training.
+
+For the learning-rate comparison against the original batch2 pilot:
+
+```bash
+bash scripts/grpo.sh --pilot-steps 50 --learning-rate 3e-6
+```
+
+This starts from the same best SFT source with batch2, group4, micro4,
+accumulation1, 15-step warmup and 50 effective updates (400 optimized
+trajectories). Only the peak learning rate changes to 3e-6. Baseline and final
+validation, the checkpoint and SwanLab logging remain automatic. The report is
+`outputs/models/grpo-stage1-v3-syncfix-pilot50-lr3e-6/validation_report.json`;
+logs use the same name under `outputs/logs/`. It does not resume either prior
+pilot or run the held-out test. Append `--dry-run` for preparation checks.
+
+The configuration-C task sampler is installed through the existing runtime hook
+at the trainer's data-loader boundary. It replaces only the training sampler,
+including the sampler passed by the native TaskRunner. The source 1,000 task IDs
+remain frozen. Each 1,000-draw candidate epoch has 100/300/600
+simple/medium/hard draws and the exact original nine-category counts, fitted
+with joint category/difficulty quotas. Within each cell, task IDs cycle through
+seeded shuffled permutations; instruction duplicates cannot share a candidate
+batch. Both sampler and iterator states are saved by StatefulDataLoader, and
+restore rejects mismatched source membership or weights. Candidate epoch plans
+are logged in `task_sampling_diagnostics.jsonl`; actual generated/used tasks
+remain visible in the training diagnostics. Reward filtering can change the
+mixture of tasks that ultimately reach the optimizer. No split, label, registry,
+validation or test file is rewritten.
