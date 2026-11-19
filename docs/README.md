@@ -1,20 +1,16 @@
-# Documentation
+# 上游历史参考文档（2026 年 11 月前）
 
-Follow the guides in workflow order:
+本目录保留 2026 年 11 月之前上游基线仓库的参考文档、旧研究笔记与早期计划（`plans/`、`research/`、`evaluation.md`、`reward-v3.md` 等）。
 
-1. [Current data plan](data-plan.md) is the authority for completed full-corpus
-   cleaning, materialized source pools, unified SFT collection before later
-   quality screening and splitting, and fixed RL/test selections. The task ledger
-   supports later expansion without reusing selected tasks.
-2. [Task cleaning](task-cleaning.md) explains the two-stage implementation and
-   canonical budgets shared with Strict Reward.
-3. [Data collection](data-collection.md) specifies SFT three-attempt rejection
-   sampling, reward-only acceptance and the 1,000 unsplit-trajectory stop rule.
-4. [SFT](sft.md) trains the first useful shopping agent.
-5. [GRPO](grpo.md) improves that model with online environment reward.
-6. [Evaluation](evaluation.md) compares baseline, SFT and GRPO fairly.
-7. [Strict-Stratified-200 evaluation list](evaluation-dataset.md) documents the
-   fixed test selected from the original eval-tag pool.
+**2026 年 11 月以来我们自己的全部规范、训练指南、正式报告、专题诊断报告与工程摸底报告已统一迁至根目录 [`项目文档/`](../项目文档/README.md)：**
 
-[Strict Reward](reward-strict.md) is the detailed specification shared by collection,
-GRPO and evaluation.
+- [项目文档总索引](../项目文档/README.md)
+- [数据清洗与任务池划分方案](../项目文档/规范与方案/数据清洗与任务池划分方案.md)
+- [全量任务清洗说明](../项目文档/规范与方案/全量任务清洗说明.md)
+- [Strict Reward 奖励规范](../项目文档/规范与方案/Strict_Reward奖励规范.md)
+- [SFT 统一采集方案](../项目文档/规范与方案/SFT统一采集方案.md)
+- [SFT 第一版训练指南](../项目文档/规范与方案/SFT第一版训练指南.md)
+- [GRPO 训练与配置 C 指南](../项目文档/规范与方案/GRPO训练与配置C指南.md)
+- [Strict-Stratified-200 测试集说明](../项目文档/规范与方案/Strict-Stratified-200测试集说明.md)
+- [SwanLab 实验记录与命名规范](../项目文档/规范与方案/SwanLab实验记录与命名规范.md)
+- [SFT 正式第一版训练报告](../项目文档/正式报告/SFT正式第一版训练报告.md)

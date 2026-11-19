@@ -119,8 +119,12 @@ def main():
     import swanlab
 
     swanlab.init(
-        project="shopping-grpo-sft-collection",
+        project="shopping-grpo-longhorizon",
         experiment_name=f"{datetime.now(timezone.utc):%Y-%m-%d}-COLLECT-第一版筛选与划分",
+        group="01-数据清洗与采集",
+        job_type="data",
+        description="执行第一阶段 SFT 长度/合法性筛选并按 seed=42 分层划分正式 889 训练 / 99 验证集。",
+        tags=["DATA", "SFT", "Split"],
         config={
             "policy": VERSION,
             "stage2_applied": False,

@@ -61,8 +61,12 @@ def parse_args():
     parser.add_argument("--observation-generic-token-budget", type=int, default=768)
     parser.add_argument("--observation-search-top-k", type=int, default=20)
     parser.add_argument("--swanlab", action="store_true")
-    parser.add_argument("--swanlab-project", default="shopping-grpo-evaluation")
+    parser.add_argument("--swanlab-project", default="shopping-grpo-longhorizon")
     parser.add_argument("--swanlab-run-name", default="shopping-evaluation")
+    parser.add_argument("--swanlab-group", default="07-GRPO评测")
+    parser.add_argument("--swanlab-job-type", default="eval")
+    parser.add_argument("--swanlab-description", default=None)
+    parser.add_argument("--swanlab-tags", default="EVAL,Strict200")
     return parser.parse_args()
 
 
@@ -133,8 +137,20 @@ def main():
                   for key, value in vars(args).items() if key != "api_key"}
         config.update(expected_tasks=len(tasks), reward_contract="shopsimulator-reward-strict-v1",
                       benchmark_sha256=hashlib.sha256(args.benchmark.read_bytes()).hexdigest())
-        swanlab.init(project=args.swanlab_project, experiment_name=args.swanlab_run_name,
-                     config=config, logdir=str(args.output.parent / "swanlab"))
+        description = args.swanlab_description or (
+            f"模型 {args.model} 在 {len(tasks)} 题 Strict Reward 测试集上的推理评测（T={args.temperature:g}，max_steps={args.max_steps}）。"
+        )
+        tags = [t.strip() for t in (args.swanlab_tags or "").split(",") if t.strip()]
+        swanlab.init(
+            project=args.swanlab_project,
+            experiment_name=args.swanlab_run_name,
+            group=args.swanlab_group,
+            job_type=args.swanlab_job_type,
+            description=description,
+            tags=tags or None,
+            config=config,
+            logdir=str(args.output.parent / "swanlab"),
+        )
     expected_ids = {int(task["task_id"]) for task in tasks}
     completed = {task_id for task_id, _ in completed_task_attempts(args.output, stop_on_truncation=False)
                  if task_id in expected_ids}

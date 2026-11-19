@@ -32,13 +32,18 @@ user explicitly requests execution.
 
 当前自主诊断允许一个显式的16题重复学习对照：`--pilot-steps 50 --learning-rate 3e-6 --focus-tasks <已完成复查的panel.json>`。只从其中 `training_task_ids` 指定的16道原RL训练题重复采样，每批仍为2题、group4；原1000题文件和30题短评测不变。此诊断有意替换1:3:6及自然品类的候选抽样频率，用于检验有效学习样本分散且大多只更新一次的瓶颈；不默认替换正式训练方案。采样器记录真实focus配额与单独fingerprint。
 
-当前短实验的有信号候选配方：`--pilot-steps 50 --learning-rate 3e-5 --adam-beta1 0`，保留batch2、group4、micro4、累积1、warmup15、原1000题及1:3:6抽样，不使用focus16。固定30题短测已观察到2/30→7/30，新增5题、丢失0题；同beta1=0而LR=3e-6的对照为1/30→1/30。最有支持的当前瓶颈是短预算下LoRA更新幅度过小；beta1=0单独未提高短测成功率。完整200题效果、高LR下是否仍需beta1=0和长期稳定性未验证，不直接把该候选替换为正式500步配方。报告及证据在 `outputs/analysis/rl-autonomous-run/report.md` / `results.json`。本轮按用户稳定原因即关机的规则结束，下一次开机后先独立复跑该50步配方，再检查原50题验证集的能力保留。
+当前短实验的有信号候选配方：`--pilot-steps 50 --learning-rate 3e-5 --adam-beta1 0`，保留batch2、group4、micro4、累积1、warmup15、原1000题及1:3:6抽样，不使用focus16。固定30题短测已观察到2/30→7/30，新增5题、丢失0题；同beta1=0而LR=3e-6的对照为1/30→1/30。最有支持的当前瓶颈是短预算下LoRA更新幅度过小；beta1=0单独未提高短测成功率。完整200题效果、高LR下是否仍需beta1=0和长期稳定性未验证，不直接把该候选替换为正式500步配方。报告及证据在 [项目文档/专题诊断报告/08-GRPO自主调参_动量对照与学习率瓶颈定位.md](项目文档/专题诊断报告/08-GRPO自主调参_动量对照与学习率瓶颈定位.md)（原始产物 `outputs/analysis/rl-autonomous-run/`）。本轮按用户稳定原因即关机的规则结束，下一次开机后先独立复跑该50步配方，再检查原50题验证集的能力保留。
 
 用户最新要求自行执行最佳候选配方100步，入口为 `bash scripts/grpo.sh --pilot-steps 100 --learning-rate 3e-5 --adam-beta1 0`。从同一最佳SFT重新训练100次有效更新，其余设置不变，保持500步调度器和warmup15；固定30题在训练前、step50和step100自动评测，并保存50/100步检查点。默认输出 `outputs/models/grpo-stage1-v3-syncfix-pilot100-eval30-lr3e-5-beta0`。`validation_report.json` 明确记录最终step100结果及检查点，另以 `model_selection` 记录最佳检查点，不能将step50最佳成绩冒充step100结果。本次只准备脚本和命令，不由代理启动训练。
 
+## 自研文档目录与 SwanLab 记录约定
+
+- **独家自研文档目录**：2026 年 11 月以来的全部自研规范、训练指南、正式技术报告、专题诊断报告与工程摸底报告统一存放于根目录 [`项目文档/`](项目文档/README.md)（采用中文命名，不包含 11 月前的旧上游文档；旧上游参考仅留存于 `docs/`）。
+- **SwanLab 统一规范**：详见 [SwanLab 实验记录与命名规范](项目文档/规范与方案/SwanLab实验记录与命名规范.md)。所有阶段统一写入唯一项目 **`shopping-grpo-longhorizon`**；使用 `group` 按阶段分组（`01-数据清洗与采集`、`02-基线评测`、`03-SFT训练与调优`、`04-SFT评测`、`05-GRPO工程摸底与排障`、`06-GRPO正式训练`、`07-GRPO评测`），使用 `job_type` 区分训练与推理评测（`train` / `eval` / `data` / `probe`），实验名统一采用 `YYYY-MM-DD-阶段-简明目的`，并附简短中文 `description`。
+
 ## 当前数据方案（启动训练前必读）
 
-统一依据是 [docs/data-plan.md](docs/data-plan.md)，SFT 采集见 [data/sft/README.md](data/sft/README.md) 和 `data/sft/collection_plan.json`。新方案优先于旧数据 README、旧课程方案、旧 SFT 分块和脚本默认值。
+统一依据是 [项目文档/规范与方案/数据清洗与任务池划分方案.md](项目文档/规范与方案/数据清洗与任务池划分方案.md)，SFT 采集见 [data/sft/README.md](data/sft/README.md) 和 `data/sft/collection_plan.json`。新方案优先于旧数据 README、旧课程方案、旧 SFT 分块和脚本默认值。
 
 - **清洗和标签固定**：23,421 条全量任务中 16,741 条通过、6,680 条淘汰。清洗产物在 `data/cleaned/`，逐题标签在 `data/splits/labels.jsonl`；不为本次调整重跑清洗或打标签，不设人工复核队列。
 - **用途边界固定**：SFT 候选总计 5,000 题，RL 训练/验证池为 10,494/300；原始 eval 的 944 题保留测试用途，3 条跨来源重复 train 题封存。各阶段与测试用途隔离，重复指令不跨最终训练/验证。

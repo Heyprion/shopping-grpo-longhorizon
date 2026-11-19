@@ -2,7 +2,7 @@
 
 > This specification describes the superseded reward used to collect existing
 > frozen assets. Since 2026-11-15 the active runtime uses
-> [Strict Reward](reward-strict.md). Do not use the values below for new runs.
+> [Strict Reward](../项目文档/规范与方案/Strict_Reward奖励规范.md). Do not use the values below for new runs.
 
 Reward v3 is a deterministic terminal reward for constraint-aware shopping. It
 scores what the agent actually selected using environment evidence; it does not

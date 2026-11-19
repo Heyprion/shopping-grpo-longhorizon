@@ -39,7 +39,7 @@ bash scripts/sft.sh --balanced --evaluate-after --dry-run
 
 仅 assistant 输出 token 参与 loss，system、用户及工具观察作为上下文。完整序列已按 Student 模板检查；训练预处理如发生额外丢弃会中止。
 
-训练 SwanLab 项目为 `shopping-grpo-sft`，测试项目为 `shopping-grpo-evaluation`。测试不用于选择 epoch 或调整训练参数。测试输出在 `outputs/evaluation/sft-stage1-v1/`，其中 `summary.json` 为指标、`report.html` 为既有报告生成器产物、`final_report.json` 关联最佳模型选择与测试结果。服务日志同目录保存。
+训练与测试统一记录到 SwanLab 唯一项目 `shopping-grpo-longhorizon`（训练分入 `03-SFT训练与调优` / `job_type=train`，测试分入 `04-SFT评测` / `job_type=eval`，并自动写入中文描述，详见 [SwanLab 实验记录与命名规范](SwanLab实验记录与命名规范.md)）。测试不用于选择 epoch 或调整训练参数。测试输出在 `outputs/evaluation/sft-stage1-v1/`，其中 `summary.json` 为指标、`report.html` 为既有报告生成器产物、`final_report.json` 关联最佳模型选择与测试结果。服务日志同目录保存。
 
 训练脚本默认写新目录，拒绝无意覆盖已有 adapter。如训练已经完成、仅自动测试被中断，可以续跑后处理：
 

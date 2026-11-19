@@ -299,8 +299,12 @@ def main():
     import swanlab
 
     swanlab.init(
-        project="shopping-grpo-sft-collection",
+        project="shopping-grpo-longhorizon",
         experiment_name=f"{datetime.now(timezone.utc):%Y-%m-%d}-COLLECT-教师轨迹采集",
+        group="01-数据清洗与采集",
+        job_type="data",
+        description="SFT 统一候选池教师轨迹拒绝采样采集（每题最多3次，Strict Reward==1 首次成功即停，目标1000条分层配额）。",
+        tags=["DATA", "COLLECT", "SFT"],
         config={
             **config,
             "workers": args.workers,

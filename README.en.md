@@ -48,13 +48,13 @@ does not depend on a separately running third-party repository.
 | Stage | What happens | Entry point | Details |
 |---|---|---|---|
 | Baseline | Evaluate the untouched base model | `bash scripts/baseline.sh` | [Evaluation](docs/evaluation.md) |
-| SFT | Learn tool use from accepted teacher trajectories | `bash scripts/sft.sh` | [SFT](docs/sft.md) |
-| GRPO | Optimize terminal Strict Reward with online rollouts | `bash scripts/grpo.sh` | [GRPO](docs/grpo.md) |
+| SFT | Learn tool use from accepted teacher trajectories | `bash scripts/sft.sh` | [SFT](项目文档/规范与方案/SFT第一版训练指南.md) |
+| GRPO | Optimize terminal Strict Reward with online rollouts | `bash scripts/grpo.sh` | [GRPO](项目文档/规范与方案/GRPO训练与配置C指南.md) |
 | Evaluation | Run the curated Final-200 Clean protocol | `bash scripts/evaluate.sh NAME` | [Evaluation](docs/evaluation.md) |
 
 The checked-in SFT data was produced by a separate collection stage documented
-in [Data collection](docs/data-collection.md). The custom constraint-aware
-reward is specified in [Strict Reward](docs/reward-strict.md).
+in [Data collection](项目文档/规范与方案/SFT统一采集方案.md). The custom constraint-aware
+reward is specified in [Strict Reward](项目文档/规范与方案/Strict_Reward奖励规范.md).
 
 ```mermaid
 flowchart LR
@@ -76,7 +76,7 @@ Environment v2.1. It produced 2,498 raw trajectories, of which 1,026 passed the
 strict acceptance filter. This frozen revision uses 1,000 trajectories split
 into 800 training and 200 validation rows. SFT, GRPO and Final-200 Clean task IDs are
 pairwise disjoint. Dataset hashes and the audit are in
-[Data collection](docs/data-collection.md).
+[Data collection](项目文档/规范与方案/SFT统一采集方案.md).
 
 The resumable collection entry point is:
 
@@ -94,12 +94,12 @@ GRPO starts from the merged SFT model. veRL generates four online trajectories
 per prompt in ShopSimulator. The paper's Strict Reward multiplies category,
 attribute, option and price scores. Non-purchase outcomes receive zero; fully
 matching alternatives and gold items both receive one. See
-[Strict Reward](docs/reward-strict.md) for the contract and migration. No additional
+[Strict Reward](项目文档/规范与方案/Strict_Reward奖励规范.md) for the contract and migration. No additional
 LLM-as-a-Judge reward model is used for training.
 
 The repository pins `verl==0.8.0` instead of copying its source. It keeps only
 the project-specific AgentLoop, tool adapter, runtime compatibility code and a
-small SHA-256-checked patch. See the [GRPO guide](docs/grpo.md) for details.
+small SHA-256-checked patch. See the [GRPO guide](项目文档/规范与方案/GRPO训练与配置C指南.md) for details.
 
 ### How evaluation works
 
@@ -140,7 +140,7 @@ deterministic behavior as four separate panels—there is no composite score.
 Failed, missing and not-judged tasks remain in the Final-200 Clean denominator. The
 [evaluation guide](docs/evaluation.md) contains the complete prompts, one
 worked benchmark example, input-isolation rules and aggregation contract. An
-historical static view is available in the [Final-200 Benchmark Dashboard](docs/evaluation-dashboard.html); the current task set is documented in [Final-200 Clean](docs/evaluation-dataset.md).
+historical static view is available in the [Final-200 Benchmark Dashboard](docs/evaluation-dashboard.html); the current task set is documented in [Final-200 Clean](项目文档/规范与方案/Strict-Stratified-200测试集说明.md).
 
 > **Reserved figure — Training and evaluation pipeline.** A full-width diagram
 > showing teacher data collection, LoRA SFT, online GRPO rollouts and the shared
@@ -290,7 +290,7 @@ The launcher starts a 64-slot environment and runs configuration C (temperature/
 for 500 effective updates from `outputs/models/sft-stage1-v1-best-merged`.
 It selects the highest strict success rate on the 50-task validation set
 (earliest checkpoint on ties), merges the RL adapter, then tests that model
-once on the fixed 200 tasks. See [GRPO](docs/grpo.md).
+once on the fixed 200 tasks. See [GRPO](项目文档/规范与方案/GRPO训练与配置C指南.md).
 The actor recomputes 20 of 24 decoder layers and keeps a per-GPU micro batch of 4.
 Checkpoints and the merged best model are saved as `outputs/models/grpo-stage1-v2-config-c-cp20`
 and `grpo-stage1-v2-config-c-cp20-best-merged`; logs and reports are in
@@ -312,7 +312,7 @@ Attribute and option coverage may be fractional. Full gold and alternative
 purchases both receive one; non-purchase terminals receive zero. There are no
 brand/model weights, identity discounts, negative utilities or length penalties.
 Budget extraction and semantic annotation checks remain separate requirements.
-See the [Strict Reward change record](docs/reward-strict.md).
+See the [Strict Reward change record](项目文档/规范与方案/Strict_Reward奖励规范.md).
 
 ## Repository map
 
@@ -322,7 +322,8 @@ data/
   sft/                           800 train + 200 validation trajectories
   grpo/                          ready-to-train JSONL and veRL Parquet
   evaluation/                    curated Final-200 Clean held-out set
-docs/                            one guide for each tutorial stage and Strict Reward
+docs/                            pre-Nov 2026 upstream reference docs
+项目文档/                        post-Nov 2026 project specs, reports, and diagnostics (Chinese)
 environments/ShopSimulator/      embedded environment and product archive
 experiments/
   baseline/                      baseline config and result summary
@@ -355,8 +356,8 @@ Most users only need these environment variables:
 | `SERVED_MODEL_NAME` | `shopping-agent` |
 | `SFT_ADAPTER_DIR` | `outputs/models/sft-lora` |
 | `SFT_PYTHON` | `.venv/bin/python` |
-| `SFT_SWANLAB_PROJECT` | `shopping-grpo-sft` |
-| `SFT_SWANLAB_RUN_NAME` | `sft-single-stage-seed42` |
+| `SFT_SWANLAB_PROJECT` | `shopping-grpo-longhorizon` |
+| `SFT_SWANLAB_RUN_NAME` | `YYYY-MM-DD-SFT-第一版正式训练` |
 
 Advanced Hydra overrides use the lower-level training-only entry point:
 
@@ -366,18 +367,23 @@ Advanced Hydra overrides use the lower-level training-only entry point:
   trainer.save_freq=10
 ```
 
-The pipeline uses the existing SwanLab login, recording training in `shopping-grpo`
-and final evaluation in `shopping-grpo-evaluation`, with names based on the launch date.
+All stages log to the unified SwanLab project `shopping-grpo-longhorizon`, using
+`group` to organize stages, `job_type` (`train` / `eval` / `data` / `probe`) to
+separate training from inference/evaluation, date-prefixed run names, and concise
+Chinese descriptions (see [SwanLab tracking specification](项目文档/规范与方案/SwanLab实验记录与命名规范.md)).
 
 ## Documentation
 
-- [Data collection and dataset provenance](docs/data-collection.md)
-- [LoRA SFT](docs/sft.md)
-- [GRPO with veRL](docs/grpo.md)
+- **[Project documentation index (post-Nov 2026 specs & reports)](项目文档/README.md)**
+- [Data plan and task pool splits](项目文档/规范与方案/数据清洗与任务池划分方案.md)
+- [Data collection and dataset provenance](项目文档/规范与方案/SFT统一采集方案.md)
+- [LoRA SFT](项目文档/规范与方案/SFT第一版训练指南.md)
+- [SFT Stage-1 v1 Training Report](项目文档/正式报告/SFT正式第一版训练报告.md)
+- [GRPO with veRL](项目文档/规范与方案/GRPO训练与配置C指南.md)
+- [SwanLab tracking and naming specification](项目文档/规范与方案/SwanLab实验记录与命名规范.md)
 - [Held-out evaluation](docs/evaluation.md)
-- [Final-200 Clean evaluation dataset](docs/evaluation-dataset.md)
-- [Final-200 Benchmark Dashboard (historical)](docs/evaluation-dashboard.html)
-- [Strict Reward design and migration](docs/reward-strict.md)
+- [Strict-Stratified-200 evaluation dataset](项目文档/规范与方案/Strict-Stratified-200测试集说明.md)
+- [Strict Reward design and migration](项目文档/规范与方案/Strict_Reward奖励规范.md)
 - [Auditable experiment results](experiments/comparison.md)
 
 ## Future improvement plan

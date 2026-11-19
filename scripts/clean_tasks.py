@@ -614,11 +614,20 @@ def main(argv=None):
     write_json(args.output / "warmup.json", warmup)
     tracker = None
     if args.swanlab_mode != "disabled":
+        from datetime import datetime, timezone
+
         import swanlab
 
+        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         tracker = swanlab.init(
-            project="shopping-grpo-data",
-            experiment_name="task-cleaning-full" if args.all else "task-cleaning-pilot",
+            project="shopping-grpo-longhorizon",
+            experiment_name=f"{date_str}-DATA-全量任务清洗" if args.all else f"{date_str}-DATA-任务清洗试跑",
+            group="01-数据清洗与采集",
+            job_type="data",
+            description="全量任务两阶段清洗与规范预算提取（Strict Reward 契约，过滤无效/不可达任务）。"
+            if args.all
+            else "任务清洗小规模试跑与一致性校验。",
+            tags=["DATA", "Cleaning"],
             config=config,
             mode=args.swanlab_mode,
             logdir=str(args.output / "swanlab"),

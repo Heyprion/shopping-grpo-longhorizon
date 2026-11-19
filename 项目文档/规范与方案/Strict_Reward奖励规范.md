@@ -14,8 +14,8 @@ comparison code. The environment reads the frozen annotations through
 `SHOPPING_TASK_BUDGETS`. This fixes divergence from the old language parser when
 using the cleaned pool; changing the four-factor formula alone did not fix it.
 The user explicitly included previous evaluation tasks in this cleaning and
-has now repartitioned the resulting pool. See [the current data plan](data-plan.md)
-and [task cleaning](task-cleaning.md).
+has now repartitioned the resulting pool. See [the current data plan](数据清洗与任务池划分方案.md)
+and [task cleaning](全量任务清洗说明.md).
 
 ```text
 R_strict = r_type × r_att × r_option × r_price ∈ [0, 1]

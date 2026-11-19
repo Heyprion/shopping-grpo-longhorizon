@@ -43,6 +43,10 @@ def parse_args() -> argparse.Namespace:
         default="console",
     )
     parser.add_argument("--experiment-name", default="shopping-agent-grpo")
+    parser.add_argument("--swanlab-group", default=None)
+    parser.add_argument("--swanlab-job-type", default=None)
+    parser.add_argument("--swanlab-description", default=None)
+    parser.add_argument("--swanlab-tags", default=None)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
@@ -118,11 +122,28 @@ def build_command(args: argparse.Namespace) -> tuple[list[str], dict[str, str]]:
         }
     )
     if args.logger == "swanlab":
+        swanlab_group = getattr(args, "swanlab_group", None) or environment.get(
+            "SWANLAB_GROUP", "06-GRPO正式训练"
+        )
+        swanlab_job_type = getattr(args, "swanlab_job_type", None) or environment.get(
+            "SWANLAB_JOB_TYPE", "train"
+        )
+        swanlab_description = getattr(args, "swanlab_description", None) or environment.get(
+            "SWANLAB_DESCRIPTION",
+            f"GRPO 强化学习训练（{args.experiment_name}），基于 {model.name} 在 Strict Reward 下优化。",
+        )
+        swanlab_tags = getattr(args, "swanlab_tags", None) or environment.get(
+            "SWANLAB_TAGS", "GRPO,LoRA,StrictReward"
+        )
         environment.update(
             {
                 "SWANLAB_MODE": "online",
                 "SWANLAB_LOG_DIR": str(output / "swanlab"),
                 "SWANLAB_API_KEY": str(api_key),
+                "SWANLAB_GROUP": str(swanlab_group),
+                "SWANLAB_JOB_TYPE": str(swanlab_job_type),
+                "SWANLAB_DESCRIPTION": str(swanlab_description)[:1024],
+                "SWANLAB_TAGS": str(swanlab_tags),
             }
         )
     logger_override = (
@@ -138,6 +159,12 @@ def build_command(args: argparse.Namespace) -> tuple[list[str], dict[str, str]]:
         "ray_kwargs.ray_init.runtime_env.env_vars.SHOPPING_TASK_BUDGETS="
         + json.dumps(environment["SHOPPING_TASK_BUDGETS"]),
     ]
+    if args.logger == "swanlab":
+        for key in ("SWANLAB_GROUP", "SWANLAB_JOB_TYPE", "SWANLAB_DESCRIPTION", "SWANLAB_TAGS"):
+            overrides.append(
+                f"+ray_kwargs.ray_init.runtime_env.env_vars.{key}="
+                + json.dumps(environment[key], ensure_ascii=False)
+            )
     extra = list(args.hydra_overrides)
     if extra[:1] == ["--"]:
         extra = extra[1:]

@@ -319,7 +319,7 @@ async def initialize_sampler(config):
     # Construct only tokenizer/processor metadata locally; no actor or optimizer exists.
     model = omega_conf_to_dataclass(config.actor_rollout_ref.model)
     tools = load_all_tools(str(ROOT / "configs/tools.json"), None)
-    RolloutTraceConfig.init("shopping-grpo", "frozen-sft-sampling", backend=None)
+    RolloutTraceConfig.init("shopping-grpo-longhorizon", "frozen-sft-sampling", backend=None)
     return NativeSampler(config, servers.get_client(), model, tools)
 
 
@@ -347,10 +347,14 @@ async def study_worker(args):
         for r in pq.read_table(ROOT / "data/grpo/train.parquet").to_pylist()
     }
     deadline = float(os.environ["SHOPPING_STUDY_DEADLINE_UNIX"]) - 45
-    name = datetime.now(timezone.utc).strftime("%Y-%m-%d") + "-RL-SFT采样诊断-" + output.name
+    name = datetime.now(timezone.utc).strftime("%Y-%m-%d") + "-PROBE-RL前SFT采样诊断-" + output.name
     swanlab.init(
-        project="shopping-grpo",
+        project="shopping-grpo-longhorizon",
         experiment_name=name,
+        group="05-GRPO工程摸底与排障",
+        job_type="probe",
+        description="冻结第一版 SFT 模型，在 RL 候选题上实测不同温度与采样配置下的奖励方差和有效信号率。",
+        tags=["PROBE", "GRPO", "Sampling"],
         config=plan,
         logdir=str(output / "swanlab"),
         mode="online",

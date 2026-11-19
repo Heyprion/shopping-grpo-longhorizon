@@ -112,8 +112,12 @@ def parse_args():
     parser.add_argument("--longest-first", action="store_true", help="资源压力测试：按长度降序读取训练样本")
     parser.add_argument("--profile", action="store_true", help="记录双卡逐步显存/吞吐及监督 token 加权验证指标")
     parser.add_argument("--swanlab", action="store_true", help="启用 SwanLab 训练监控")
-    parser.add_argument("--swanlab-project", default="shopping-grpo", help="SwanLab project 名")
+    parser.add_argument("--swanlab-project", default="shopping-grpo-longhorizon", help="SwanLab project 名")
     parser.add_argument("--swanlab-run-name", default=None, help="SwanLab run 名；默认自动生成")
+    parser.add_argument("--swanlab-group", default="03-SFT训练与调优", help="SwanLab 分组（按阶段归类）")
+    parser.add_argument("--swanlab-job-type", default="train", help="SwanLab 任务类型（train/probe）")
+    parser.add_argument("--swanlab-description", default=None, help="SwanLab 实验简短中文描述")
+    parser.add_argument("--swanlab-tags", default="SFT,LoRA", help="SwanLab 标签（逗号分隔）")
     parser.add_argument(
         "--swanlab-mode",
         choices=("online", "local"),
@@ -622,9 +626,18 @@ def main():
     report_to, run_name = _swanlab_config(args)
     if report_to == "swanlab" and int(os.environ.get("RANK", "0")) == 0:
         import swanlab
+        description = args.swanlab_description or (
+            f"SFT 训练（{args.model}，LoRA r={args.lora_r}/alpha={args.lora_alpha}，"
+            f"LR={args.learning_rate:g}，{args.epochs:g} epoch，seed={args.seed}）。"
+        )
+        tags = [t.strip() for t in (args.swanlab_tags or "").split(",") if t.strip()]
         swanlab.init(
             project=args.swanlab_project,
             name=run_name,
+            group=args.swanlab_group,
+            job_type=args.swanlab_job_type,
+            description=description,
+            tags=tags or None,
             mode=args.swanlab_mode,
             logdir=str(args.output / "swanlab"),
             config={**vars(args), "train_data": train_stats,
@@ -636,7 +649,10 @@ def main():
                     "loss_normalization": "global_assistant_tokens" if args.liger_kernel and is_multimodal
                     else "micro_batch_mean"},
         )
-        print(f"[SwanLab] project={args.swanlab_project} run={run_name}")
+        print(
+            f"[SwanLab] project={args.swanlab_project} group={args.swanlab_group} "
+            f"job_type={args.swanlab_job_type} run={run_name}"
+        )
     training_args = TrainingArguments(
         output_dir=str(args.output),
         num_train_epochs=args.epochs,

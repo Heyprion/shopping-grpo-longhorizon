@@ -87,6 +87,16 @@ def prepare(args, environment_port, llm_port):
         "LLM_MAX_NUM_SEQS": "8",
         "LLM_GPU_MEMORY_UTILIZATION": "0.6",
         "EVAL_OUTPUT_DIR": str(args.output_dir),
+        "EVAL_SWANLAB_PROJECT": "shopping-grpo-longhorizon",
+        "EVAL_SWANLAB_GROUP": "02-基线评测",
+        "EVAL_SWANLAB_JOB_TYPE": "eval",
+        "EVAL_SWANLAB_RUN_NAME": (
+            f"{datetime.now(timezone.utc):%Y-%m-%d}-BASE-Qwen3.5-{args.model_size.upper()}同条件200题评测"
+        ),
+        "EVAL_SWANLAB_DESCRIPTION": (
+            f"官方基座 Qwen3.5-{args.model_size.upper()}（TP=2，关闭thinking，T=0）在固定 200 题 Strict-Stratified-200 上的零样本基线评测。"
+        ),
+        "EVAL_SWANLAB_TAGS": f"BASE,EVAL,Qwen3.5-{args.model_size.upper()},Strict200",
     }
     commands = [
         ["bash", "scripts/start_environment.sh"],

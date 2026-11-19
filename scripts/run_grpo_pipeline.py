@@ -86,7 +86,7 @@ OVERRIDES = [
     "trainer.val_before_train=true",
     "trainer.max_actor_ckpt_to_keep=null",
     "trainer.resume_mode=disable",
-    "trainer.project_name=shopping-grpo",
+    "trainer.project_name=shopping-grpo-longhorizon",
 ]
 
 
@@ -520,6 +520,33 @@ def prepare(args):
         experiment = f"-RL-{args.resume_step}至{args.stop_at_step}步续训"
         if args.continuation_pilot:
             experiment += "-" + args.continuation_pilot
+    is_probe_pilot = bool(
+        (args.pilot_steps and args.pilot_steps < 100)
+        or args.focus_tasks
+        or args.continuation_pilot
+    )
+    swanlab_group = "05-GRPO工程摸底与排障" if is_probe_pilot else "06-GRPO正式训练"
+    if args.resume_from:
+        pilot_note = f"，专项对照={args.continuation_pilot}" if args.continuation_pilot else ""
+        swanlab_description = (
+            f"GRPO 续训（step {args.resume_step}→{args.stop_at_step}{pilot_note}），"
+            f"沿用来源检查点与调度计划，在 Strict Reward 下继续优化。"
+        )
+    elif args.pilot_steps:
+        focus_note = "，focus16 重复采样" if args.focus_tasks else ""
+        swanlab_description = (
+            f"GRPO {args.pilot_steps} 步实验（batch={args.task_batch_size}，group=4，"
+            f"LR={args.learning_rate:g}，beta1={args.adam_beta1:g}{focus_note}），"
+            f"配固定 30 道 SFT 错题短测。"
+        )
+    else:
+        swanlab_description = (
+            f"GRPO 配置 C 正式训练（500 步，batch={args.task_batch_size}，group=4，"
+            f"LR={args.learning_rate:g}，beta1={args.adam_beta1:g}，Strict Reward）。"
+        )
+    swanlab_tags = "GRPO,LoRA,StrictReward"
+    if args.continuation_pilot:
+        swanlab_tags += f",{args.continuation_pilot}"
     train_args = argparse.Namespace(
         model=DEFAULT_MODEL,
         train_data=ROOT / "data/grpo/train.parquet",
@@ -529,6 +556,10 @@ def prepare(args):
         logger="swanlab",
         config=ROOT / "configs/grpo.yaml",
         experiment_name=datetime.now(timezone.utc).strftime("%Y-%m-%d") + experiment,
+        swanlab_group=swanlab_group,
+        swanlab_job_type="train",
+        swanlab_description=swanlab_description,
+        swanlab_tags=swanlab_tags,
         hydra_overrides=overrides,
     )
     # Compose under exactly the environment that the trainer and Ray will receive.
@@ -584,6 +615,14 @@ def prepare(args):
         "swanlab",
         "--experiment-name",
         train_args.experiment_name,
+        "--swanlab-group",
+        train_args.swanlab_group,
+        "--swanlab-job-type",
+        train_args.swanlab_job_type,
+        "--swanlab-description",
+        train_args.swanlab_description,
+        "--swanlab-tags",
+        train_args.swanlab_tags,
         "--",
         *overrides,
     ]
@@ -853,7 +892,11 @@ def evaluate_merged(args, merged, environment, env, stack, label):
         "SERVED_MODEL_NAME": serving["SERVED_MODEL_NAME"],
         "LLM_API_KEY": "EMPTY",
         "EVAL_OUTPUT_DIR": str(args.evaluation),
-        "EVAL_SWANLAB_PROJECT": "shopping-grpo-evaluation",
+        "EVAL_SWANLAB_PROJECT": "shopping-grpo-longhorizon",
+        "EVAL_SWANLAB_GROUP": "07-GRPO评测",
+        "EVAL_SWANLAB_JOB_TYPE": "eval",
+        "EVAL_SWANLAB_DESCRIPTION": f"GRPO 检查点（{label}）固定 200 题 Strict-Stratified-200 正式评测（T=0，max_steps=35）。",
+        "EVAL_SWANLAB_TAGS": "EVAL,GRPO,Strict200",
     }
     name = datetime.now(timezone.utc).strftime("%Y-%m-%d") + "-EVAL-" + label
     run_logged(

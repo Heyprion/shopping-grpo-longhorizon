@@ -39,8 +39,15 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     state_path = output / "search_results.json"
     state = json.loads(state_path.read_text()) if state_path.exists() else {"runs": {}}
+    from datetime import datetime, timezone
+
     import swanlab
-    swanlab.init(project="shopping-grpo-sft-grid", experiment_name=f"search-{args.phase}",
+
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    swanlab.init(project="shopping-grpo-longhorizon", experiment_name=f"{date_str}-PROBE-SFT网格搜索-{args.phase}",
+                 group="03-SFT训练与调优", job_type="probe",
+                 description=f"SFT 双卡 FSDP2 参数与吞吐网格搜索汇总（phase={args.phase}）。",
+                 tags=["PROBE", "SFT", "Grid"],
                  config={"revision": args.revision, "lr_grid": [5e-5, 1e-4, 1.5e-4],
                          "effective_batch_grid": [8, 16], "epochs": 3,
                          "train": "data/sft/train.jsonl", "validation": "data/sft/validation.jsonl"},
@@ -68,7 +75,10 @@ def main():
                    "--per-device-train-batch-size", str(batch), "--gradient-accumulation-steps", str(accumulation),
                    "--learning-rate", str(lr), "--epochs", "3", "--seed", str(seed),
                    "--preprocessing-cache", str(output / "cache"), "--logging-steps", "1",
-                   "--swanlab", "--swanlab-project", "shopping-grpo-sft-grid", "--swanlab-run-name", name]
+                   "--swanlab", "--swanlab-project", "shopping-grpo-longhorizon",
+                   "--swanlab-group", "03-SFT训练与调优", "--swanlab-job-type", "probe",
+                   "--swanlab-description", f"SFT 网格搜索子实验：{name}（batch={batch}，accum={accumulation}，LR={lr:g}，liger={liger}）。",
+                   "--swanlab-run-name", f"{date_str}-PROBE-SFT-{name}"]
         if liger:
             command.append("--liger-kernel")
         if profile:

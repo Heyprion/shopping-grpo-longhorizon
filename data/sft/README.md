@@ -34,7 +34,7 @@
 
 统一采集入口已接入本计划。此前采用单次输出上限 2,048 tokens 的采集已暂停，记录保留在 `outputs/sft-unified-collection/`；该批次没有保存 API 截断原因，需另行审计。当前 64K 批次已完成 1,000 道不同任务的成功轨迹采集，难度 300/500/200、联合配额全部满足。第一阶段筛选和正式 889/99 划分均已执行，训练入口已核验新名单；**尚未启动训练、合并或 200 题测试**。
 
-当前 `train.jsonl`、`validation.jsonl`、`metadata.json` 已替换为本次正式数据，旧版本可在 `outputs/sft-stage1-v1/previous/` 找到。旧 `train_tasks.jsonl` / `validation_tasks.jsonl` 保留来源；本次正式任务名单为 `final_train_tasks.jsonl` / `final_validation_tasks.jsonl`。RL 和测试名单保持原样。详细说明见 [数据方案](../../docs/data-plan.md)。
+当前 `train.jsonl`、`validation.jsonl`、`metadata.json` 已替换为本次正式数据，旧版本可在 `outputs/sft-stage1-v1/previous/` 找到。旧 `train_tasks.jsonl` / `validation_tasks.jsonl` 保留来源；本次正式任务名单为 `final_train_tasks.jsonl` / `final_validation_tasks.jsonl`。RL 和测试名单保持原样。详细说明见 [数据方案](../../项目文档/规范与方案/数据清洗与任务池划分方案.md)。
 
 ## 统一采集入口
 
@@ -52,7 +52,7 @@
 
 当前审计按 Student 实际训练格式计算完整序列长度：复用 `build_sft_row` 去除教师私有思考与守卫拒绝消息，再使用固定 revision 的 Qwen3.5-2B processor/chat template，阈值为 24,576 tokens。1,000 条中 11 条超长，2 条存在实际规格动作与结构化页面选项的空格不一致，其中 1 条也超长；第一阶段建议排除并集为 12 条，预览剩余 988 条（simple/medium/hard=300/496/192）。该第一阶段规则现已应用，正式保留 988 条并完成 889/99 划分。
 
-原始 344 条含守卫拒绝，99 条含重复同状态动作的诊断信号，均不能直接作为整条删除标准：守卫错误会在格式化时移除，重复动作多为重开商品后恢复规格。第二阶段建议检查动作是否带来新信息或必要状态变化、购买依据是否可见，并保留有用的搜索、比较和翻页技能。详见[数据方案](../../docs/data-plan.md)与[审计报告](../../outputs/sft-quality-audit/report.md)。
+原始 344 条含守卫拒绝，99 条含重复同状态动作的诊断信号，均不能直接作为整条删除标准：守卫错误会在格式化时移除，重复动作多为重开商品后恢复规格。第二阶段建议检查动作是否带来新信息或必要状态变化、购买依据是否可见，并保留有用的搜索、比较和翻页技能。详见[数据方案](../../项目文档/规范与方案/数据清洗与任务池划分方案.md)与[审计报告](../../项目文档/专题诊断报告/01-SFT教师轨迹质量审计报告.md)。
 
 ## 正式数据与训练
 
@@ -63,4 +63,4 @@
 
 训练/验证难度分别为 simple/medium/hard=270/446/173 与 30/50/19。划分同时保持品类自然边际及重复指令组隔离。第二阶段诊断标记不影响本版成员。
 
-执行 `bash scripts/sft.sh --balanced --evaluate-after`，自动训练三轮、每轮验证、加载最低验证加权 NLL 的模型、合并并运行固定 200 题测试。详细路径与恢复方式见[训练说明](../../docs/sft.md)。
+执行 `bash scripts/sft.sh --balanced --evaluate-after`，自动训练三轮、每轮验证、加载最低验证加权 NLL 的模型、合并并运行固定 200 题测试。详细路径与恢复方式见[训练说明](../../项目文档/规范与方案/SFT第一版训练指南.md)。

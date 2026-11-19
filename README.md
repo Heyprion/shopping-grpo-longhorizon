@@ -65,8 +65,8 @@ flowchart LR
 | 阶段 | 目标 | 入口 | 详细文档 |
 |---|---|---|---|
 | Baseline | 测量原始 Qwen3.5-2B 的工具使用能力 | `bash scripts/baseline.sh` | [评估](docs/evaluation.md) |
-| SFT | 从高质量教师轨迹学习合法、完整的购物行为 | `bash scripts/sft.sh` | [SFT](docs/sft.md) |
-| GRPO | 在真实环境 Rollout 中优化 Strict Reward | `bash scripts/grpo.sh` | [GRPO](docs/grpo.md) |
+| SFT | 从高质量教师轨迹学习合法、完整的购物行为 | `bash scripts/sft.sh` | [SFT](项目文档/规范与方案/SFT第一版训练指南.md) |
+| GRPO | 在真实环境 Rollout 中优化 Strict Reward | `bash scripts/grpo.sh` | [GRPO](项目文档/规范与方案/GRPO训练与配置C指南.md) |
 | Evaluation | 使用同一批 Final-200 Clean 留出任务公平比较模型 | `bash scripts/evaluate.sh NAME` | [评估](docs/evaluation.md) |
 
 ### SFT 数据是怎么收集的？
@@ -92,19 +92,19 @@ python scripts/collect_sft_data.py \
 
 SFT 只在 Assistant 动作 token 上计算 Loss，用户指令和环境 Observation 会被
 Mask。这样模型学习的是可执行的工具策略，而不是背诵环境返回内容。数据哈希、接受率
-和采集审计见[数据采集文档](docs/data-collection.md)。
+和采集审计见[数据采集文档](项目文档/规范与方案/SFT统一采集方案.md)。
 
 ### GRPO 是怎么训练的？
 
 GRPO 从合并后的 SFT 模型开始。veRL 在 ShopSimulator 中为每个 Prompt 在线生成
 四条轨迹，环境采用论文的 Strict Reward：品类、属性、规格、价格四项相乘。
 未购买、超步数和循环终止均得 0，不叠加奖惩；完整替代商品与 gold 商品满足相同四项时
-都得 1。具体定义和此次变更见 [Strict Reward](docs/reward-strict.md)。
+都得 1。具体定义和此次变更见 [Strict Reward](项目文档/规范与方案/Strict_Reward奖励规范.md)。
 训练不使用额外的 LLM-as-a-Judge Reward Model。
 
 本仓库没有复制 veRL 源码，而是固定安装 `verl==0.8.0`，并保留项目自己的
 AgentLoop、工具适配层、运行时兼容代码和一个带 SHA-256 校验的小补丁。详细配置见
-[GRPO 文档](docs/grpo.md)。
+[GRPO 文档](项目文档/规范与方案/GRPO训练与配置C指南.md)。
 
 ### 评估流水线是怎么设计的？
 
@@ -155,7 +155,7 @@ Pro 看不到 Reward 分数、Gold 商品私有字段、raw Observation、成功
 四部分不会合成一个总分。缺失、报错和 `not_judged` 任务仍保留在 Final-200 Clean 分母中。
 完整数据流、两个模型的完整 Prompt、输入隔离规则、示例 Rubric 和最终统计口径见
 [评估流水线文档](docs/evaluation.md)。当前集的筛选依据见
-[Final-200 Clean 说明](docs/evaluation-dataset.md)；[Final-200 Dashboard（历史）](docs/evaluation-dashboard.html)
+[Final-200 Clean 说明](项目文档/规范与方案/Strict-Stratified-200测试集说明.md)；[Final-200 Dashboard（历史）](docs/evaluation-dashboard.html)
 只保留为历史归档。
 
 
@@ -227,7 +227,7 @@ SFT 带来了主要能力提升，让模型学会合法工具调用、长程搜�
 双卡通信和参数分片；用 `bash scripts/sft_curriculum.sh --fsdp2 --dry-run`
 预览课程 SFT 命令，去掉 `--dry-run` 才会训练并合并。普通 SFT 入口也支持
 `bash scripts/sft.sh --fsdp2`。GRPO 配置使用单机双卡 FSDP2，仍需先完成 SFT。
-详见 [SFT](docs/sft.md) 和 [GRPO](docs/grpo.md)。
+详见 [SFT](项目文档/规范与方案/SFT第一版训练指南.md) 和 [GRPO](项目文档/规范与方案/GRPO训练与配置C指南.md)。
 
 ## 快速开始
 
@@ -305,7 +305,7 @@ bash scripts/grpo.sh
 
 该入口自动启动 64 槽环境，执行配置 C（temperature/top-p=1.0/1.0，top-k=-1，候选题按 1:3:6 分层抽样）和当前双卡加速配方的 500 次有效更新；
 使用 50 题验证集的 Strict Success 最高点选模，并列取较早步数，
-合并 RL adapter 后仅对最佳模型测试固定 200 题。详见 [GRPO](docs/grpo.md)。
+合并 RL adapter 后仅对最佳模型测试固定 200 题。详见 [GRPO](项目文档/规范与方案/GRPO训练与配置C指南.md)。
 actor 对 24 层中的 20 层启用重算，每卡 micro batch 保持 4。
 模型输出为 `outputs/models/grpo-stage1-v2-config-c-cp20` 和 `grpo-stage1-v2-config-c-cp20-best-merged`，
 日志位于 `outputs/logs/grpo-stage1-v2-config-c-cp20/`，报告位于 `outputs/evaluation/grpo-stage1-v2-config-c-cp20/`。
@@ -338,7 +338,7 @@ R_strict = r_type × r_att × r_option × r_price
 都得 1；未购买、循环和超步数得 0，不再添加品牌/型号权重、替代商品折扣或负奖励。
 
 预算抽取、商品价格缺失及 Query-gold 矛盾仍需单独处理；更换乘法公式不会自动修复这些问题。
-实现、版本迁移及数据清洗影响见 [Strict Reward 变更记录](docs/reward-strict.md)。
+实现、版本迁移及数据清洗影响见 [Strict Reward 变更记录](项目文档/规范与方案/Strict_Reward奖励规范.md)。
 
 ## 仓库结构
 
@@ -348,7 +348,8 @@ data/
   sft/                           800 条训练 + 200 条验证轨迹
   grpo/                          JSONL 与 veRL Parquet 数据
   evaluation/                    Final-200 Clean 留出任务
-docs/                            数据、SFT、GRPO、评估与 Reward 文档
+docs/                            上游历史参考文档（2026-11 前）
+项目文档/                        自研规范、训练指南、正式报告与专题诊断报告（2026-11 起）
 environments/ShopSimulator/      内嵌环境源码和商品数据
 experiments/
   baseline/                      Baseline 配置与结果
@@ -375,8 +376,8 @@ tests/                           核心单元、入口和 Wheel 安装检查
 | `SERVED_MODEL_NAME` | `shopping-agent` |
 | `SFT_ADAPTER_DIR` | `outputs/models/sft-lora` |
 | `SFT_PYTHON` | `.venv/bin/python` |
-| `SFT_SWANLAB_PROJECT` | `shopping-grpo-sft` |
-| `SFT_SWANLAB_RUN_NAME` | `sft-single-stage-seed42` |
+| `SFT_SWANLAB_PROJECT` | `shopping-grpo-longhorizon` |
+| `SFT_SWANLAB_RUN_NAME` | `YYYY-MM-DD-SFT-第一版正式训练` |
 
 底层 GRPO 入口的高级 Hydra 参数可以追加在 `--` 后；该入口只训练：
 
@@ -386,18 +387,20 @@ tests/                           核心单元、入口和 Wheel 安装检查
   trainer.save_freq=10
 ```
 
-一键入口默认使用已登录的 SwanLab，训练复用 `shopping-grpo`，评测复用
-`shopping-grpo-evaluation`。运行名称按实际启动日期生成。
+一键入口默认使用已登录的 SwanLab，所有阶段统一写入唯一项目 `shopping-grpo-longhorizon`，通过 `group` 分阶段、`job_type` 区分训练与评测，并自动生成 `YYYY-MM-DD-阶段-目的` 名称与中文描述（详见 [SwanLab 实验记录与命名规范](项目文档/规范与方案/SwanLab实验记录与命名规范.md)）。
 
 ## 文档导航
 
-- [数据采集与数据来源](docs/data-collection.md)
-- [LoRA SFT](docs/sft.md)
-- [使用 veRL 进行 GRPO](docs/grpo.md)
+- **[项目文档总索引（2026-11 起全部自研文档与报告）](项目文档/README.md)**
+- [数据清洗与任务池划分方案](项目文档/规范与方案/数据清洗与任务池划分方案.md)
+- [数据采集与数据来源](项目文档/规范与方案/SFT统一采集方案.md)
+- [LoRA SFT](项目文档/规范与方案/SFT第一版训练指南.md)
+- [SFT 正式第一版训练报告](项目文档/正式报告/SFT正式第一版训练报告.md)
+- [使用 veRL 进行 GRPO](项目文档/规范与方案/GRPO训练与配置C指南.md)
+- [SwanLab 实验记录与命名规范](项目文档/规范与方案/SwanLab实验记录与命名规范.md)
 - [留出集评估](docs/evaluation.md)
-- [Final-200 Clean 测试集说明](docs/evaluation-dataset.md)
-- [Final-200 Benchmark Dashboard（历史）](docs/evaluation-dashboard.html)
-- [Strict Reward 设计与变更记录](docs/reward-strict.md)
+- [Strict-Stratified-200 测试集说明](项目文档/规范与方案/Strict-Stratified-200测试集说明.md)
+- [Strict Reward 设计与变更记录](项目文档/规范与方案/Strict_Reward奖励规范.md)
 - [可审计实验结果](experiments/comparison.md)
 
 ## 后续改进计划

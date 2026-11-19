@@ -1,6 +1,6 @@
 # Evaluation：从一条 Benchmark Test 到最终比较
 
-当前正式分母为 [Final-200 Clean](evaluation-dataset.md)。旧的
+当前正式分母为 [Final-200 Clean](../项目文档/规范与方案/Strict-Stratified-200测试集说明.md)。旧的
 [Final-200 Benchmark Dashboard](evaluation-dashboard.html) 仅保留为历史归档。
 
 本项目的正式评估不是“让一个模型看结果后打一个总分”，而是由代码硬检查、

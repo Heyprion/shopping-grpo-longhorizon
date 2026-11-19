@@ -3,7 +3,7 @@
 SFT provides the initial policy; GRPO optimizes fresh ShopSimulator trajectories.
 The runtime is Environment v2.1, observation/tool schema v2, and Strict Reward
 `r_type * r_att * r_option * r_price`. The data boundaries and selected recipe
-in [AGENTS.md](../AGENTS.md) and [the data plan](data-plan.md) take precedence over
+in [AGENTS.md](../../AGENTS.md) and [the data plan](数据清洗与任务池划分方案.md) take precedence over
 bare YAML defaults.
 
 ## Train and evaluate
@@ -110,8 +110,11 @@ groups, it records `sampling_exhausted` and stops before an optimizer update.
 | Configuration, provenance, training/service/export/evaluation logs | `outputs/logs/grpo-stage1-v2-config-c-cp20/` |
 | Final test trajectories, summary, final report and HTML | `outputs/evaluation/grpo-stage1-v2-config-c-cp20/` |
 
-Training reuses SwanLab project `shopping-grpo`; final testing reuses
-`shopping-grpo-evaluation`. Names use the actual start date and stage, for example
+Training and final testing both log to the unified SwanLab project
+`shopping-grpo-longhorizon`, separated by `group` (`06-GRPO正式训练` /
+`05-GRPO工程摸底与排障` vs `07-GRPO评测`) and `job_type` (`train` vs `eval`),
+with concise Chinese descriptions (see [SwanLab 实验记录与命名规范](SwanLab实验记录与命名规范.md)).
+Names use the actual start date and stage, for example
 `YYYY-MM-DD-RL-配置C显存调整` and `YYYY-MM-DD-EVAL-配置C显存调整最佳模型`.
 Strict success requires a complete, valid `gold_purchase` terminal result.
 

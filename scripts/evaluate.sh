@@ -20,7 +20,11 @@ cd "$ROOT"
   --llm-base-url "$LLM_BASE_URL" \
   --api-key "$LLM_API_KEY" \
   --swanlab \
-  --swanlab-project "${EVAL_SWANLAB_PROJECT:-shopping-grpo-evaluation}" \
-  --swanlab-run-name "$LABEL"
+  --swanlab-project "${EVAL_SWANLAB_PROJECT:-shopping-grpo-longhorizon}" \
+  --swanlab-group "${EVAL_SWANLAB_GROUP:-07-GRPO评测}" \
+  --swanlab-job-type "${EVAL_SWANLAB_JOB_TYPE:-eval}" \
+  --swanlab-tags "${EVAL_SWANLAB_TAGS:-EVAL,Strict200}" \
+  ${EVAL_SWANLAB_DESCRIPTION:+--swanlab-description "$EVAL_SWANLAB_DESCRIPTION"} \
+  --swanlab-run-name "${EVAL_SWANLAB_RUN_NAME:-$LABEL}"
 
 "$ROOT/.venv/bin/python" scripts/build_eval_report.py --run-dir "$OUTPUT_DIR"

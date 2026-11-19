@@ -310,19 +310,27 @@ def validate_swanlab_tracking(config):
     if not log_dir:
         raise SystemExit("Strict Reward GRPO requires SWANLAB_LOG_DIR")
     resolved_log_dir = Path(log_dir).resolve()
-    if str(config.trainer.get("project_name")) != "shopping-grpo":
-        raise SystemExit("Strict Reward GRPO SwanLab project must be shopping-grpo")
+    from shopping_grpo.tracking import DEFAULT_SWANLAB_PROJECT
+
+    if str(config.trainer.get("project_name")) != DEFAULT_SWANLAB_PROJECT:
+        raise SystemExit(
+            f"Strict Reward GRPO SwanLab project must be {DEFAULT_SWANLAB_PROJECT}"
+        )
     print(
         "SwanLab online preflight passed: "
         + json.dumps(
             {
                 "api_key": "present",
+                "description": os.environ.get("SWANLAB_DESCRIPTION") or "",
+                "group": os.environ.get("SWANLAB_GROUP") or "",
+                "job_type": os.environ.get("SWANLAB_JOB_TYPE") or "",
                 "logger": logger_backends,
                 "log_dir": str(resolved_log_dir),
                 "mode": "online",
                 "project": str(config.trainer.project_name),
                 "run_name": str(config.trainer.experiment_name),
             },
+            ensure_ascii=False,
             sort_keys=True,
         )
     )

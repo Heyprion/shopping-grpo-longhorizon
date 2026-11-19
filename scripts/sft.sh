@@ -73,7 +73,10 @@ train=("$sft_python" -m accelerate.commands.launch \
   --seed 42 --logging-steps 1 --save-total-limit 3 --profile \
   --preprocessing-cache "$ROOT/outputs/cache/sft-tokenized" \
   --swanlab --swanlab-mode online \
-  --swanlab-project "${SFT_SWANLAB_PROJECT:-shopping-grpo-sft}" \
+  --swanlab-project "${SFT_SWANLAB_PROJECT:-shopping-grpo-longhorizon}" \
+  --swanlab-group "${SFT_SWANLAB_GROUP:-03-SFT训练与调优}" \
+  --swanlab-job-type "${SFT_SWANLAB_JOB_TYPE:-train}" \
+  --swanlab-description "${SFT_SWANLAB_DESCRIPTION:-Qwen3.5-2B 单阶段 SFT 正式训练（988条Strict Reward合格轨迹，889训练/99验证，双卡FSDP2，LoRA r${lora_r}/a${lora_alpha}，LR=1e-4，3 epoch）。}" \
   --swanlab-run-name "${SFT_SWANLAB_RUN_NAME:-$default_run}" \
   "${extra_args[@]}")
 

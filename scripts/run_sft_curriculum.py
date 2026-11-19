@@ -26,7 +26,7 @@ def build_stage_commands(
     start_stage="a",
     stop_after_stage="c",
     swanlab=False,
-    swanlab_project="shopping-grpo-sft-curriculum",
+    swanlab_project="shopping-grpo-longhorizon",
     qlora=False,
     liger_kernel=False,
     resume_from_checkpoint=None,
@@ -123,7 +123,7 @@ def parse_args():
     parser.add_argument("--stop-after-stage", choices=STAGES, default="c")
     parser.add_argument("--resume-from-checkpoint", type=Path)
     parser.add_argument("--swanlab", action="store_true")
-    parser.add_argument("--swanlab-project", default="shopping-grpo-sft-curriculum")
+    parser.add_argument("--swanlab-project", default="shopping-grpo-longhorizon")
     parser.add_argument("--qlora", action="store_true")
     parser.add_argument("--liger-kernel", action="store_true")
     parser.add_argument("--dry-run", action="store_true")

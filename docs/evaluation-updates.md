@@ -61,7 +61,7 @@
   `d99112a20ef47534c27a32e4b38229bf048dcc6b06fef2e3e919aac3093662f5`。
 - 从 Final-183 保留 119 题，移除 64 道遗留问题题，并补入 81 道新任务；相对原始
   Final-200，一共永久排除 81 个 source task ID，完整清单和补题 ID 见
-  [Final-200 Clean 说明](evaluation-dataset.md)。
+  [Final-200 Clean 说明](../项目文档/规范与方案/Strict-Stratified-200测试集说明.md)。
 - 新发现：原始轨迹审计识别的 17 题之外，还有 60 题的 Query 明确提出价格、但 Reward v3
   没有解析预算；另有 3 题目标价超出已解析预算，1 题的 Query 和 gold 尺寸/花色相互矛盾。
 - 补题方法：在冻结任务池中排除所有当前训练 task ID 后，按被替换题的硬约束数量分层、固定
@@ -79,7 +79,7 @@
 
 - 原始集：Final-200，200 题，SHA-256 `2c4ff070e13ddc30796d38e85170210e7d3c211992425a62090f2419fe8e0208`。
 - 当前集：Final-183，183 题，SHA-256 `0d723a9fcf95d026c79c83b833eec2cb85aa49013da5f661cd1cb581aede773a`。
-- 剔除：17 题，完整 ID 与理由见 [Final-183 说明](evaluation-dataset.md)。
+- 剔除：17 题，完整 ID 与理由见 [Final-183 说明](../项目文档/规范与方案/Strict-Stratified-200测试集说明.md)。
 - 依据：6 题在当前 Reward v3 下严格成功不可达，7 题存在 Query-gold 冲突或隐藏的
   gold 约束，4 题因口语预算被错当成硬上限而使 gold 无解。
 

@@ -12,11 +12,11 @@
 
 | 证据 | 本次使用的记录 |
 |---|---|
-| Base 轨迹与汇总 | [`qwen3.5-2b-strict200-tp2-20261117-145950-492258`](../outputs/evaluation/qwen3.5-2b-strict200-tp2-20261117-145950-492258/)；200 条任务记录（含错误退出） |
-| SFT 轨迹与汇总 | [`sft-stage1-v1`](../outputs/evaluation/sft-stage1-v1/)；200 条任务记录（含错误退出） |
-| 训练记录 | [`train_summary.json`](../outputs/models/sft-stage1-v1-balanced/train_summary.json)、逐步 profile、三个 `validation_epoch_*.json` |
-| 线上监控入口 | [SwanLab 正式 SFT run：`wijfhiq6`](https://swanlab.cn/@WangZIyu/shopping-grpo-sft/runs/wijfhiq6)；本文使用其对应本地日志还原曲线，没有读取网页面板截图 |
-| 难度及来源 | [`labels.jsonl`](../data/splits/labels.jsonl)、[`manifest.json`](../data/splits/manifest.json)、正式 SFT 数据名单 |
+| Base 轨迹与汇总 | [`qwen3.5-2b-strict200-tp2-20261117-145950-492258`](../../outputs/evaluation/qwen3.5-2b-strict200-tp2-20261117-145950-492258/)；200 条任务记录（含错误退出） |
+| SFT 轨迹与汇总 | [`sft-stage1-v1`](../../outputs/evaluation/sft-stage1-v1/)；200 条任务记录（含错误退出） |
+| 训练记录 | [`train_summary.json`](../../outputs/models/sft-stage1-v1-balanced/train_summary.json)、逐步 profile、三个 `validation_epoch_*.json` |
+| 线上监控入口 | [SwanLab 正式 SFT run：`2lf8f9pc`（原本地 run `wijfhiq6`）](https://swanlab.cn/@WangZIyu/shopping-grpo-longhorizon/runs/2lf8f9pc/chart)；本文使用其对应本地日志还原曲线，没有读取网页面板截图 |
+| 难度及来源 | [`labels.jsonl`](../../data/splits/labels.jsonl)、[`manifest.json`](../../data/splits/manifest.json)、正式 SFT 数据名单 |
 
 两组轨迹按 `task_id` 一一配对，均覆盖当前固定测试集的全部 200 题，每题一次 rollout，没有挑选成功重试。测试文件 SHA-256 均为 `e19a03a52d12ecd0635b3227ff11a713b8fe0a271f14c5ccdf07c45bcb2e9913`。两组全部任务的 system prompt 相同；最大步数 35、单次生成上限 512、上下文 24576、temperature=0、top_p=1、观察预算及不压缩上下文的设置一致。
 
@@ -63,7 +63,7 @@ Base 在 **185/200** 题中打开过商品，**180/200** 题的实际可见搜�
 
 ### 2.2 SFT 把哪些环节接起来了
 
-![Base 与 SFT 的交互环节覆盖及剩余失败维度](images/sft-training-report/trajectory_comparison.png)
+![Base 与 SFT 的交互环节覆盖及剩余失败维度](图表/SFT训练报告/trajectory_comparison.png)
 
 *左图统计“至少执行过一次该动作”的任务数，各行分别统计，不表示固定顺序或逐层筛选。右图只看 64 条可验证的非 gold 购买，维度可以重叠。*
 
@@ -209,7 +209,7 @@ SFT 在 simple/medium/hard 上分别成功 **16/21（76.2%）、70/119（58.8%�
 
 ### 3.3 曲线实际是什么样
 
-![真实 SFT 训练曲线](images/sft-training-report/training_curves.png)
+![真实 SFT 训练曲线](图表/SFT训练报告/training_curves.png)
 
 *绿色虚线为最佳已保存检查点第 112 步。训练 loss 展示原始值及向后 11 步中位数；验证仅有三个实测点，连接线只帮助阅读，不代表轮内有连续验证。训练 loss 与验证 NLL 的聚合方式不同，绝对间距不直接解释为泛化差距。*
 
@@ -279,10 +279,10 @@ SFT 在 simple/medium/hard 上分别成功 **16/21（76.2%）、70/119（58.8%�
 
 本文用两幅图、三个成功案例和关键失败证据回答“提升发生在哪里”。所有 200 对任务仍保留在明细里，便于核查，没有给其余轨迹自动生成未经验证的认知归因。
 
-- [全量统计及输入文件 SHA-256](../outputs/analysis/sft-training-report/metrics.json)
-- [Base 逐题指标](../outputs/analysis/sft-training-report/base_tasks.csv)、[SFT 逐题指标](../outputs/analysis/sft-training-report/sft_tasks.csv)、[336 步训练曲线数据](../outputs/analysis/sft-training-report/training_curve.csv)
-- [只读统计脚本](../outputs/analysis/sft-training-report/analyze.py)、[绘图脚本](../outputs/analysis/sft-training-report/plot.py)、[与仓库成功判定的交叉核对](../outputs/analysis/sft-training-report/verification.json)
-- [Base 原始轨迹](../outputs/evaluation/qwen3.5-2b-strict200-tp2-20261117-145950-492258/trajectories.jsonl)、[SFT 原始轨迹](../outputs/evaluation/sft-stage1-v1/trajectories.jsonl)。任务 0 / 135 / 1125 / 730 / 749 / 117 / 1198 分别位于两份 JSONL 的第 170 / 65 / 57 / 29 / 136 / 130 / 46 行。
-- [轨迹图 SVG](images/sft-training-report/trajectory_comparison.svg)、[训练曲线 SVG](images/sft-training-report/training_curves.svg)，便于导出分享；Markdown 中使用同目录 PNG。
+- [全量统计及输入文件 SHA-256](../../outputs/analysis/sft-training-report/metrics.json)
+- [Base 逐题指标](../../outputs/analysis/sft-training-report/base_tasks.csv)、[SFT 逐题指标](../../outputs/analysis/sft-training-report/sft_tasks.csv)、[336 步训练曲线数据](../../outputs/analysis/sft-training-report/training_curve.csv)
+- [只读统计脚本](../../outputs/analysis/sft-training-report/analyze.py)、[绘图脚本](../../outputs/analysis/sft-training-report/plot.py)、[与仓库成功判定的交叉核对](../../outputs/analysis/sft-training-report/verification.json)
+- [Base 原始轨迹](../../outputs/evaluation/qwen3.5-2b-strict200-tp2-20261117-145950-492258/trajectories.jsonl)、[SFT 原始轨迹](../../outputs/evaluation/sft-stage1-v1/trajectories.jsonl)。任务 0 / 135 / 1125 / 730 / 749 / 117 / 1198 分别位于两份 JSONL 的第 170 / 65 / 57 / 29 / 136 / 130 / 46 行。
+- [轨迹图 SVG](图表/SFT训练报告/trajectory_comparison.svg)、[训练曲线 SVG](图表/SFT训练报告/training_curves.svg)，便于导出分享；Markdown 中使用同目录 PNG。
 
 复算统计只读取现有文件，在仓库根目录执行 `.venv/bin/python outputs/analysis/sft-training-report/analyze.py`。绘图脚本需要可用的 Matplotlib。原始曲线数值与图片均为实测记录的确定性派生，不调用外部 Judge。

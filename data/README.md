@@ -1,6 +1,6 @@
 # Data
 
-The current data decisions are in [the data plan](../docs/data-plan.md). Cleaning, complexity labels, SFT-versus-RL/test ownership, and the RL/test selections are fixed. **SFT stage-one-v1 is finalized: 988 formatted trajectories, with 889 training and 99 validation examples (seed 42).** Only the first-stage context/legality filters are applied; stage two is deferred.
+The current data decisions are in [the data plan](../项目文档/规范与方案/数据清洗与任务池划分方案.md). Cleaning, complexity labels, SFT-versus-RL/test ownership, and the RL/test selections are fixed. **SFT stage-one-v1 is finalized: 988 formatted trajectories, with 889 training and 99 validation examples (seed 42).** Only the first-stage context/legality filters are applied; stage two is deferred.
 
 | Purpose | Current source/list | Current target |
 |---|---|---:|

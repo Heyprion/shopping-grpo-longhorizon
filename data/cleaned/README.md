@@ -2,7 +2,7 @@
 
 The authoritative cleaning history, stratification and split plan, and
 provisional SFT/RL quantities and difficulty mixtures are in
-[the current data plan](../../docs/data-plan.md). The passing pool is fixed;
+[the current data plan](../../项目文档/规范与方案/数据清洗与任务池划分方案.md). The passing pool is fixed;
 formal labels and all phase selections are materialized in
 [`../splits/`](../splits/README.md).
 

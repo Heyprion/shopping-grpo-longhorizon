@@ -164,7 +164,9 @@ class TrainLoraSftCliTest(unittest.TestCase):
         self.assertEqual(args.dtype, "auto")
         self.assertFalse(args.bf16)
         self.assertFalse(args.swanlab)
-        self.assertEqual(args.swanlab_project, "shopping-grpo")
+        self.assertEqual(args.swanlab_project, "shopping-grpo-longhorizon")
+        self.assertEqual(args.swanlab_group, "03-SFT训练与调优")
+        self.assertEqual(args.swanlab_job_type, "train")
         self.assertEqual(
             args.curriculum_manifest,
             Path("data/sft_curriculum/manifest.json"),

@@ -6,7 +6,7 @@
 权重、tokenizer、模板和当前测试名单的准备核验见本地
 `outputs/preparation/qwen3.5-4b.json`；准备过程不运行测试任务。
 
-使用当前 [Strict-Stratified-200](evaluation-dataset.md)，不是旧 Final-200 Clean。
+使用当前 [Strict-Stratified-200](Strict-Stratified-200测试集说明.md)，不是旧 Final-200 Clean。
 固定文件 `data/evaluation/tasks.jsonl`，200 道不同任务，难度为 21/119/60，
 SHA-256 为 `e19a03a52d12ecd0635b3227ff11a713b8fe0a271f14c5ccdf07c45bcb2e9913`。
 环境为 ShopSimulator v2.1 / Strict Reward / observation v2 / tools v2。

@@ -284,9 +284,13 @@ def main():
         },
     }
     swanlab.init(
-        project="shopping-grpo-sft-collection",
+        project="shopping-grpo-longhorizon",
         experiment_name=args.run_name
         or f"{datetime.now(timezone.utc):%Y-%m-%d}-COLLECT-教师轨迹质量审计",
+        group="01-数据清洗与采集",
+        job_type="data",
+        description="审计 1,000 条已接受 SFT 教师轨迹的上下文长度、格式合法性与两阶段筛选统计。",
+        tags=["DATA", "SFT", "Audit"],
         config=config,
         mode=args.swanlab_mode,
         logdir=str(args.output / "swanlab"),
