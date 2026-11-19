@@ -11,6 +11,7 @@ from pathlib import Path
 
 from shopping_grpo.collection.stratification import LEVELS, select_tasks
 from shopping_grpo.training.grpo.dynamic_sampling import (
+    MAX_GENERATION_BATCHES,
     extract_shopping_group_signals,
     select_reward_varying_groups,
 )
@@ -38,7 +39,7 @@ PLAN = {
     "mixture_semantics": "task sampling probabilities, not replacements of the frozen 1000-task list",
     "request_seed_derivation": "SHA256(master42, task_id, sample_index, generation_turn)",
     "priority": ["difficulty_mixture", "temperature_top_p", "conditional_group8"],
-    "training_resample_batches_unchanged": 3,
+    "training_resample_batches_unchanged": MAX_GENERATION_BATCHES,
     "warmup_trajectories": 8,
     "maximum_screen_trajectories": 576,
     "maximum_confirmation_trajectories": 192,
@@ -435,7 +436,7 @@ def build_report(output, status):
         "fresh_train_confirmation": confirmation,
         "paired_confirmation": comparison,
         "native_group4_vs_group8": group8,
-        "training_resample_batches": 3,
+        "training_resample_batches": MAX_GENERATION_BATCHES,
         "training_started": False,
         "limitations": [
             "small diagnostic panel, not evidence of RL learning gains",
@@ -454,7 +455,7 @@ def build_report(output, status):
             "settings": SETTINGS.get(selection["setting"]) if selection else None,
             "mixture": MIXTURES.get(selection["mixture"]) if selection else None,
             "group": 4,
-            "resample_batches": 3,
+            "resample_batches": MAX_GENERATION_BATCHES,
             "group8_measured_separately": group8 is not None,
             "group8_candidate_requires_actor_timing": group8,
             "automatic_training": False,

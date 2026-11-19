@@ -52,7 +52,11 @@ class VerlCompatTest(unittest.TestCase):
             with patch("shopping_grpo.training.grpo.compat._seed_runtime") as seeder, \
                 patch("shopping_grpo.training.grpo.compat._install_rollout_wakeup_cache_cleanup"), \
                 patch("shopping_grpo.training.grpo.validation.install_validation_metrics"), \
-                patch("shopping_grpo.training.grpo.fused_output.install_fused_output_layout"):
+                patch("shopping_grpo.training.grpo.fused_output.install_fused_output_layout"), \
+                patch("shopping_grpo.training.grpo.checkpointing.install_selective_checkpointing"), \
+                patch("shopping_grpo.training.grpo.kernel_optimizations.install_actor_fusions"), \
+                patch("shopping_grpo.training.grpo.task_sampling.install_task_sampling"), \
+                patch("shopping_grpo.training.grpo.weight_sync.install_lora_sync_snapshot"):
                 install_torch_padding_fallback()
                 seeder.assert_called_once_with(42)
 
@@ -120,10 +124,11 @@ class VerlCompatTest(unittest.TestCase):
             actor_rollout_ref = SimpleNamespace(actor=SimpleNamespace(
                 optim=SimpleNamespace(total_training_steps=500)))
         trainer = RayPPOTrainer()
-        trainer.config = Config(shopping_pilot={"max_steps": 3})
-        trainer.total_training_steps = 500
-        self.assertEqual(trainer.fit(), 3)
-        self.assertEqual(trainer.total_training_steps, 500)
+        for limit in (3, 50, 100):
+            trainer.config = Config(shopping_pilot={"max_steps": limit})
+            trainer.total_training_steps = 500
+            self.assertEqual(trainer.fit(), limit)
+            self.assertEqual(trainer.total_training_steps, 500)
 
     def test_resource_pilot_skips_validation_and_restores_it(self):
         from types import SimpleNamespace

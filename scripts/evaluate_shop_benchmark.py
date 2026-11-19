@@ -136,13 +136,13 @@ def main():
         swanlab.init(project=args.swanlab_project, experiment_name=args.swanlab_run_name,
                      config=config, logdir=str(args.output.parent / "swanlab"))
     expected_ids = {int(task["task_id"]) for task in tasks}
-    completed = {task_id for task_id, _ in completed_task_attempts(args.output)
+    completed = {task_id for task_id, _ in completed_task_attempts(args.output, stop_on_truncation=False)
                  if task_id in expected_ids}
     started = time.monotonic()
 
     def on_trajectory(trajectory):
         if swanlab_logger is not None:
-            if not _is_infrastructure_failure(trajectory):
+            if not _is_infrastructure_failure(trajectory, stop_on_truncation=False):
                 completed.add(int(trajectory["task_id"]))
             swanlab_logger.log({"eval/completed_tasks": len(completed),
                                 "eval/last_task_id": int(trajectory["task_id"]),
@@ -171,6 +171,7 @@ def main():
         base_url=args.base_url,
         max_steps=args.max_steps,
         on_trajectory=on_trajectory if swanlab_logger is not None else None,
+        stop_on_truncation=False,
     )
     summary = summarize_trajectories(
         [task["task_id"] for task in tasks], _read_jsonl(args.output)

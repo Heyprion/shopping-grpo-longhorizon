@@ -277,7 +277,7 @@ def load_tasks(path):
     return tasks
 
 
-def completed_task_attempts(path):
+def completed_task_attempts(path, *, stop_on_truncation=True):
     path = Path(path)
     if not path.exists():
         return set()
@@ -292,7 +292,7 @@ def completed_task_attempts(path):
                 continue
             if "task_id" in row:
                 attempt = (int(row["task_id"]), int(row.get("attempt_index", 0)))
-                if _is_infrastructure_failure(row):
+                if _is_infrastructure_failure(row, stop_on_truncation=stop_on_truncation):
                     done.discard(attempt)
                 else:
                     done.add(attempt)
@@ -499,11 +499,12 @@ def collect_tasks(
     env_factory=ShopAgentEnv,
     attempts_per_task=1,
     on_trajectory=None,
+    stop_on_truncation=True,
 ):
     attempts_per_task = int(attempts_per_task)
     if attempts_per_task < 1:
         raise ValueError("attempts_per_task must be at least 1")
-    done = completed_task_attempts(output_path)
+    done = completed_task_attempts(output_path, stop_on_truncation=stop_on_truncation)
     written = []
     for task in tasks:
         task_id = int(task["task_id"])
@@ -522,14 +523,14 @@ def collect_tasks(
             written.append(trajectory)
             if on_trajectory is not None:
                 on_trajectory(trajectory)
-            if _is_infrastructure_failure(trajectory):
+            if _is_infrastructure_failure(trajectory, stop_on_truncation=stop_on_truncation):
                 raise CollectionInfrastructureError(
                     "collection infrastructure failure; stopped before the next task"
                 )
     return written
 
 
-def _is_infrastructure_failure(trajectory):
+def _is_infrastructure_failure(trajectory, *, stop_on_truncation=True):
     """环境或模型服务不可用时中断；普通任务失败仍保留并继续。"""
     if trajectory.get("release_error"):
         return True
@@ -539,7 +540,7 @@ def _is_infrastructure_failure(trajectory):
         return True
     if error_type == ShopHttpError.__name__:
         return True
-    if error_type == ModelOutputTruncatedError.__name__:
+    if stop_on_truncation and error_type == ModelOutputTruncatedError.__name__:
         return True
     return (
         error_type == ShopEnvironmentError.__name__

@@ -1,0 +1,66 @@
+{
+  "difficulty_counts": {
+    "hard": 9,
+    "medium": 18,
+    "simple": 3
+  },
+  "files": {
+    "data/grpo/pilot_eval30.jsonl": "c0dd559e3f6f7414798a2eeffd6083e31608abc69f7538c187ba959168e75240",
+    "data/grpo/pilot_eval30.parquet": "19a4abf8303f0bd53b7cd3a2a21198bf0ef56332460078e73d30346f17237af1"
+  },
+  "name": "sft_test_failures30",
+  "purpose": "50-step RL pilot evaluation on 30 SFT test failures, as requested by the user",
+  "reference_sft_strict_success_rate": 0.0,
+  "reference_sft_strict_successes": 0,
+  "reward_contract": "shopsimulator-reward-strict-v1",
+  "seed": 42,
+  "selection_method": "Hamilton difficulty quotas from the complete 200-task test distribution; random.Random(42).sample on sorted failed task IDs in simple/medium/hard order, then shuffle",
+  "sft_failure_pool_difficulty_counts": {
+    "hard": 36,
+    "medium": 49,
+    "simple": 5
+  },
+  "sft_failure_pool_size": 90,
+  "source_sft_summary": "outputs/evaluation/sft-stage1-v1/summary.json",
+  "source_sft_summary_sha256": "cffc1882ec7446bbc6fd4ba6cf2478ae1fe63372df28a2dd61ceab6ece4535de",
+  "source_test_difficulty_counts": {
+    "hard": 60,
+    "medium": 119,
+    "simple": 21
+  },
+  "source_test_tasks": "data/evaluation/tasks.jsonl",
+  "source_test_tasks_sha256": "e19a03a52d12ecd0635b3227ff11a713b8fe0a271f14c5ccdf07c45bcb2e9913",
+  "task_ids": [
+    33,
+    1434,
+    1304,
+    117,
+    1042,
+    1087,
+    1152,
+    1140,
+    1428,
+    1154,
+    154,
+    650,
+    833,
+    824,
+    855,
+    316,
+    893,
+    300,
+    729,
+    1008,
+    485,
+    1071,
+    164,
+    456,
+    1184,
+    141,
+    38,
+    1128,
+    369,
+    924
+  ],
+  "tasks": 30
+}

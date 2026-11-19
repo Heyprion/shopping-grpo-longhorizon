@@ -11,10 +11,30 @@ from shopping_grpo.training.grpo.dynamic_sampling import (
     build_rollout_diagnostics,
     extract_shopping_group_signals,
     select_reward_varying_groups,
+    take_distinct_reward_groups,
 )
 
 
 class RewardGroupSelectionTest(unittest.TestCase):
+    def test_window_carries_an_eligible_group_past_same_instruction(self):
+        groups = [{"kept": True, "indices": [0], "uid": "first"}]
+        instruction_ids = {1: "same", 2: "same", 3: "different"}
+        accepted = set()
+        self.assertEqual(
+            take_distinct_reward_groups(groups, [{"task_id": 1}], instruction_ids, accepted, 2),
+            ["first"],
+        )
+        next_batch = [
+            {"kept": True, "indices": [0], "uid": "duplicate"},
+            {"kept": True, "indices": [1], "uid": "second"},
+        ]
+        self.assertEqual(
+            take_distinct_reward_groups(
+                next_batch, [{"task_id": 2}, {"task_id": 3}], instruction_ids, accepted, 1
+            ),
+            ["second"],
+        )
+
     def test_training_diagnostics_append_public_rollouts_as_jsonl(self):
         rollouts = build_rollout_diagnostics(
             ["task-a", "task-a"],

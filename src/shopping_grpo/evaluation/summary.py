@@ -111,6 +111,7 @@ def summarize_trajectories(expected_task_ids, trajectories):
         "strict_successes": len(strict_successes),
         "strict_success_task_ids": sorted(strict_successes),
         "strict_success_rate": len(strict_successes) / denominator if denominator else 0.0,
+        "full_reward_tasks": sum(full_strict_reward(detail) for detail in reward_details),
         "reward_contract": REWARD_VERSION,
         "reward_version_counts": dict(sorted(reward_version_counts.items())),
         "reward_type_counts": dict(sorted(reward_type_counts.items())),

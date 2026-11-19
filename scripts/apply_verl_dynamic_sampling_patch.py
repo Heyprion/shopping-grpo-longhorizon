@@ -15,9 +15,14 @@ from pathlib import Path
 
 EXPECTED_VERL_VERSION = "0.8.0"
 EXPECTED_ORIGINAL_SHA256 = "de58d295cf86656a28196b0718168d4a11666f3e30957b7e166914496c2a6d66"
-EXPECTED_PATCHED_SHA256 = "684b491e20ba9d41e91d5010186d4d08b01a01fc67f8a77d17c086b0381e00a3"
-SUPERSEDED_PATCHED_SHA256 = "fc3564cc5680a9fa92ca7b0a9bc3ae87ccdc90c498ab1bfe34c6796d6c54fb5a"
-PATCH_MARKER = "SHOPPING_GRPO_DYNAMIC_SAMPLING_PATCH_V3"
+EXPECTED_PATCHED_SHA256 = "d3c721fef3bd2e22539b718ae89e28c5d6f772acba772ddad6da7bb28d0c675c"
+SUPERSEDED_PATCHED_SHA256 = {
+    "acee11cec7882c372ea74ad2212576b003bd8ee878432c0f0affff541acbc037",
+    "fc3564cc5680a9fa92ca7b0a9bc3ae87ccdc90c498ab1bfe34c6796d6c54fb5a",
+    "684b491e20ba9d41e91d5010186d4d08b01a01fc67f8a77d17c086b0381e00a3",
+    "a430160095954f72163aff46840e0447eeaba1c7ffb5b19bdafa67ea6a4f6087",
+}
+PATCH_MARKER = "SHOPPING_GRPO_DYNAMIC_SAMPLING_PATCH_V6"
 BACKUP_SUFFIX = ".shopping-grpo-dynamic-sampling.orig"
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PATCH_FILE = PROJECT_ROOT / "patches/verl-0.8.0-shopping-dynamic-sampling.patch"
@@ -80,7 +85,7 @@ def apply_patch(target: Path) -> None:
         print(f"veRL dynamic-sampling patch already applied: {target}")
         return
     backup = Path(str(target) + BACKUP_SUFFIX)
-    if target_hash == SUPERSEDED_PATCHED_SHA256:
+    if target_hash in SUPERSEDED_PATCHED_SHA256:
         if not backup.is_file() or sha256(backup) != EXPECTED_ORIGINAL_SHA256:
             raise RuntimeError(
                 "cannot upgrade the previous patch without its verified original backup"

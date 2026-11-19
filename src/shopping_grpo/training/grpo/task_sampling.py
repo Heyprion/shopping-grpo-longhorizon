@@ -86,6 +86,16 @@ class StratifiedTaskSampler:
         capacities = [[len(self.task_ids) if n else 0 for n in row] for row in counts]
         self.quotas = bounded_transport(row_totals, col_totals, ideals, capacities=capacities)
         self.epoch = 0
+        self.focus_indices = None
+        focus = config.get("focus_task_ids")
+        if focus is not None:
+            focus = [int(i) for i in focus]
+            lookup = {task_id: i for i, task_id in enumerate(self.task_ids)}
+            if len(focus) != 16 or len(set(focus)) != 16 or not set(focus) <= set(lookup):
+                raise ValueError("focused replay requires 16 distinct frozen RL training tasks")
+            self.focus_indices = [lookup[i] for i in focus]
+            if len({self.rows[i]["group_id"] for i in self.focus_indices}) != 16:
+                raise ValueError("focused replay tasks must have distinct instructions")
         self.diagnostics_path = Path(diagnostics_path) if diagnostics_path else None
         fingerprint = {
             "task_ids_in_dataset_order": self.task_ids,
@@ -96,6 +106,8 @@ class StratifiedTaskSampler:
         }
         if self.batch_size != 2:
             fingerprint["batch_size"] = self.batch_size
+        if self.focus_indices is not None:
+            fingerprint["focus_task_ids"] = focus
         self.fingerprint = hashlib.sha256(
             json.dumps(fingerprint, sort_keys=True).encode()
         ).hexdigest()
@@ -104,7 +116,7 @@ class StratifiedTaskSampler:
         return len(self.task_ids)
 
     def summary(self):
-        return {
+        summary = {
             "version": "shopping-stratified-task-sampler-v1",
             "seed": self.seed,
             "source_unique_tasks": len(self.task_ids),
@@ -122,20 +134,38 @@ class StratifiedTaskSampler:
             "within_batch_instruction_groups_distinct": True,
             "fingerprint": self.fingerprint,
         }
+        if self.focus_indices is not None:
+            draws = [self.rows[i] for i in self.schedule(0)]
+            summary.update({
+                "mode": "focused_replay16",
+                "focus_task_ids": [self.task_ids[i] for i in self.focus_indices],
+                "candidate_difficulty_counts_per_epoch": dict(Counter(r["difficulty"] for r in draws)),
+                "candidate_domain_counts_per_epoch": dict(Counter(r["domain"] for r in draws)),
+                "difficulty_weights": None,
+                "domain_difficulty_counts": None,
+                "preserve_domain_marginal": False,
+            })
+        return summary
 
     def schedule(self, epoch):
         seed = int(hashlib.sha256(f"{self.seed}:task-epoch:{epoch}".encode()).hexdigest()[:16], 16)
         rng = random.Random(seed)
         draws = []
-        for i, domain in enumerate(self.domains):
-            for j, level in enumerate(LEVELS):
-                remaining = self.quotas[i][j]
-                while remaining:
-                    cycle = list(self.cells[domain, level])
-                    rng.shuffle(cycle)
-                    take = min(remaining, len(cycle))
-                    draws.extend(cycle[:take])
-                    remaining -= take
+        if self.focus_indices is not None:
+            while len(draws) < len(self):
+                cycle = list(self.focus_indices)
+                rng.shuffle(cycle)
+                draws.extend(cycle[:len(self) - len(draws)])
+        else:
+            for i, domain in enumerate(self.domains):
+                for j, level in enumerate(LEVELS):
+                    remaining = self.quotas[i][j]
+                    while remaining:
+                        cycle = list(self.cells[domain, level])
+                        rng.shuffle(cycle)
+                        take = min(remaining, len(cycle))
+                        draws.extend(cycle[:take])
+                        remaining -= take
         rng.shuffle(draws)
         if self.batch_size == 4:
             return self._distinct_four_task_batches(draws)

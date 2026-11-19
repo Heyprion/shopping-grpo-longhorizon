@@ -258,7 +258,7 @@ def test_native_configuration_is_standalone_frozen_and_uses_real_weights(monkeyp
     assert cfg.actor_rollout_ref.rollout.nnodes == 1
     assert cfg.actor_rollout_ref.rollout.n_gpus_per_node == 2
     assert cfg.actor_rollout_ref.rollout.tensor_model_parallel_size == 1
-    assert cfg.shopping_dynamic_sampling.max_num_gen_batches == 3
+    assert cfg.shopping_dynamic_sampling.max_num_gen_batches == 30
     assert args.budget_minutes == 90
     from verl.experimental.agent_loop.agent_loop import DictConfigWrap, ToolListWrap
     from verl.workers.rollout.llm_server import LLMServerManager

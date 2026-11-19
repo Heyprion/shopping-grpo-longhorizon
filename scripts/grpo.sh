@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Configuration C; --pilot-steps 50 stops after the fixed validation comparison.
+# Configuration C; batch2, with fixed 30-task SFT-failure evaluation at 50/100 updates.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"

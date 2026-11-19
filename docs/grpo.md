@@ -94,10 +94,10 @@ environment and as strings in Ray's `runtime_env.env_vars`. Allocator overrides
 are unset to match the selected RL command. The complete combination's end-to-end
 speed and long-run quality have not yet been measured.
 
-Bounded dynamic sampling keeps groups with unequal actual rewards, generates at
-most three batches per update attempt, and permits at most ten consecutive
-skipped updates. Skipped attempts do not count toward the 500 effective updates.
-A failure at that bound stops the pipeline without running the final test.
+For each update, dynamic sampling accumulates valid groups with unequal rewards
+and distinct instructions while the rollout policy stays fixed. It samples at
+most 30 generation batches total. If it still cannot assemble the required two
+groups, it records `sampling_exhausted` and stops before an optimizer update.
 
 ## Outputs
 
@@ -154,7 +154,7 @@ The study freezes `sft-stage1-v1-best-merged` and uses native veRL standalone
 vLLM TP1 × two replicas plus `ShoppingToolAgentLoop`. It never constructs an actor,
 optimizer, new LoRA or model merger. Reward, observations, tools, token budgets
 and prompts match the RL path. All environment processes use canonical task
-budgets. Training resampling remains three batches; the study never changes it.
+budgets. The study leaves the training limit of 30 generation batches per update in place.
 
 The fixed seed-42 plan uses only the current 1,000 RL training tasks, never RL
 validation or any held-out test tasks. The task manifests and registry are read
@@ -205,41 +205,38 @@ It excludes actor update and weight synchronization. At two tasks per update,
 group 8 means 16 trajectories and accumulation 2 at microbatch 4 per GPU; a
 sampling-rate improvement alone does not establish a full-training speedup.
 
-For the synchronization-fixed 50-update experiment, run:
+For the synchronization-fixed 50-update experiment, use two tasks per update
+and the fixed 30-task SFT-failure evaluation:
 
 ```bash
 bash scripts/grpo.sh --pilot-steps 50
 ```
 
-This uses the current configuration C and the best SFT source, preserving the
-500-step optimizer schedule and 15-step warmup while stopping at 50 effective
-updates. It automatically evaluates the fixed 50-task RL validation set before
-training and after step 50, saves the step-50 checkpoint, and writes success
-rates and per-task gains/losses to
-`outputs/models/grpo-stage1-v3-syncfix-pilot50/validation_report.json`.
-Logs, `resolved_config.json` and `run_contract.json` are under
-`outputs/logs/grpo-stage1-v3-syncfix-pilot50/`. SwanLab remains enabled. This
-mode does not export/merge a model or run the held-out test. Use
-`--pilot-steps 50 --dry-run` to inspect it without starting services or training;
-use `--output` to choose a new directory for a repeat run.
+This uses configuration C and the best SFT source, preserving the 500-step
+optimizer schedule and 15-step warmup while stopping at 50 effective updates.
+Training and PPO mini-batches stay at two tasks, group4, micro4 per GPU and
+accumulation1: 400 optimized trajectories. Batch4 experiments are no longer used.
 
-To run the batch4 comparison from the same best SFT source:
+The evaluation is fixed in `data/grpo/pilot_eval30.jsonl` and `.parquet`.
+All 30 tasks failed in the saved current SFT test result
+(`outputs/evaluation/sft-stage1-v1/summary.json`): zero strict successes.
+Seed42 selects from those failures with simple/medium/hard quotas 3/18/9,
+matching the complete 200-task test distribution 21/119/60 after rounding.
+Selection metadata is in `data/grpo/pilot_eval30_metadata.json`. The user has
+authorized this test-failure subset for short-experiment feedback; see
+`docs/data-plan.md`. It is only evaluated, never added to gradient training.
 
-```bash
-bash scripts/grpo.sh --pilot-steps 50 --task-batch-size 4
-```
+The pipeline automatically evaluates these same 30 tasks before training and
+after step50, saves the checkpoint, and writes success counts, solved task IDs,
+and gains/losses against the current run's actual baseline to
+`outputs/models/grpo-stage1-v3-syncfix-pilot50-eval30/validation_report.json`.
+It also records the saved SFT reference of 0/30. Logs, `resolved_config.json`
+and `run_contract.json` are under
+`outputs/logs/grpo-stage1-v3-syncfix-pilot50-eval30/`. SwanLab remains enabled.
+Use `--output` for another run. The original 50-task validation and complete
+200-task test files remain available for the full pipeline.
 
-This changes training and PPO mini-batches to four tasks: group4, 16 effective
-trajectories, micro4 per GPU and two accumulation passes on two GPUs. All other
-learning settings stay the same. It evaluates the fixed 50-task validation set
-before and after training and saves the checkpoint and `validation_report.json`
-under `outputs/models/grpo-stage1-v3-syncfix-pilot50-batch4/`, with logs under
-`outputs/logs/grpo-stage1-v3-syncfix-pilot50-batch4/`. Existing batch2 results
-are retained. The comparison uses 800 optimized trajectories versus batch2's
-400; compare sample use and elapsed time along with success. Append `--dry-run`
-to validate the command without starting training.
-
-For the learning-rate comparison against the original batch2 pilot:
+For the learning-rate comparison on the same 30-task subset:
 
 ```bash
 bash scripts/grpo.sh --pilot-steps 50 --learning-rate 3e-6
@@ -249,9 +246,75 @@ This starts from the same best SFT source with batch2, group4, micro4,
 accumulation1, 15-step warmup and 50 effective updates (400 optimized
 trajectories). Only the peak learning rate changes to 3e-6. Baseline and final
 validation, the checkpoint and SwanLab logging remain automatic. The report is
-`outputs/models/grpo-stage1-v3-syncfix-pilot50-lr3e-6/validation_report.json`;
+`outputs/models/grpo-stage1-v3-syncfix-pilot50-eval30-lr3e-6/validation_report.json`;
 logs use the same name under `outputs/logs/`. It does not resume either prior
-pilot or run the held-out test. Append `--dry-run` for preparation checks.
+pilot. Short experiments do not export/merge a model or run the complete
+200-task test. Append `--dry-run` to inspect preparation without training.
+
+The pilot also supports an explicit first-moment control while retaining the
+second moment, two-task batches and the fixed 30-task evaluation:
+
+```bash
+bash scripts/grpo.sh --pilot-steps 50 --learning-rate 3e-5 --adam-beta1 0 \
+  --output outputs/models/grpo-pilot50-lr3e5-beta0-repeat
+```
+
+This is the current candidate for a fresh repeat from SFT, using Adam betas
+`[0, 0.999]` and LR `3e-5`. One completed 50-update run improved the fixed
+30-task diagnostic score from 2 to 7, with five gains and no losses; LR `3e-6`
+with the same betas gave 1 to 1. Two-task batches, group4, micro4, accumulation1,
+warmup15 and the original 1,000-task source remain unchanged. This is a short
+diagnostic result, not a complete 200-task test gain or a default change to the
+500-update production recipe. Check reproducibility and retention on the
+original 50-task validation before extending the training budget.
+
+To run the current candidate for 100 effective updates from the same best SFT:
+
+```bash
+bash scripts/grpo.sh --pilot-steps 100 --learning-rate 3e-5 --adam-beta1 0
+```
+
+This is a fresh 100-update run, using batch2/group4/micro4/accumulation1,
+warmup15 and the same 500-update scheduler plan as the 50-update comparison.
+It optimizes 800 trajectories and automatically evaluates the fixed 30-task
+subset at steps0,50,100, saving both step50 and step100 checkpoints. SwanLab
+logging remains enabled. The output is
+`outputs/models/grpo-stage1-v3-syncfix-pilot100-eval30-lr3e-5-beta0/`;
+logs and resolved configuration use the same name under `outputs/logs/`.
+`validation_report.json` reports all three snapshots, final-step gains/losses,
+and the final step100 checkpoint. Its `model_selection` field separately
+records the best checkpoint, which can be step50. The step100 result is never
+replaced by the best score. As with the 50-update pilot, this mode does not
+export/merge a model or run the complete 200-task evaluation.
+
+To evaluate the saved step100 checkpoint on the formal 200-task benchmark:
+
+```bash
+TMPDIR="$PWD/outputs" bash scripts/grpo.sh --evaluate-checkpoint \
+  outputs/models/grpo-stage1-v3-syncfix-pilot100-eval30-lr3e-5-beta0/global_step_100/actor
+```
+
+The launcher exports and merges the specified actor in temporary storage, then
+runs the formal evaluator and prints the Strict success percentage and count.
+It saves the summary, HTML report and logs under `outputs/evaluation/` and removes
+its temporary model copies after the run. Use `--output` to name a new evaluation
+directory for a repeat.
+
+To resume the best-recipe run at step100:
+
+```bash
+bash scripts/grpo.sh \
+  --resume-from outputs/models/grpo-stage1-v3-syncfix-pilot100-eval30-lr3e-5-beta0/global_step_100 \
+  --stop-at-step 200 \
+  --output outputs/models/grpo-step200-lr3e-5-beta0-continuous
+```
+
+The runner restores the actor, optimizer, scheduler and data loader state from
+step100. Accepted groups accumulate continuously for up to 30 generation
+batches per update, using the same policy. The runner checks for all 100 new effective updates
+before exporting step200 and evaluating the fixed 200 tasks. The terminal
+prints the Strict success rate and the verified Reward=1 count. Results go to
+`outputs/evaluation/grpo-step200-lr3e-5-beta0-continuous/`.
 
 The configuration-C task sampler is installed through the existing runtime hook
 at the trainer's data-loader boundary. It replaces only the training sampler,

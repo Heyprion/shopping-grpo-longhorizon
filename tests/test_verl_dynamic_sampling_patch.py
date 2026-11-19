@@ -91,7 +91,7 @@ class VerlPatchScriptTest(unittest.TestCase):
             fit_source = target.read_text(encoding="utf-8").split("    def fit(self):", 1)[1]
             generation = fit_source.index("generate_sequences(combined_gen_batch)")
             reward_filter = fit_source.index("SHOPPING_GRPO_DYNAMIC_SAMPLING_BATCH")
-            skipped = fit_source.index("SHOPPING_GRPO_DYNAMIC_SAMPLING_SKIPPED")
+            exhausted = fit_source.index('"sampling_exhausted"')
             ready = fit_source.index("SHOPPING_GRPO_DYNAMIC_SAMPLING_READY")
             sleep_before_training = fit_source.index(
                 "self.checkpoint_manager.sleep_replicas()", ready
@@ -102,7 +102,7 @@ class VerlPatchScriptTest(unittest.TestCase):
             update = fit_source.index("actor_output = self._update_actor(batch)", advantage)
 
             self.assertLess(generation, reward_filter)
-            self.assertLess(reward_filter, skipped)
+            self.assertLess(reward_filter, exhausted)
             self.assertLess(reward_filter, ready)
             self.assertLess(ready, sleep_before_training)
             self.assertLess(sleep_before_training, bypass)
@@ -132,25 +132,15 @@ class VerlPatchScriptTest(unittest.TestCase):
             self.assertIn('"group/no_purchase_success_ratio"', fit_source)
             self.assertIn('"group/all_purchase_success_ratio"', fit_source)
             self.assertIn('"group/sampling_invalid"', fit_source)
-            self.assertIn('"training/optimizer_updated": 0', fit_source)
-            self.assertIn(
-                "logger.log(data=skipped_metrics, step=self.global_steps)",
-                fit_source,
-            )
-            self.assertIn(
-                "dynamic_accepted_batches = []",
-                fit_source[skipped:ready],
-            )
-            self.assertIn("dynamic_consecutive_skips", fit_source)
-            self.assertIn(">= dynamic_max_consecutive_skips", fit_source)
-            self.assertNotIn(
-                "exhausted max_num_gen_batches=",
-                fit_source,
-            )
-            self.assertLess(
-                fit_source.index("SHOPPING_GRPO_DYNAMIC_SAMPLING_SKIPPED"),
-                fit_source.index("self.checkpoint_manager.sleep_replicas()", ready),
-            )
+            pending = fit_source[reward_filter:ready]
+            self.assertIn("dynamic_accepted_batches.append(accepted_batch)", pending)
+            self.assertIn("dynamic_num_gen_batches >= dynamic_max_gen_batches", pending)
+            self.assertIn("exhausted max_num_gen_batches=", pending)
+            self.assertIn("raise RuntimeError(", fit_source[exhausted:ready])
+            self.assertNotIn("dynamic_accepted_batches = []", pending)
+            self.assertNotIn("accepted_instructions.clear()", pending)
+            self.assertNotIn("skipped_update", fit_source)
+            self.assertNotIn("dynamic_consecutive_skips", fit_source)
 
     def test_select_and_concat_keep_all_trajectory_fields_aligned(self):
         def make_batch(offset: int, uid_prefix: str) -> DataProto:

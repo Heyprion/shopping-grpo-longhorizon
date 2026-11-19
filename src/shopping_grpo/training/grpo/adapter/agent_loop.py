@@ -15,6 +15,8 @@ from shopping_grpo.environment.projection import (
     ObservationProjectionError,
     project_observation,
 )
+from shopping_grpo.environment.tools import tool_call_to_action
+from shopping_grpo.training.grpo.gigpo import observation_anchor, retained_turns
 from shopping_grpo.training.grpo.adapter.runtime import (
     apply_reward_length_shaping,
     current_runtime_state,
@@ -182,11 +184,34 @@ class ShoppingToolAgentLoop(ToolAgentLoop):
                 int(bounded_sampling_params["max_tokens"]),
                 self.context_generation_reserve_tokens,
             )
-        return await super()._handle_generating_state(
+        start = len(agent_data.response_mask)
+        next_state = await super()._handle_generating_state(
             agent_data,
             bounded_sampling_params,
             ignore_termination=ignore_termination,
         )
+        if (
+            runtime_state is not None
+            and "_gigpo_turns" in runtime_state
+            and runtime_state.get("latest_observation_raw")
+            and next_state == AgentState.PROCESSING_TOOLS
+            and len(agent_data.tool_calls) == 1
+            and len(agent_data.response_mask) > start
+        ):
+            call = agent_data.tool_calls[0]
+            try:
+                action = tool_call_to_action(call.name, json.loads(call.arguments or "{}"))
+            except (TypeError, KeyError, ValueError):
+                action = None
+            if action is not None:
+                anchor = observation_anchor(
+                    runtime_state["latest_observation_raw"], runtime_state["latest_observation"]
+                )
+                offset = runtime_state["context_tokens_removed"]
+                runtime_state["_gigpo_turns"].append(
+                    (anchor, action, start + offset, len(agent_data.response_mask) + offset)
+                )
+        return next_state
 
     async def _call_tool(self, tool_call, tools_kwargs, agent_data):
         """把工具适配器拿到的原始 observation 压缩成模型真正可见的版本。"""
@@ -265,7 +290,16 @@ class ShoppingToolAgentLoop(ToolAgentLoop):
         )
         state = await session.start(task_id)
         try:
+            if getattr(self, "config", {}).get("shopping_gigpo", {}).get("enable", False):
+                state["_gigpo_turns"] = []
             output = await super().run(sampling_params, **kwargs)
+            if "_gigpo_turns" in state:
+                output.extra_fields["shopping_gigpo"] = {
+                    "turns": retained_turns(
+                        state["_gigpo_turns"], state["context_tokens_removed"],
+                        len(output.response_mask),
+                    )
+                }
             if not state["done"] and not state["error"]:
                 state["error"] = "assistant_finished_without_environment_done"
                 state["termination_reason"] = state["error"]

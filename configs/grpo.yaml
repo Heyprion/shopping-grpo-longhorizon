@@ -114,14 +114,14 @@ algorithm:
 shopping_task_sampling:
   enable: true
   seed: 42
+  focus_task_ids: null
   difficulty_weights: [0.1, 0.3, 0.6]
   preserve_domain_marginal: true
 
 shopping_dynamic_sampling:
   enable: true
   metric: seq_reward
-  max_num_gen_batches: 3
-  max_consecutive_skipped_updates: 10
+  max_num_gen_batches: 30
   reward_tolerance: 1.0e-8
 
 shopping_trace:

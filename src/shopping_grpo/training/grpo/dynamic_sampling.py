@@ -9,6 +9,25 @@ from pathlib import Path
 from typing import Any
 
 
+MAX_GENERATION_BATCHES = 30
+
+
+def take_distinct_reward_groups(groups, shopping_infos, instruction_ids, accepted, remaining):
+    """Fill remaining slots with distinct instructions from valid reward-varying groups."""
+    uids = []
+    for group in groups:
+        if len(uids) == remaining:
+            break
+        if not group["kept"]:
+            continue
+        task_id = int(shopping_infos[group["indices"][0]]["task_id"])
+        instruction = instruction_ids[task_id]
+        if instruction not in accepted:
+            accepted.add(instruction)
+            uids.append(group["uid"])
+    return uids
+
+
 def build_rollout_diagnostics(
     uids: Sequence[Hashable], shopping_infos: Sequence[object]
 ) -> list[dict[str, Any]]:

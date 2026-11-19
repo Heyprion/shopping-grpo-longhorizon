@@ -21,7 +21,7 @@ EXPECTED_VERSIONS = {
     "swanlab": "0.9.1",
 }
 EXPECTED_TRANSFORMERS_REVISION = "7ea2320c76117e6742364808a666ef6f2fb40a67"
-PATCH_MARKER = "SHOPPING_GRPO_DYNAMIC_SAMPLING_PATCH_V3"
+PATCH_MARKER = "SHOPPING_GRPO_DYNAMIC_SAMPLING_PATCH_V6"
 MAX_SAFE_RESPONSE_LENGTH = 20480
 MAX_SAFE_SEQUENCE_LENGTH = 24576
 CURRENT_RUNTIME_FILES = {
@@ -180,6 +180,7 @@ def validate_dynamic_sampling(config, verl_source: Path, installed):
 
     try:
         from shopping_grpo.training.grpo.dynamic_sampling import (
+            MAX_GENERATION_BATCHES,
             extract_shopping_group_signals,
             select_reward_varying_groups,
         )
@@ -211,12 +212,10 @@ def validate_dynamic_sampling(config, verl_source: Path, installed):
 
     if dynamic_config.get("metric") != "seq_reward":
         raise SystemExit("shopping_dynamic_sampling.metric must be seq_reward")
-    if int(dynamic_config.get("max_num_gen_batches", 0)) <= 0:
-        raise SystemExit("shopping_dynamic_sampling.max_num_gen_batches must be positive")
-    if int(dynamic_config.get("max_consecutive_skipped_updates", 0)) <= 0:
-        raise SystemExit(
-            "shopping_dynamic_sampling.max_consecutive_skipped_updates must be positive"
-        )
+    if not 1 <= int(dynamic_config.get("max_num_gen_batches", 0)) <= MAX_GENERATION_BATCHES:
+        raise SystemExit(f"shopping_dynamic_sampling.max_num_gen_batches must be in [1, {MAX_GENERATION_BATCHES}]")
+    if not config.get("shopping_task_sampling", {}).get("enable", False):
+        raise SystemExit("dynamic sampling requires the stratified training sampler")
     reward_tolerance = float(dynamic_config.get("reward_tolerance", -1))
     if reward_tolerance < 0 or not math.isfinite(reward_tolerance):
         raise SystemExit("shopping_dynamic_sampling.reward_tolerance must be finite and non-negative")
@@ -232,9 +231,6 @@ def validate_dynamic_sampling(config, verl_source: Path, installed):
                 "enable": True,
                 "metric": str(dynamic_config.metric),
                 "max_num_gen_batches": int(dynamic_config.max_num_gen_batches),
-                "max_consecutive_skipped_updates": int(
-                    dynamic_config.max_consecutive_skipped_updates
-                ),
                 "reward_tolerance": reward_tolerance,
                 "ray_trainer": str(ray_trainer),
                 "marker": PATCH_MARKER,
@@ -242,6 +238,21 @@ def validate_dynamic_sampling(config, verl_source: Path, installed):
             sort_keys=True,
         )
     )
+
+
+def validate_gigpo(config):
+    if not config.get("shopping_gigpo", {}).get("enable", False):
+        return
+    algorithm = config["algorithm"]
+    if (
+        str(algorithm["adv_estimator"]).lower() != "grpo"
+        or algorithm["use_kl_in_reward"]
+        or algorithm["norm_adv_by_std_in_grpo"]
+        or float(algorithm["gamma"]) != 1.0
+        or not config["shopping_dynamic_sampling"]["enable"]
+        or config.get("shopping_trace", {}).get("enable", False)
+    ):
+        raise SystemExit("GiGPO requires mean-centered GRPO, gamma=1, strict terminal rewards and dynamic sampling")
 
 
 def validate_trace(config):
@@ -473,6 +484,7 @@ def main():
     validate_fsdp2_config(config)
     validate_task_sampling(config)
     validate_trace(config)
+    validate_gigpo(config)
 
     if sys.version_info[:2] != (3, 12):
         raise SystemExit(f"incompatible Python: expected 3.12, got {sys.version.split()[0]}")

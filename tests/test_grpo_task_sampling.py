@@ -111,6 +111,29 @@ def test_restore_rejects_different_mixture_and_modified_membership():
         StratifiedTaskSampler([0, *ids()[1:]], SAMPLING)
 
 
+def test_focused_replay_repeats_only_selected_training_tasks_and_restores():
+    selected = ids()[:16]
+    config = {**SAMPLING, "focus_task_ids": selected}
+    sampler = StratifiedTaskSampler(ids(), config)
+    drawn = sampler.schedule(0)
+    assert set(sampler.task_ids[i] for i in drawn) == set(selected)
+    assert set(Counter(drawn).values()) == {62, 63}
+    assert all(sampler.rows[drawn[i]]["group_id"] != sampler.rows[drawn[i + 1]]["group_id"]
+               for i in range(0, 1000, 2))
+    assert sampler.summary()["preserve_domain_marginal"] is False
+    iterator = iter(sampler)
+    for _ in range(38):
+        next(iterator)
+    state = iterator.state_dict()
+    restored = iter(StratifiedTaskSampler(ids(), config))
+    restored.load_state_dict(state)
+    assert list(iterator) == list(restored)
+    with pytest.raises(ValueError, match="different"):
+        make_sampler().load_state_dict(sampler.state_dict())
+    with pytest.raises(ValueError, match="16 distinct"):
+        StratifiedTaskSampler(ids(), {**SAMPLING, "focus_task_ids": [0, *selected[1:]]})
+
+
 @pytest.mark.parametrize("weights", [[0, 0.5, 0.5], [float("nan"), 0.3, 0.6], [0.1, 0.9]])
 def test_invalid_weights_are_rejected(weights):
     with pytest.raises(ValueError, match="three positive"):
